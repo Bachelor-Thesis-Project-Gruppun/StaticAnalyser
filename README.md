@@ -1,0 +1,2 @@
+# StaticAnalyser
+Bachalor thesis project
