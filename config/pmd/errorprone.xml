@@ -3160,8 +3160,8 @@ concat(ancestor::ClassOrInterfaceDeclaration/ClassOrInterfaceBody/ClassOrInterfa
         </properties>
         <example>
             <![CDATA[
-public class Main {
-    private static final Log _LOG = LogFactory.getLog( Main.class );
+public class base.Main {
+    private static final Log _LOG = LogFactory.getLog( base.Main.class );
     void bar() {
         try {
         } catch( Exception e ) {
