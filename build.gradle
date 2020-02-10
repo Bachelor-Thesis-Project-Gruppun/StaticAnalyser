@@ -29,10 +29,6 @@ dependencies {
 
 mainClassName = 'Main'
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
-}
-
 findbugs {
     ignoreFailures = false
     effort = "max"
