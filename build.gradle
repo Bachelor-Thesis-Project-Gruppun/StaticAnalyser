@@ -1,11 +1,15 @@
 plugins {
     id 'java'
+    id 'java-gradle-plugin'
+    id "com.github.spotbugs" version "3.0.0"
 }
+
+version = 11
+sourceCompatibility = 11
+targetCompatibility = 11
 
 group 'gruppun'
 version '1.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -13,33 +17,40 @@ repositories {
 
 apply plugin: "java"
 apply plugin: "pmd"
-apply plugin: "findbugs"
 apply plugin: 'checkstyle'
 apply plugin: "application"
 apply plugin: "jacoco"
 
+// https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.15.10'
+    implementation 'com.github.javaparser:javaparser-core:3.15.12'
+    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.15.12'
     implementation 'com.github.javaparser:javaparser-core-serialization:3.15.10'
     compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
-    compileOnly 'com.google.code.findbugs:annotations:3.0.1'
-    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+//    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.7.1'
+    compile group: 'com.github.spotbugs', name: 'spotbugs', version: '4.0.0', ext: 'pom'
 }
+
+// BEGIN OWN PLUGIN INFORMATION
+
+// END OWN PLUGIN INFORMATION
 
 mainClassName = 'Main'
 
-findbugs {
-    ignoreFailures = false
-    effort = "max"
-}
 
-tasks.withType(FindBugs) {
+//
+//spotbugs {
+//    effort="max"
+//}
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+    // configure automatically generated tasks
     reports {
         xml.enabled = false
         html.enabled = true
     }
 }
+
 tasks.withType(Pmd) {
     reports {
         xml.enabled = false
