@@ -1,0 +1,10 @@
+language: Java
+notifications:
+  email: false
+  
+  slack:
+    
+    on_success: never
+    on_failure: always    
+
+    secure: sAnUjtdEiKwI0SuildMkTQyWeIT9HzFBcJoHovb+HvhxaFc1e0GHZodWO+4+e2ejEJlms38xr7HG3VTqjB7z18+5SWV2alwUVwVzJ8HpCHb+zqLwDRunkIT87zynVBsPv+sDtbKylu7THvB7XnVAGfXQNHycFjW9Lilg504veKXfyhZt6SUH0bRuZIL2IVr0q9Tq505RbeIQpAn2noukuvRI37YrSpKmfMvtUJwFntgUrBU1yU4Ghiy6rPBHBUN1HmACcT9TLOStgre50c2bU6mRmB0N8CdJksZ8KZ27mCKBh27vOB/kJJtRMNHfbQShIQlPoJKpTaniReW6ZZvFHh167B2nwumAg8KXxwEDViP+4/THo228gDl22UsVYSTEmFOHtq5xMMhr0mf7cR0YGPSbG+LB5VFlgN4GJaHgEOPb6cQdwZBc8Cpr8R+R8kMDgX7Az5vNhig/Zc0nD4FT9H4fu6rbR2NvMVeWv2khv68dVfh+aaBx++YrEASBZ4KsBDAFXL41wJSu2qAYyaClFOfFQr7m+9HrMvf2ucQ7qW0nmKrLwPsxXVUDI6Lh2uxp5DQfGrsy5SBWDhQ9IvErG9Hd+Rp+/i8hhTnPkgu7hTeal8M8dkIX7/Y3TjAYhXE1FgKQUAhdkeWbUm/gTUza4ELGFio491V8gUr3+b78K/Y=
