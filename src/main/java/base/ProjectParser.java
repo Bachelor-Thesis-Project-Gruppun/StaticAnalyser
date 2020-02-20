@@ -1,18 +1,13 @@
 package base;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.utils.SourceRoot;
 
-@Nonnull
 public class ProjectParser {
 
     private String sourceRoot;
@@ -35,39 +30,9 @@ public class ProjectParser {
         return sourceRoot.getCompilationUnits();
     }
 
-    public void verify() {
-        for (CompilationUnit cu : compilationUnits) {
-            cu.accept(new AnnotationGetter(), null);
-        }
+    public List<CompilationUnit> getCompilationUnits() {
+        return compilationUnits;
     }
-
-    private static class AnnotationGetter extends VoidVisitorAdapter<Void> {
-
-        @Override
-        public void visit(
-            MarkerAnnotationExpr annotationExpr, Void list) {
-            super.visit(annotationExpr, list);
-
-            // All of this is very rough, but it is something to start with
-            if (isCustomAnnotation(annotationExpr)) {
-                CompilationUnit cu =
-                    annotationExpr.findRootNode().findCompilationUnit().get();
-                System.out.println(
-                    "Class: " + cu.getStorage().get().getFileName() +
-                    "\nTested patterns:\n" + annotationExpr.getNameAsString() +
-                    ": " + PatternVerifierFactory.getVerifier(Pattern.valueOf(
-                        annotationExpr.getNameAsString().toUpperCase()))
-                                                 .verify(cu));
-            }
-
-        }
-
-        private boolean isCustomAnnotation(AnnotationExpr ann) {
-            return ann.getNameAsString().equals("Singleton") ||
-                   ann.getNameAsString().equals("Immutable");
-        }
-    }
-
 }
 
 
