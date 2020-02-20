@@ -16,10 +16,10 @@ public class ProjectParser {
     public ProjectParser(String sourceRoot) {
         this.sourceRoot = sourceRoot;
 
-        compilationUnits = projectToAST();
+        compilationUnits = projectToAst();
     }
 
-    private List<CompilationUnit> projectToAST() {
+    private List<CompilationUnit> projectToAst() {
         Path pathToSource = Paths.get(sourceRoot);
         SourceRoot sourceRoot = new SourceRoot(pathToSource);
         try {

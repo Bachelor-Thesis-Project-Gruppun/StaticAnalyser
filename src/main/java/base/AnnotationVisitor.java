@@ -17,7 +17,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         if (isPatternAnnotation(annotationExpr)) {
             Optional<CompilationUnit> optional =
                 annotationExpr.findRootNode().findCompilationUnit();
-            if(optional.isEmpty()) {
+            if (optional.isEmpty()) {
                 return;
             }
             CompilationUnit cu = optional.get();
@@ -25,29 +25,28 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             Pattern pattern = Pattern.valueOf(
                 annotationExpr.getNameAsString().toUpperCase());
 
-            boolean validPattern =
-                PatternVerifierFactory.getVerifier(pattern).verify(cu);
-
+            boolean validPattern = PatternVerifierFactory.getVerifier(pattern)
+                                                         .verify(cu);
 
             // Everything below this is just to show something, will probably
             // not be here in the future
             String fileName;
-            if(cu.getStorage().isEmpty()) {
+            if (cu.getStorage().isEmpty()) {
                 fileName = "File name not found";
             } else {
                 fileName = cu.getStorage().get().getFileName();
             }
 
             System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern +
-                ": " + validPattern);
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": "
+                + validPattern);
         }
     }
 
     private boolean isPatternAnnotation(AnnotationExpr ann) {
         Pattern[] patterns = Pattern.class.getEnumConstants();
-        for(Pattern p : patterns) {
-            if(ann.getNameAsString().toUpperCase().equals(p.toString())){
+        for (Pattern p : patterns) {
+            if (ann.getNameAsString().toUpperCase().equals(p.toString())) {
                 return true;
             }
         }
