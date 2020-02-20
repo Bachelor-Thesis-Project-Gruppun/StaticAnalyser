@@ -4,12 +4,9 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.AnnotationDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -57,7 +54,7 @@ public class ProjectParser {
                 System.out.println("Class: " + cu.getStorage().get().getFileName() +
                                    "\nTested patterns:\n" + annotationExpr.getNameAsString() +
                                    ": " +
-                                   PatternVerifyer.verifyPattern(annotationExpr.getNameAsString(), cu));
+                                   PatternVerifierFactory.getVerifier(annotationExpr.getNameAsString()).verify(cu));
                 // If we can get the proper enum from the annotation that would
                 // be nicer
             }
