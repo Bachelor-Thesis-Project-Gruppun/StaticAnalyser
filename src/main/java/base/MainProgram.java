@@ -9,6 +9,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.SourceRoot;
 
 public final class MainProgram {
+    private static final String FILE_PATH = "src/main/java/base/MainProgram" +
+                                            ".java";
     private MainProgram() {
         System.out.println("No idea");
     }
