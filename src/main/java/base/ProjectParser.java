@@ -14,10 +14,11 @@ import com.github.javaparser.utils.SourceRoot;
 
 @Nonnull
 public class ProjectParser {
+
     private String sourceRoot;
     private List<CompilationUnit> compilationUnits;
 
-    public ProjectParser(String sourceRoot){
+    public ProjectParser(String sourceRoot) {
         this.sourceRoot = sourceRoot;
 
         compilationUnits = projectToAST();
@@ -35,28 +36,28 @@ public class ProjectParser {
     }
 
     public void verify() {
-        for(CompilationUnit cu : compilationUnits) {
+        for (CompilationUnit cu : compilationUnits) {
             cu.accept(new AnnotationGetter(), null);
         }
     }
 
     private static class AnnotationGetter extends VoidVisitorAdapter<Void> {
+
         @Override
         public void visit(
-            MarkerAnnotationExpr annotationExpr,
-            Void list) {
+            MarkerAnnotationExpr annotationExpr, Void list) {
             super.visit(annotationExpr, list);
 
             // All of this is very rough, but it is something to start with
-            if(isCustomAnnotation(annotationExpr)) {
+            if (isCustomAnnotation(annotationExpr)) {
                 CompilationUnit cu =
                     annotationExpr.findRootNode().findCompilationUnit().get();
-                System.out.println("Class: " + cu.getStorage().get().getFileName() +
-                                   "\nTested patterns:\n" + annotationExpr.getNameAsString() +
-                                   ": " +
-                                   PatternVerifierFactory.getVerifier(annotationExpr.getNameAsString()).verify(cu));
-                // If we can get the proper enum from the annotation that would
-                // be nicer
+                System.out.println(
+                    "Class: " + cu.getStorage().get().getFileName() +
+                    "\nTested patterns:\n" + annotationExpr.getNameAsString() +
+                    ": " + PatternVerifierFactory.getVerifier(Pattern.valueOf(
+                        annotationExpr.getNameAsString().toUpperCase()))
+                                                 .verify(cu));
             }
 
         }

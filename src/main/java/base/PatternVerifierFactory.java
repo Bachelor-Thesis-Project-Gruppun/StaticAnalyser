@@ -1,13 +1,13 @@
 package base;
 
 public class PatternVerifierFactory {
-    public static IVerifier getVerifier(String s) {
-        switch(s) {
-            case "Singleton":
+
+    public static IVerifier getVerifier(Pattern p) {
+        switch (p) {
+            case SINGLETON:
                 return new SingletonVerifier();
             default:
                 throw new IllegalStateException();
         }
     }
-
 }
