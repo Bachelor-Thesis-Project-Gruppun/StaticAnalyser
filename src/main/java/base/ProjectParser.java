@@ -9,17 +9,9 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.SourceRoot;
 
 public class ProjectParser {
-
-    private String sourceRoot;
-    private List<CompilationUnit> compilationUnits;
-
-    public ProjectParser(String sourceRoot) {
-        this.sourceRoot = sourceRoot;
-        this.compilationUnits = projectToAst();
-    }
-
-    private List<CompilationUnit> projectToAst() {
-        Path pathToSource = Paths.get(sourceRoot);
+    public static List<CompilationUnit> projectToAst(String sourcePath) {
+        List<CompilationUnit> compilationUnits;
+        Path pathToSource = Paths.get(sourcePath);
         SourceRoot sourceRoot = new SourceRoot(pathToSource);
         try {
             sourceRoot.tryToParse();
@@ -27,10 +19,6 @@ public class ProjectParser {
             e.printStackTrace();
         }
         return sourceRoot.getCompilationUnits();
-    }
-
-    public List<CompilationUnit> getCompilationUnits() {
-        return compilationUnits;
     }
 }
 
