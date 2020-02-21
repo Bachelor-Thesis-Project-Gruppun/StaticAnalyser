@@ -1,8 +1,8 @@
-package base;
+package PatternVerifiers;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-public interface IVerifier {
+public interface IPatternVerifier {
 
     boolean verify(CompilationUnit cu);
 }

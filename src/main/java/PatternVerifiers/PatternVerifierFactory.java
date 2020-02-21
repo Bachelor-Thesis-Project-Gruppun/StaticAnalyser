@@ -1,8 +1,10 @@
-package base;
+package PatternVerifiers;
+
+import base.Pattern;
 
 public class PatternVerifierFactory {
 
-    public static IVerifier getVerifier(Pattern p) {
+    public static IPatternVerifier getVerifier(Pattern p) {
         switch (p) {
             case SINGLETON:
                 return new SingletonVerifier();

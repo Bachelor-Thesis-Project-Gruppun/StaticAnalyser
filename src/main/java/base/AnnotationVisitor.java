@@ -2,6 +2,7 @@ package base;
 
 import java.util.Optional;
 
+import PatternVerifiers.PatternVerifierFactory;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
