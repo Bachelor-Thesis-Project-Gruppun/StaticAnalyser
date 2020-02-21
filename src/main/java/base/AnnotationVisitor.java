@@ -2,7 +2,8 @@ package base;
 
 import java.util.Optional;
 
-import PatternVerifiers.PatternVerifierFactory;
+import patternverifiers.PatternVerifierFactory;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -39,15 +40,15 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             }
 
             System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": "
-                + validPattern);
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " +
+                validPattern);
         }
     }
 
     private boolean isPatternAnnotation(AnnotationExpr ann) {
         Pattern[] patterns = Pattern.class.getEnumConstants();
         for (Pattern p : patterns) {
-            if (ann.getNameAsString().toUpperCase().equals(p.toString())) {
+            if (ann.getNameAsString().equalsIgnoreCase(p.toString())) {
                 return true;
             }
         }

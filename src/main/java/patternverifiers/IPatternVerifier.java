@@ -1,4 +1,4 @@
-package PatternVerifiers;
+package patternverifiers;
 
 import com.github.javaparser.ast.CompilationUnit;
 
