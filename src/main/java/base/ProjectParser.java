@@ -15,8 +15,7 @@ public class ProjectParser {
 
     public ProjectParser(String sourceRoot) {
         this.sourceRoot = sourceRoot;
-
-        compilationUnits = projectToAst();
+        this.compilationUnits = projectToAst();
     }
 
     private List<CompilationUnit> projectToAst() {
