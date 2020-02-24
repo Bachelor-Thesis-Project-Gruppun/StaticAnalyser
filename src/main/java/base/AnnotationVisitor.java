@@ -2,12 +2,12 @@ package base;
 
 import java.util.Optional;
 
-import patternverifiers.PatternVerifierFactory;
-
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+
+import patternverifiers.PatternVerifierFactory;
 
 class AnnotationVisitor extends VoidVisitorAdapter<Void> {
 
@@ -40,8 +40,8 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             }
 
             System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " +
-                validPattern);
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": "
+                + validPattern);
         }
     }
 
