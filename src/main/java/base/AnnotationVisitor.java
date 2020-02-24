@@ -1,5 +1,6 @@
 package base;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -10,6 +11,10 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import patternverifiers.PatternVerifierFactory;
 
 class AnnotationVisitor extends VoidVisitorAdapter<Void> {
+
+    public AnnotationVisitor() {
+        super();
+    }
 
     @Override
     public void visit(
@@ -25,7 +30,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             CompilationUnit cu = optional.get();
 
             Pattern pattern = Pattern.valueOf(
-                annotationExpr.getNameAsString().toUpperCase());
+                annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
 
             boolean validPattern = PatternVerifierFactory.getVerifier(pattern)
                                                          .verify(cu);

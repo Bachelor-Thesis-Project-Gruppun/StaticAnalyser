@@ -3,9 +3,9 @@ package base;
 import groovy.lang.Singleton;
 
 @Singleton
-public class Test {
+public class TestClass {
 
-    public Test() {
+    public TestClass() {
         System.out.println("Hello");
     }
 }

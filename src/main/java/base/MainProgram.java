@@ -7,6 +7,9 @@ import com.github.javaparser.ast.CompilationUnit;
 
 public final class MainProgram {
 
+    private MainProgram() {
+    }
+
     public static void main(String[] args) throws IOException {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
