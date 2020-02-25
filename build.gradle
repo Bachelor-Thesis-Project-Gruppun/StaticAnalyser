@@ -32,6 +32,7 @@ dependencies {
     implementation 'com.github.javaparser:javaparser-core-serialization:3.15.10'
     compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
     compile group: 'com.github.spotbugs', name: 'spotbugs', version: '4.0.0', ext: 'pom'
+    implementation 'com.github.spotbugs:spotbugs:4.0.0'
 }
 
 mainClassName = 'Main'
@@ -52,17 +53,16 @@ tasks.withType(Pmd) {
 }
 
 pmd {
-    toolVersion '6.8.0'
+    toolVersion '6.21.0'
     ignoreFailures = false
-
     pmdTest.enabled = false
     consoleOutput false
     sourceSets = [sourceSets.main]
-    ruleSetFiles = files(
-                    "config/pmd/ruleSet.xml",
-                    "config/pmd/bestpractices.xml",
-                    "config/pmd/design.xml",
-                    "config/pmd/errorprone.xml")
+//    ruleSetFiles = files(
+//                    "config/pmd/ruleSet.xml",
+//                    "config/pmd/bestpractices.xml",
+//                    "config/pmd/design.xml",
+//                    "config/pmd/errorprone.xml")
 }
 
 jacoco {
