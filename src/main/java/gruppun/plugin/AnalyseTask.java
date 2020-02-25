@@ -17,6 +17,10 @@ import org.gradle.api.tasks.TaskAction;
  * described by certain annotations.
  */
 public class AnalyseTask extends DefaultTask {
+    public AnalyseTask() {
+        super();
+    }
+
     @TaskAction
     public void check() throws GradleException {
         Project project = this.getProject();
@@ -35,9 +39,7 @@ public class AnalyseTask extends DefaultTask {
             System.out.println("Path:: " + path.toString());
         });
 
-        if (false) {
-            // Example on how we can fail a build.
-            throw new GradleException("Class A does not fullfill pattern B!");
-        }
+        // Example on how we can fail a build.
+        // throw new GradleException("Class A does not fullfill pattern B!");
     }
 }
