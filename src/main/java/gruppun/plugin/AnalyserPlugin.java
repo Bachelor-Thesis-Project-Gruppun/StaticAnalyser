@@ -8,11 +8,11 @@ import org.gradle.api.Project;
  * a dependency for the check task.
  */
 public class AnalyserPlugin implements Plugin<Project> {
-     @Override
-        public void apply(Project project) {
-         project.getTasks().create("Analyse", AnalyseTask.class);
-         project.getTasksByName("check", true).forEach(task -> {
-             task.dependsOn("Analyse");
-         });
-     }
+    @Override
+    public void apply(Project project) {
+        project.getTasks().create("Analyse", AnalyseTask.class);
+            project.getTasksByName("check", true).forEach(task -> {
+                task.dependsOn("Analyse");
+        });
+    }
 }
