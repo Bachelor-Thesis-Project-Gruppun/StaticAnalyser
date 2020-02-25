@@ -2,7 +2,7 @@ package patternverifiers;
 
 import base.Pattern;
 
-public class PatternVerifierFactory {
+public final class PatternVerifierFactory {
 
     private PatternVerifierFactory() {
     }

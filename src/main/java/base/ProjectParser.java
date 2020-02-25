@@ -8,9 +8,12 @@ import java.util.List;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.SourceRoot;
 
-public class ProjectParser {
+public final class ProjectParser {
+
+    private ProjectParser() {
+    }
+
     public static List<CompilationUnit> projectToAst(String sourcePath) {
-        List<CompilationUnit> compilationUnits;
         Path pathToSource = Paths.get(sourcePath);
         SourceRoot sourceRoot = new SourceRoot(pathToSource);
         try {
