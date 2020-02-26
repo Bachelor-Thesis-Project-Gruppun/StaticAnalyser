@@ -1,15 +1,19 @@
 plugins {
     id 'java'
     id 'java-gradle-plugin'
+    id 'maven-publish'
     id "com.github.spotbugs" version "3.0.0"
 }
 
-version = 11
+group 'com.github.gruppun'
+version '1.0'
+
 sourceCompatibility = 11
 targetCompatibility = 11
 
-group 'gruppun'
-version '1.0-SNAPSHOT'
+project.version = "1.0"
+project.group = "com.github.gruppun"
+project.description = "A static design pattern analyser tool."
 
 repositories {
     mavenCentral()
@@ -21,7 +25,6 @@ apply plugin: 'checkstyle'
 apply plugin: "application"
 apply plugin: "jacoco"
 
-// https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation 'com.github.javaparser:javaparser-core:3.15.12'
@@ -34,11 +37,6 @@ dependencies {
 
 mainClassName = 'Main'
 
-
-//
-//spotbugs {
-//    effort="max"
-//}
 tasks.withType(com.github.spotbugs.SpotBugsTask) {
     // configure automatically generated tasks
     reports {
@@ -100,3 +98,28 @@ test {
     useJUnitPlatform()
     jacocoTestReport
 }
+
+
+// Custom gradle plugin START
+
+gradlePlugin {
+    plugins {
+        staticAnalyser {
+            id = "StaticAnalyser"
+            implementationClass = "gruppun.plugin.AnalyserPlugin"
+        }
+    }
+}
+
+publishing {
+    publications {
+        pluginPublication(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId "staticanalyser"
+            version project.version
+        }
+    }
+}
+
+// Custom gradle plugin END
