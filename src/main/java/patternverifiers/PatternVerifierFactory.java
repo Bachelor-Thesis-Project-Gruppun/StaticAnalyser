@@ -3,7 +3,7 @@ package patternverifiers;
 import base.Pattern;
 
 /**
- * A static factory for constructing pattern verifiers
+ * A static factory for constructing pattern verifiers.
  */
 public final class PatternVerifierFactory {
 
@@ -11,7 +11,10 @@ public final class PatternVerifierFactory {
     }
 
     /**
+     * Returns the corresponding verifier to the enum.
+     *
      * @param p the pattern to verify
+     *
      * @return the corresponding verifier for the given pattern
      */
     public static IPatternVerifier getVerifier(Pattern p) {

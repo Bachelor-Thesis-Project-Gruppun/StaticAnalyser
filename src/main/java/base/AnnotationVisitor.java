@@ -10,7 +10,9 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import patternverifiers.PatternVerifierFactory;
 
-/** <p>A visitor that retrieves Java annotations and checks if a given annotation indicates the presence of
+/**
+ * <p>A visitor that retrieves Java annotations and checks if a given annotation
+ * indicates the presence of
  * a design pattern. </p>
  * <p>If a pattern annotation is identified, then the visitor invokes the
  * corresponding pattern verifier.</p>
@@ -21,6 +23,14 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         super();
     }
 
+    /**
+     * The method that is called for every annotation in the compilationUnit.
+     * Verifies the implementation for every annotation marking a design pattern
+     * and prints the result to system.out
+     *
+     * @param annotationExpr The annotation
+     * @param args           Required by visit, not used in this instance
+     */
     @Override
     public void visit(
         MarkerAnnotationExpr annotationExpr, Void args) {
@@ -55,9 +65,13 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         }
     }
 
-    /** Identifies whether or not a given annotation is associated with a known design pattern, which and
-     * therefore indicates that said pattern should exist
+    /**
+     * Identifies whether or not a given annotation is associated with a known
+     * design pattern, which and therefore indicates that said pattern should
+     * exist.
+     *
      * @param ann the annotation to verify
+     *
      * @return true if {@link Pattern} contains the given annotation
      */
     private boolean isPatternAnnotation(AnnotationExpr ann) {
