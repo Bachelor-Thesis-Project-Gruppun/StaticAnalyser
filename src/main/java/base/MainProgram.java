@@ -12,9 +12,19 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        List<CompilationUnit> cus = ProjectParser.projectToAst("src");
-        for (CompilationUnit cu : cus) {
-            cu.accept(new AnnotationVisitor(), null);
+        startAnalyse(new String[]{"src"});
+    }
+
+    /**
+     * Main entrance point to the program.
+     * @param paths an array of paths to analyse.
+     */
+    public static void startAnalyse(String[] paths) {
+        for (String path : paths) {
+            List<CompilationUnit> cus = ProjectParser.projectToAst(path);
+            for (CompilationUnit cu : cus) {
+                cu.accept(new AnnotationVisitor(), null);
+            }
         }
     }
 }
