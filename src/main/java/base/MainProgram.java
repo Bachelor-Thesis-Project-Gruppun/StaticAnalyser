@@ -1,21 +1,23 @@
 package base;
 
 import java.util.List;
-
 import com.github.javaparser.ast.CompilationUnit;
+import patternverifiers.SingletonVerifier;
 
 public final class MainProgram {
     // private int i = 0;       // Used for debugging VariableReader
-    // private static String str = "0";     // Used for debugging VariableReader
+    private static String str = "0";     // Used for debugging VariableReader
+    private static MainProgram mp = new MainProgram();
     private MainProgram() {
     }
 
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        // List<CompilationUnit> cus = ProjectParser.projectToAst("src");
-        // VariableReader v = new VariableReader();
-        // System.out.println(v.readVariables(cus.get(1)));
+        List<CompilationUnit> cus = ProjectParser.projectToAst("src");
+        //System.out.println(VariableReader.readVariables(cus.get(1)));
+        SingletonVerifier v = new SingletonVerifier();
+        System.out.println(v.hasStaticInstance(cus.get(1)));
         startAnalyse(new String[]{"src"});
     }
 
