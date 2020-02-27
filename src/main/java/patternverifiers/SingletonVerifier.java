@@ -19,7 +19,7 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     /**
-     * Method for declaring if a java class holds a field variable of a static instance, still needs to check if that instance is private
+     * Method for declaring if a java class holds a field variable of a static instance
      * @param cu    The CompilationUnit representing the java class to look at
      * @return  True iff the java class holds a field variable with a static modifier of the same type as the class itself (eg. static SingletonVerifier sv;)
      */
@@ -27,7 +27,7 @@ public class SingletonVerifier implements IPatternVerifier {
         Boolean stat = false;
         Boolean priv = false;
         for (FieldDeclaration bd : VariableReader.readVariables(cu)) {      // For each FieldDeclaration in the java file
-            if (bd.getVariables().get(0).getType().toString().equals(cu.getType(0).getNameAsString())) {    // If there is a field of the same type as the file itself
+            if (bd.getVariables().get(0).getType().toString().equals(cu.getType(0).getNameAsString())) {    // If there is a field of the same type as the file itself, probaply needs to check for several different classes in the same file, can have inner classes etc not sure how javaparser handles that.
                 for (Modifier md : bd.getModifiers()) {     // For each modifier on that field
                     if (md.getKeyword().asString().equals("static")) {  // If that modifier is static
                         stat = true;
