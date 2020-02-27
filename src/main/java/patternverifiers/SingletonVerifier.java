@@ -20,12 +20,13 @@ public class SingletonVerifier implements IPatternVerifier {
 
     /**
      * Method for declaring if a java class holds a field variable of a static instance
+     * https://stackoverflow.com/questions/53300710/how-to-parse-inner-class-from-java-source-code might help solving a check for inner classes
      * @param cu    The CompilationUnit representing the java class to look at
-     * @return  True iff the java class holds a field variable with a static modifier of the same type as the class itself (eg. static SingletonVerifier sv;)
+     * @return      True iff the java class holds a field variable with a static modifier of the same type as the class itself (eg. static SingletonVerifier sv;)
      */
     public boolean hasStaticInstance(CompilationUnit cu) {
-        Boolean stat = false;
-        Boolean priv = false;
+        boolean stat = false;
+        boolean priv = false;
         for (FieldDeclaration bd : VariableReader.readVariables(cu)) {      // For each FieldDeclaration in the java file
             if (bd.getVariables().get(0).getType().toString().equals(cu.getType(0).getNameAsString())) {    // If there is a field of the same type as the file itself, probaply needs to check for several different classes in the same file, can have inner classes etc not sure how javaparser handles that.
                 for (Modifier md : bd.getModifiers()) {     // For each modifier on that field

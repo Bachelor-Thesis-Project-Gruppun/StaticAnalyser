@@ -33,4 +33,8 @@ public final class MainProgram {
             }
         }
     }
+
+    public class innerClass{
+
+    }
 }
