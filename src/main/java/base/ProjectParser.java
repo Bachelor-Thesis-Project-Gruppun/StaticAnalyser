@@ -9,8 +9,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.SourceRoot;
 
 /**
- * The class responsible for parsing a project, currently only converting to
- * AST.
+ * The class responsible for parsing a project, currently only converting to AST.
  */
 public final class ProjectParser {
 
@@ -18,12 +17,11 @@ public final class ProjectParser {
     }
 
     /**
-     * Turns a project, given by the path to it's source root, to an AST
-     * (compilationUnit).
+     * Turns a project, given by the path to it's source root, to an AST (compilationUnit).
+     *
      * @param sourcePath the root of the project
      *
-     * @return a list of {@link CompilationUnit} that represent the entire
-     *     project in AST form
+     * @return a list of {@link CompilationUnit} that represent the entire project in AST form
      */
     public static List<CompilationUnit> projectToAst(String sourcePath) {
         Path pathToSource = Paths.get(sourcePath);
