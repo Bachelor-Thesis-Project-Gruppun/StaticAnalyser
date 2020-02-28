@@ -1,11 +1,17 @@
 package base;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
+import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import patternverifiers.PatternVerifierFactory;
@@ -33,10 +39,10 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
      */
     @Override
     public void visit(
-        MarkerAnnotationExpr annotationExpr, Void args) {
+        NormalAnnotationExpr annotationExpr, Void args) {
         super.visit(annotationExpr, args);
 
-        if (isPatternAnnotation(annotationExpr)) {
+//        if (isPatternAnnotation(annotationExpr)) {
             Optional<CompilationUnit> optional =
                 annotationExpr.findRootNode().findCompilationUnit();
             if (optional.isEmpty()) {
@@ -44,12 +50,15 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             }
             CompilationUnit cu = optional.get();
 
-            Pattern pattern = Pattern.valueOf(
-                annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
+//            Pattern pattern = Pattern.valueOf(
+//                annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
+
+        for (Pattern pattern: getSingletonPattern(annotationExpr)) {
 
             boolean validPattern = PatternVerifierFactory.getVerifier(pattern)
                                                          .verify(cu);
-
+            System.out.println(pattern);
+            System.out.println(validPattern);
             // Everything below this is just to show something, will probably
             // not be here in the future
             String fileName;
@@ -63,24 +72,61 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
                 "File: " + fileName + "\nTested patterns:\n" + pattern + ": "
                 + validPattern);
         }
+
+//        }
     }
 
-    /**
-     * Identifies whether or not a given annotation is associated with a known
-     * design pattern, which and therefore indicates that said pattern should
-     * exist.
-     *
-     * @param ann the annotation to verify
-     *
-     * @return true if {@link Pattern} contains the given annotation
-     */
-    private boolean isPatternAnnotation(AnnotationExpr ann) {
-        Pattern[] patterns = Pattern.class.getEnumConstants();
-        for (Pattern p : patterns) {
-            if (ann.getNameAsString().equalsIgnoreCase(p.toString())) {
-                return true;
+//    /**
+//     * Identifies whether or not a given annotation is associated with a known
+//     * design pattern, which and therefore indicates that said pattern should
+//     * exist.
+//     *
+//     * @param ann the annotation to verify
+//     *
+//     * @return true if {@link Pattern} contains the given annotation
+//     */
+//    private boolean isPatternAnnotation(NormalAnnotationExpr ann) {
+//        System.out.println();
+//        List<Pattern> annPatt = getSingletonPattern(ann);
+//        Pattern[] patterns = Pattern.values();
+//        for (Pattern pattern : annPatt) {
+//
+//            for (Pattern p : patterns) {
+//                if (pattern.toString().equalsIgnoreCase(p.toString())) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
+
+    private List<Pattern> getSingletonPattern(NormalAnnotationExpr annotation) {
+        NodeList<MemberValuePair> pairs = annotation.getPairs();
+
+        List<Pattern> patterns = new ArrayList<Pattern>();
+
+        for (int i = 0; i < pairs.size() ; i++) {
+            MemberValuePair pair = pairs.get(i);
+            if (pair.getName().asString().equalsIgnoreCase("pattern")){
+                var p =
+                    pair.getValue().asArrayInitializerExpr().getValues().toArray(); ;
+                for (int j = 0; j < p.length; j++) {
+//                    System.out.println(p[i].toString());
+//                    System.out.println(Pattern.SINGLETON);
+
+                    for (Pattern pattern:Pattern.values()) {
+                        if (p[i].toString().equalsIgnoreCase("pattern." + pattern.toString())) {
+                            System.out.println("ddfdddd");
+                            patterns.add(pattern);
+                        }
+                    }
+                }
+
             }
+            System.out.println();
         }
-        return false;
+
+        System.out.println();
+        return patterns;
     }
 }
