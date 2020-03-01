@@ -23,25 +23,23 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public boolean verify(CompilationUnit cu) {
-        return callsConstructor(cu) &&
-               hasStaticInstance(cu) &&
-               hasPrivateConstructor(cu);
+        return callsConstructor(cu) && hasStaticInstance(cu) && hasPrivateConstructor(cu);
     }
 
     /**
-     * Method for checking if all the constructors in a Java class are
-     * private.
+     * Method for checking if all the constructors in a Java class are private.
      *
      * @param cu The CompilationUnit representing the Java class to look at
+     *
      * @return True iff all constructors are private
      */
-    public boolean hasPrivateConstructor(CompilationUnit cu){
+    public boolean hasPrivateConstructor(CompilationUnit cu) {
         List<Boolean> isPrivate = new ArrayList<>();
         boolean isPrivateConstructor = true;
 
         // Finds and checks if the constructors are private or not.
         cu.findAll(ConstructorDeclaration.class).forEach(constructor -> {
-            if(constructor.isPrivate()){
+            if (constructor.isPrivate()) {
                 isPrivate.add(true);
             } else {
                 isPrivate.add(false);
@@ -187,7 +185,8 @@ public class SingletonVerifier implements IPatternVerifier {
         if (!result) {   // If result is false
             for (MethodCallExpr currentExpr : privateCalls) {   // For each private call found
                 Node n = currentExpr;   // Assign the current private call to n
-                while (!(n instanceof CompilationUnit)) {   // While n is not a CompilationUnit
+                while (!(n instanceof CompilationUnit) && !result) {   // While n is not a
+                    // CompilationUnit
                     // (Since CompilationUnits are high up the the hierarchy, n being a
                     // CompilationUnit would most likely mean it has gone past all
                     // MethodDeclarations and can therefor go to the next MethodCallExpr
