@@ -40,4 +40,21 @@ public class SingletonMock {
         return getInstance();
     }
 
+    /**
+     * Test method used to test out nested calls from private methods
+     *
+     * @return
+     */
+    private static SingletonMock callCallGetInstance() {
+        return callGetInstance();
+    }
+
+    /**
+     * Test method used to test out nested calls from private methods
+     *
+     * @return
+     */
+    public static SingletonMock callCallCallGetInstance() {
+        return callCallGetInstance();
+    }
 }

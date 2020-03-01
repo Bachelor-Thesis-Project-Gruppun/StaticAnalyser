@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -121,8 +122,8 @@ public class SingletonVerifier implements IPatternVerifier {
 
     /**
      * Method that returns whether a method is called from another public method in the same class
-     * or not, could be made recursive in the future(?) by upcasting a MethodCallExpr
-     * .getParentNode() to a MethodDeclaration in order to look deeper in nested method calls.
+     * or not. Calls itself recursively until no more calls are found (not 100% sure it doesn't end
+     * up in an infinite loop if it never finds a public call, might need some help with that)
      * Method does currently not differentiate between overloaded methods since it compares names of
      * methods at this time.
      *
@@ -134,20 +135,43 @@ public class SingletonVerifier implements IPatternVerifier {
      */
     public boolean isMethodCalledFromPublic(
         List<MethodDeclaration> allMethods, MethodDeclaration methodToLookFor) {
-        List<MethodCallExpr> calls = new ArrayList<>();
+        List<MethodCallExpr> publicCalls = new ArrayList<>();
+        List<MethodCallExpr> privateCalls = new ArrayList<>();
+        boolean result = false;
         for (MethodDeclaration current : allMethods) {  // For each method in a class
             current.findAll(MethodCallExpr.class).forEach(methodCallExpr -> {   // Find all
                 // MethodCalls
-                if (!current.isPrivate() && methodCallExpr.getChildNodes().get(0).toString().equals(
+                if (methodCallExpr.getChildNodes().get(0).toString().equals(
                     methodToLookFor.getNameAsString())) {   // If the Method called has the same
                     // name as the one we are looking for (so not differentiating between
                     // overloaded methods) AND the method calling the method is not private
-                    calls.add(methodCallExpr);  // Add the call to a list of viable calls
+                    if (!current.isPrivate()) {
+                        publicCalls.add(methodCallExpr);  // Add the call to a list of viable calls
+                    } else {
+                        privateCalls.add(methodCallExpr);   // Add the call to a list of calls
+                        // from other private methods
+                    }
                 }
             });
         }
-
-        return !calls.isEmpty();    // Return if the list is empty
+        result = !publicCalls.isEmpty();    // If a public call was found, set result to true
+        if (!result) {   // If result is false
+            for (MethodCallExpr currentExpr : privateCalls) {   // For each private call found
+                Node n = currentExpr;   // Assign the current private call to n
+                while (!result) {   // While no result is found (Probaply infinite loop here,
+                    // might need a OR of something?
+                    if (n instanceof MethodDeclaration) {   // If n is a MethodDeclaration
+                        result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) n);
+                        // Call the same method recursively on that method to see if that method
+                        // is called from a public method
+                    } else {    // If n is not a MethodDeclaration
+                        n = n.getParentNode().get();    // Find the parent node of n and check if
+                        // that is a MethodDeclaration
+                    }
+                }
+            }
+        }
+        return result;    // Return result
     }
 
 }
