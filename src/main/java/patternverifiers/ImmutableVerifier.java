@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
@@ -30,12 +32,20 @@ public class ImmutableVerifier implements IPatternVerifier {
     @Override
     public boolean verify(CompilationUnit cu) {
         System.out.println();
-        Map<ClassOrInterfaceDeclaration, Boolean> classImmutableMap = new HashMap();
+        Map<ClassOrInterfaceDeclaration, Feedback> classImmutableMap = new HashMap();
         cu.findAll(ClassOrInterfaceDeclaration.class).stream().forEach(c -> {
             classImmutableMap.put(c, verifyClass(c));
         });
 
-        return false;
+        boolean verifySuccessful = true;
+        for (Feedback fb : classImmutableMap.values()) {
+            if (fb.getvalue() == false) {
+                verifySuccessful = false;
+                System.out.println(fb.getMessage());
+            }
+        }
+
+        return verifySuccessful;
     }
 
     /**
@@ -45,16 +55,27 @@ public class ImmutableVerifier implements IPatternVerifier {
      *
      * @return whether or not the class is immutable.
      */
-    private boolean verifyClass(ClassOrInterfaceDeclaration c) {
+    private Feedback verifyClass(ClassOrInterfaceDeclaration c) {
         List<FieldDeclaration> fields = c.getFields();
-        Map<FieldDeclaration, Boolean> varImmutableMap = new HashMap<>();
+        Map<FieldDeclaration, Feedback> varImmutableMap = new HashMap<>();
         fields.stream().forEach(field -> {
             field.getVariables().stream().forEach(var -> {
                 varImmutableMap.put(field, verifyField(field, c));
             });
         });
 
-        return false;
+        boolean verifySuccessful = true;
+        String message = "";
+        for (FieldDeclaration field : varImmutableMap.keySet()) {
+            Feedback fb = varImmutableMap.get(field);
+            if (fb.getvalue() == false) {
+                verifySuccessful = false;
+                message =
+                    "Verification failed for class '" + c.getNameAsString() + "' due to \n\n" +
+                    fb.getMessage();
+            }
+        }
+        return new Feedback(verifySuccessful, message);
     }
 
     /**
@@ -65,14 +86,14 @@ public class ImmutableVerifier implements IPatternVerifier {
      *
      * @return whether or not the class is immutable.
      */
-    private boolean verifyField(FieldDeclaration field, ClassOrInterfaceDeclaration c) {
+    private Feedback verifyField(FieldDeclaration field, ClassOrInterfaceDeclaration c) {
         if (field.hasModifier(Modifier.Keyword.STATIC) || field.hasModifier(
             Modifier.Keyword.FINAL)) {
-            return true;
+            return new Feedback(false);
         }
 
+        Map<MethodDeclaration, Feedback> methodMutatesField = new HashMap();
         if (field.hasModifier(Modifier.Keyword.PRIVATE)) {
-            Map<MethodDeclaration, Boolean> methodMutatesField = new HashMap();
             List<MethodDeclaration> methods = c.getMethods();
             field.getVariables().stream().forEach(var -> {
                 methods.stream().forEach(method -> {
@@ -80,7 +101,18 @@ public class ImmutableVerifier implements IPatternVerifier {
                 });
             });
         }
-        return false;
+
+        boolean verifySuccessful = true;
+        String message = "";
+        for (MethodDeclaration method : methodMutatesField.keySet()) {
+            Feedback fb = methodMutatesField.get(method);
+            if (fb.getvalue()) {
+                verifySuccessful = false;
+                message = "Verification failed for field '" + field.toString() + "' due to \n\n" +
+                          fb.getMessage();
+            }
+        }
+        return new Feedback(verifySuccessful, message);
     }
 
     /**
@@ -91,7 +123,7 @@ public class ImmutableVerifier implements IPatternVerifier {
      *
      * @return if the variable was assigned in the method.
      */
-    private boolean isAssignedIn(VariableDeclarator variable, MethodDeclaration method) {
+    private Feedback isAssignedIn(VariableDeclarator variable, MethodDeclaration method) {
         BlockStmt methodBody = method.getBody().get();
 
         NodeList<Statement> statements = methodBody.getStatements();
@@ -127,14 +159,65 @@ public class ImmutableVerifier implements IPatternVerifier {
                             if (locallyDeclaredVariables.contains(name) == false) {
                                 // The variable being assigned is not a local variable with the
                                 // same name as the one we're looking for.
-                                return true;
-                            }
 
+                                String line = "";
+                                Optional<Range> lines = accessedVar.getRange();
+                                if (lines.isPresent()) {
+                                    line = lines.get().toString();
+                                }
+
+                                return new Feedback(true, "Variable '" + name +
+                                                          "' is assigned in method '" +
+                                                          method.getNameAsString() + "' on '" +
+                                                          line + "'\n");
+                            }
                         }
                     }
                 }
             }
         }
-        return false;
+
+        return new Feedback(
+            false, "Variable " + variable.getNameAsString() + " is not assigned " + "in " +
+                   method.getNameAsString());
+    }
+
+    /**
+     * Simple class to store and manage feedback to the user.
+     */
+    private class Feedback {
+
+        private boolean value;
+        private String message;
+
+        /**
+         * Constructs a new feedback.
+         *
+         * @param value   the result.
+         * @param message a message of what happened. (Maybe a justification for the value and a
+         *                line number?)
+         */
+        public Feedback(boolean value, String message) {
+            this.value = value;
+            this.message = message;
+        }
+
+        /**
+         * Constructs a new Feedback with an empty message.
+         *
+         * @param value the result.
+         */
+        public Feedback(boolean value) {
+            this.value = value;
+            this.message = "";
+        }
+
+        public boolean getvalue() {
+            return value;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 }
