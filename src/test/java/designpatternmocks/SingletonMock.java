@@ -39,4 +39,5 @@ public class SingletonMock {
     public static SingletonMock callGetInstance() {
         return getInstance();
     }
+
 }

@@ -5,12 +5,17 @@ import java.util.List;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 
 import base.VariableReader;
 
 public class SingletonVerifier implements IPatternVerifier {
+
+    private ConstructorDeclaration constructorDeclaration;
 
     public SingletonVerifier() {
     }
@@ -18,8 +23,7 @@ public class SingletonVerifier implements IPatternVerifier {
     @Override
     public boolean verify(CompilationUnit cu) {
 
-        //throw new UnsupportedOperationException();
-        return hasStaticInstance(cu) && hasGetInstanceMethod(cu);
+        return callsConstructor(cu) && hasStaticInstance(cu);
     }
 
     /**
@@ -57,30 +61,95 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     /**
-     * Method for declaring if a java class has a getInstance() method which returns an instance of
-     * the Singleton class. Currently does not support private getInstace methods that are called
-     * somewhere else, or that it checks for a null reference of the instance variable.
+     * Method for declaring if a java class has a getInstance() method which calls the constructor
+     * of the Singleton class, does not support a Singleton that is initialized at variable
+     * declaration in the Instance field.
      *
      * @param cu The CompilationUnit representing the java class to look at
      *
      * @return
      */
-    public boolean hasGetInstanceMethod(CompilationUnit cu) {
+    public boolean callsConstructor(CompilationUnit cu) {
         boolean instanceMethod = false;
         List<MethodDeclaration> methods = new ArrayList<>();
-        cu.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {
+        cu.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {  //Make a list of all
+            // methods in the class.
             methods.add(methodDeclaration);
         });
-        for (MethodDeclaration declaration : methods) {
-            if (declaration.isStatic() && !declaration.isPrivate()) {
-                if (declaration.getTypeAsString().equals(cu.getPrimaryTypeName().get())) {
-                    instanceMethod = true;
+        for (MethodDeclaration declaration : methods) { // For each method
+            if (declaration.isStatic()) {   // If the method is static
+                if (declaration.getTypeAsString().equals(cu.getPrimaryTypeName().get())) {  // If
+                    // the method returns an instance of the Singleton
+                    if (declaration.isPrivate()) {  // If the method is private
+                        cu.findAll(ConstructorDeclaration.class).forEach(
+                            constructor -> constructorDeclaration = constructor);
+                        return isMethodCalledFromPublic(methods, declaration);
+                        // return findConstructorCall(declaration, constructorDeclaration);
+                    } else {
+                        instanceMethod = true;
+                    }
                 }
-
             }
         }
-        //throw new UnsupportedOperationException();
         return instanceMethod;
     }
 
+    /**
+     * Method to look for a (specific, does not look for different constructors if multiple exist in
+     * a class) constructor call, might be useful to differentiate between different types of
+     * singletons in the future, currently unused
+     *
+     * @param declaration A method to look inside to see if there is a ConstructorCall
+     * @param constructor A ConstructorDeclaration for the class
+     *
+     * @return If a method is calling a specific constructor
+     */
+    public boolean findConstructorCall(
+        MethodDeclaration declaration, ConstructorDeclaration constructor) {
+        List<ObjectCreationExpr> calledMethods = new ArrayList<>();
+        declaration.findAll(ObjectCreationExpr.class).forEach(methodDeclaration -> {    // Find all
+            // ObjectCreations in the method
+            if (methodDeclaration.getTypeAsString().equals(
+                constructor.getNameAsString())) {    // If the object created is an instance
+                // of the singleton
+                calledMethods.add(methodDeclaration);   // Add the ObjectCreationExpr to
+                // the list of ObjectCreationExpr
+            }
+        });
+        return !calledMethods.isEmpty(); // If the list of ObjectCreationExpr is empty -> return
+    }
+
+    /**
+     * Method that returns whether a method is called from another public method in the same class
+     * or not, could be made recursive in the future(?) by upcasting a MethodCallExpr
+     * .getParentNode() to a MethodDeclaration in order to look deeper in nested method calls.
+     * Method does currently not differentiate between overloaded methods since it compares names of
+     * methods at this time.
+     *
+     * @param allMethods      A list of MethodDeclarations of all methods in a class
+     * @param methodToLookFor The method to look for if it is called from a public method in the
+     *                        same class
+     *
+     * @return True if the method is called from another public method in the same class
+     */
+    public boolean isMethodCalledFromPublic(
+        List<MethodDeclaration> allMethods, MethodDeclaration methodToLookFor) {
+        List<MethodCallExpr> calls = new ArrayList<>();
+        for (MethodDeclaration current : allMethods) {  // For each method in a class
+            current.findAll(MethodCallExpr.class).forEach(methodCallExpr -> {   // Find all
+                // MethodCalls
+                if (!current.isPrivate() && methodCallExpr.getChildNodes().get(0).toString().equals(
+                    methodToLookFor.getNameAsString())) {   // If the Method called has the same
+                    // name as the one we are looking for (so not differentiating between
+                    // overloaded methods) AND the method calling the method is not private
+                    calls.add(methodCallExpr);  // Add the call to a list of viable calls
+                }
+            });
+        }
+
+        return !calls.isEmpty();    // Return if the list is empty
+    }
+
 }
+
+
