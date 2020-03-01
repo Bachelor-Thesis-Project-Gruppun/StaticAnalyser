@@ -23,8 +23,37 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public boolean verify(CompilationUnit cu) {
+        return callsConstructor(cu) &&
+               hasStaticInstance(cu) &&
+               hasPrivateConstructor(cu);
+    }
 
-        return callsConstructor(cu) && hasStaticInstance(cu);
+    /**
+     * Method for checking if all the constructors in a Java class are
+     * private.
+     *
+     * @param cu The CompilationUnit representing the Java class to look at
+     * @return True iff all constructors are private
+     */
+    public boolean hasPrivateConstructor(CompilationUnit cu){
+        List<Boolean> isPrivate = new ArrayList<>();
+        boolean isPrivateConstructor = true;
+
+        // Finds and checks if the constructors are private or not.
+        cu.findAll(ConstructorDeclaration.class).forEach(constructor -> {
+            if(constructor.isPrivate()){
+                isPrivate.add(true);
+            } else {
+                isPrivate.add(false);
+            }
+        });
+
+        // Takes all boolean values and ANDs them to one value. 
+        for (Boolean bool : isPrivate) {
+            isPrivateConstructor &= bool;
+        }
+
+        return isPrivateConstructor;
     }
 
     /**
@@ -44,7 +73,7 @@ public class SingletonVerifier implements IPatternVerifier {
             cu)) {      // For each FieldDeclaration in the java file
             if (bd.getVariables().get(0).getType().toString().equals(
                 cu.getType(0).getNameAsString())) {    // If there is a field of the
-                // same type as the file itself, probaply needs to check for
+                // same type as the file itself, probably needs to check for
                 // several different classes in the same file, can have inner
                 // classes etc not sure how javaparser handles that.
                 for (Modifier md : bd.getModifiers()) {     // For each modifier on that field
