@@ -78,10 +78,10 @@ jacocoTestReport {
 
 
 checkstyle {
-    toolVersion '8.11'
+    toolVersion '8.29'
     checkstyleTest.enabled = false
     ignoreFailures false
-    configFile file("config/checkstyle/checkstyle.xml")
+//    configFile file("config/checkstyle/checkstyle.xml")
     maxWarnings 0
 }
 checkstyleMain {

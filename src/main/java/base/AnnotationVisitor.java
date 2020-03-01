@@ -12,8 +12,7 @@ import patternverifiers.PatternVerifierFactory;
 
 /**
  * <p>A visitor that retrieves Java annotations and checks if a given annotation
- * indicates the presence of
- * a design pattern. </p>
+ * indicates the presence of a design pattern. </p>
  * <p>If a pattern annotation is identified, then the visitor invokes the
  * corresponding pattern verifier.</p>
  */
@@ -24,9 +23,9 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
     }
 
     /**
-     * The method that is called for every annotation in the compilationUnit.
-     * Verifies the implementation for every annotation marking a design pattern
-     * and prints the result to system.out
+     * The method that is called for every annotation in the compilationUnit. Verifies the
+     * implementation for every annotation marking a design pattern and prints the result to
+     * system.out
      *
      * @param annotationExpr The annotation
      * @param args           Required by visit, not used in this instance
@@ -47,8 +46,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             Pattern pattern = Pattern.valueOf(
                 annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
 
-            boolean validPattern = PatternVerifierFactory.getVerifier(pattern)
-                                                         .verify(cu);
+            boolean validPattern = PatternVerifierFactory.getVerifier(pattern).verify(cu);
 
             // Everything below this is just to show something, will probably
             // not be here in the future
@@ -60,15 +58,13 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             }
 
             System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": "
-                + validPattern);
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " + validPattern);
         }
     }
 
     /**
-     * Identifies whether or not a given annotation is associated with a known
-     * design pattern, which and therefore indicates that said pattern should
-     * exist.
+     * Identifies whether or not a given annotation is associated with a known design pattern, which
+     * and therefore indicates that said pattern should exist.
      *
      * @param ann the annotation to verify
      *

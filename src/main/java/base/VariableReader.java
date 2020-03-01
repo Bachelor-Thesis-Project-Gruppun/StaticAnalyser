@@ -1,13 +1,13 @@
 package base;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Class for reading variables from a given java class (CompilationUnit).
@@ -20,8 +20,7 @@ public class VariableReader {
      *
      * @param cu The CompilationUnit describing the Java file to be read
      *
-     * @return A List of VariableDeclarattions containing all variables in the
-     *     Java file
+     * @return A List of VariableDeclarattions containing all variables in the Java file
      */
     public static List<FieldDeclaration> readVariables(CompilationUnit cu) {
         List<FieldDeclaration> variables = new ArrayList<>();

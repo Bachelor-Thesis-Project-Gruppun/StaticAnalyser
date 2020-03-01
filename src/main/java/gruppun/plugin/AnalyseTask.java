@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import base.MainProgram;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -12,11 +13,9 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 
-import base.MainProgram;
-
 /**
- * A gradle task that will check verify classes against design patterns as
- * described by certain annotations.
+ * A gradle task that will check verify classes against design patterns as described by certain
+ * annotations.
  */
 public class AnalyseTask extends DefaultTask {
 
@@ -24,13 +23,18 @@ public class AnalyseTask extends DefaultTask {
         super();
     }
 
+    /**
+     * Check task that will run the analyse program.
+     *
+     * @exception GradleException thrown when violations are found during analysation.
+     */
     @TaskAction
     public void check() throws GradleException {
         Project project = this.getProject();
         List<Path> paths = new ArrayList<>();
 
-        SourceSet mainSourceSet = project.getConvention().getPlugin(
-            JavaPluginConvention.class).getSourceSets().getByName("main");
+        SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class)
+                                         .getSourceSets().getByName("main");
 
         mainSourceSet.getAllJava().getSrcDirs().forEach(file -> {
             paths.add(Paths.get(file.getAbsolutePath()));
@@ -40,7 +44,6 @@ public class AnalyseTask extends DefaultTask {
         paths.forEach(path -> {
             pathStrings.add(path.toString());
         });
-
 
         MainProgram.startAnalyse(pathStrings.toArray(new String[0]));
 
