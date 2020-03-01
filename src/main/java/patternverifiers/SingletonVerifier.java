@@ -158,8 +158,10 @@ public class SingletonVerifier implements IPatternVerifier {
         if (!result) {   // If result is false
             for (MethodCallExpr currentExpr : privateCalls) {   // For each private call found
                 Node n = currentExpr;   // Assign the current private call to n
-                while (!result) {   // While no result is found (Probaply infinite loop here,
-                    // might need a OR of something?
+                while (!(n instanceof CompilationUnit)) {   // While n is not a CompilationUnit
+                    // (Since CompilationUnits are high up the the hierarchy, n being a
+                    // CompilationUnit would most likely mean it has gone past all
+                    // MethodDeclarations and can therefor go to the next MethodCallExpr
                     if (n instanceof MethodDeclaration) {   // If n is a MethodDeclaration
                         result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) n);
                         // Call the same method recursively on that method to see if that method

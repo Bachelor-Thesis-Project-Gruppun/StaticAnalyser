@@ -36,7 +36,7 @@ public class SingletonMock {
      *
      * @return The Singleton instance of SingletonMock
      */
-    public static SingletonMock callGetInstance() {
+    private static SingletonMock callGetInstance() {
         return getInstance();
     }
 
