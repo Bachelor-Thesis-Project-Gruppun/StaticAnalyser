@@ -22,6 +22,8 @@ public final class PatternVerifierFactory {
         switch (pattern) {
             case SINGLETON:
                 return new SingletonVerifier();
+            case IMMUTABLE:
+                return new ImmutableVerifier();
             default:
                 throw new IllegalStateException();
         }
