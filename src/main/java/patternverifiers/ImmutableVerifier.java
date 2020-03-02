@@ -71,8 +71,8 @@ public class ImmutableVerifier implements IPatternVerifier {
             if (fb.getvalue() == false) {
                 verifySuccessful = false;
                 message =
-                    "Verification failed for class '" + c.getNameAsString() + "' due to \n\n" +
-                    fb.getMessage();
+                    "Verification failed for class '" + c.getNameAsString() + "' due to \n\n" + fb
+                        .getMessage();
             }
         }
         return new Feedback(verifySuccessful, message);
@@ -108,15 +108,16 @@ public class ImmutableVerifier implements IPatternVerifier {
             Feedback fb = methodMutatesField.get(method);
             if (fb.getvalue()) {
                 verifySuccessful = false;
-                message = "Verification failed for field '" + field.toString() + "' due to \n\n" +
-                          fb.getMessage();
+                message =
+                    "Verification failed for field '" + field.toString() + "' due to \n\n" + fb
+                        .getMessage();
             }
         }
         return new Feedback(verifySuccessful, message);
     }
 
     /**
-     * Returns whether the given variable is ever assigned in the given method
+     * Returns whether the given variable is ever assigned in the given method.
      *
      * @param variable the variable to check.
      * @param method   the method to check in.
@@ -145,8 +146,8 @@ public class ImmutableVerifier implements IPatternVerifier {
                 }
 
                 if (expr.isAssignExpr()) {
-                    AssignExpr aExpr = expr.asAssignExpr();
-                    Expression target = aExpr.getTarget();
+                    AssignExpr assignExpr = expr.asAssignExpr();
+                    Expression target = assignExpr.getTarget();
 
                     if (target.isNameExpr()) {
                         NameExpr accessedVar = target.asNameExpr();
@@ -166,10 +167,10 @@ public class ImmutableVerifier implements IPatternVerifier {
                                     line = lines.get().toString();
                                 }
 
-                                return new Feedback(true, "Variable '" + name +
-                                                          "' is assigned in method '" +
-                                                          method.getNameAsString() + "' on '" +
-                                                          line + "'\n");
+                                return new Feedback(true, "Variable '" + name
+                                                          + "' is assigned in method '" + method
+                                                              .getNameAsString() + "' on '" + line
+                                                          + "'\n");
                             }
                         }
                     }
@@ -178,8 +179,8 @@ public class ImmutableVerifier implements IPatternVerifier {
         }
 
         return new Feedback(
-            false, "Variable " + variable.getNameAsString() + " is not assigned " + "in " +
-                   method.getNameAsString());
+            false, "Variable " + variable.getNameAsString() + " is not assigned " + "in " + method
+            .getNameAsString());
     }
 
     /**
