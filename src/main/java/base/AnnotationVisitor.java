@@ -41,24 +41,12 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
             if (optional.isEmpty()) {
                 return;
             }
-            CompilationUnit cu = optional.get();
+            CompilationUnit compUnit = optional.get();
 
             Pattern pattern = Pattern.valueOf(
                 annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
 
-            boolean validPattern = PatternVerifierFactory.getVerifier(pattern).verify(cu);
-
-            // Everything below this is just to show something, will probably
-            // not be here in the future
-            String fileName;
-            if (cu.getStorage().isEmpty()) {
-                fileName = "File name not found";
-            } else {
-                fileName = cu.getStorage().get().getFileName();
-            }
-
-            System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " + validPattern);
+            PatternVerifierFactory.getVerifier(pattern).verify(compUnit);
         }
     }
 
