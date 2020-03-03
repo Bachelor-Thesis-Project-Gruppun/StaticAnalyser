@@ -10,6 +10,7 @@ public class FailingSingletonMock {
     public static FailingSingletonMock failMock;
 
     public FailingSingletonMock getInstance() {
+        failMock = new FailingSingletonMock();
         return failMock;
     }
 

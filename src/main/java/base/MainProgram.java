@@ -29,7 +29,7 @@ public final class MainProgram {
         List<CompilationUnit> cus = ProjectParser.projectToAst("src/test");
         //System.out.println(VariableReader.readVariables(cus.get(1)));
         SingletonVerifier v = new SingletonVerifier();
-        System.out.println(v.verify(cus.get(1))); // get(0) is the FailingSingletonMock and get
+        System.out.println(v.verify(cus.get(0))); // get(0) is the FailingSingletonMock and get
         // (1) is the passeing SingletonMock
 
         startAnalyse(new String[] {"src"});

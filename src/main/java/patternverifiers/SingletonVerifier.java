@@ -2,6 +2,7 @@ package patternverifiers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
@@ -9,21 +10,26 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.stmt.IfStmt;
 
 import base.VariableReader;
 
 public class SingletonVerifier implements IPatternVerifier {
 
     private ConstructorDeclaration constructorDeclaration;
+    private boolean isInstantiated;
+    private FieldDeclaration instanceVar;
 
     public SingletonVerifier() {
     }
 
     @Override
     public boolean verify(CompilationUnit cu) {
-        return callsConstructor(cu) && hasStaticInstance(cu) && hasPrivateConstructor(cu);
+        return onlyInstantiatedIfNull(cu) && callsConstructor(cu) && hasStaticInstance(cu) &&
+               hasPrivateConstructor(cu);
     }
 
     /**
@@ -74,6 +80,9 @@ public class SingletonVerifier implements IPatternVerifier {
                 // same type as the file itself, probably needs to check for
                 // several different classes in the same file, can have inner
                 // classes etc not sure how javaparser handles that.
+                if (!bd.getVariables().get(0).getInitializer().isEmpty()) {
+                    isInstantiated = true;
+                }
                 for (Modifier md : bd.getModifiers()) {     // For each modifier on that field
                     if (md.getKeyword().asString().equals(
                         "static")) {  // If that modifier is static
@@ -83,6 +92,7 @@ public class SingletonVerifier implements IPatternVerifier {
                         priv = true;
                     }
                 }
+                instanceVar = bd;
             }
         }
         return stat && priv;
@@ -204,6 +214,48 @@ public class SingletonVerifier implements IPatternVerifier {
         return result;    // Return result
     }
 
+    /**
+     * Method for checking that an object of the Singleton class is only instantiated after checking
+     * that the instance variable is null, should be extended to make sure that the returned
+     * instance is assigned to the instance variable and not returned directly
+     *
+     * @param cu The CompilationUnit representing the java class to look at
+     *
+     * @return true, if a check that the instance variable is null before the constructor is called
+     *     is performed.
+     */
+    public boolean onlyInstantiatedIfNull(CompilationUnit cu) {
+        AtomicBoolean onlyIfNull = new AtomicBoolean(false);
+        cu.findAll(ObjectCreationExpr.class).forEach(objectCreationExpr -> {    // Find all
+            // Object creations in the class
+            if (objectCreationExpr.getTypeAsString().equals(cu.getPrimaryTypeName().get())) {
+                // If the created object is of the Singletons type
+                Node n = objectCreationExpr.getParentNodeForChildren();
+                while (true) {  // Iterate over parent nodes until you hit either the compilation
+                    // unit OR an if statement
+                    if (n instanceof IfStmt) {
+                        if (((IfStmt) n).getCondition().isBinaryExpr()) {   // If null is one of
+                            // the parts of the binary expression (in the If statement) (Needs to
+                            // make sure the instance variable is the other part of the binary
+                            // expression.
+                            if (((BinaryExpr) (((IfStmt) n).getCondition())).getLeft()
+                                                                            .isNullLiteralExpr() ||
+                                ((BinaryExpr) (((IfStmt) n).getCondition())).getRight()
+                                                                            .isNullLiteralExpr()) {
+                                onlyIfNull.set(true);   // Predicate verified
+                            }
+                        }
+                        break;  // break the while loop
+                    } else if (n instanceof CompilationUnit) {
+                        break;  // break the while loop if we reach a CompilationUnit
+                    }
+                    n = n.getParentNode().get();    // Go to the Parent node,
+                }
+
+            }
+        });
+        return onlyIfNull.get();    // Return result
+    }
 }
 
 
