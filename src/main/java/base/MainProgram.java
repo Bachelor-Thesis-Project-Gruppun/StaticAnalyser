@@ -28,6 +28,7 @@ public final class MainProgram {
      *
      * @param paths an array of paths to analyse.
      */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public static void startAnalyse(String[] paths) {
         for (String path : paths) {
             List<CompilationUnit> cus = ProjectParser.projectToAst(path);
