@@ -28,7 +28,7 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public boolean verify(CompilationUnit compUnit) {
-        return onlyInstantiatedIfNull(compUnit) && callsConstructor(compUnit) && hasStaticInstance(
+        return callsConstructor(compUnit) && hasStaticInstance(compUnit) && onlyInstantiatedIfNull(
             compUnit) && hasPrivateConstructor(compUnit);
     }
 
@@ -238,14 +238,35 @@ public class SingletonVerifier implements IPatternVerifier {
                     // unit OR an if statement
                     if (node instanceof IfStmt) {
                         if (((IfStmt) node).getCondition().isBinaryExpr()) {   // If null is one of
-                            // the parts of the binary expression (in the If statement) (Needs to
-                            // make sure the instance variable is the other part of the binary
-                            // expression.
-                            if (((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
-                                                                               .isNullLiteralExpr() ||
-                                ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
-                                                                               .isNullLiteralExpr()) {
+                            // the parts of the binary expression (in the If statement) and the
+                            // name of the instance variable is the other part of the binary
+                            // expression
+                            if ((
+                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
+                                                                                   .isNullLiteralExpr() ||
+                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
+                                                                                   .isNullLiteralExpr()) &&
+                                (
+                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
+                                                                                   .asNameExpr()
+                                                                                   .getName()
+                                                                                   .toString()
+                                                                                   .equals(
+                                                                                       instanceVar
+                                                                                           .getVariable(
+                                                                                               0)
+                                                                                           .getNameAsString()) ||
+                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
+                                                                                   .asNameExpr()
+                                                                                   .getName()
+                                                                                   .toString()
+                                                                                   .equals(
+                                                                                       instanceVar
+                                                                                           .getVariable(
+                                                                                               0)
+                                                                                           .getNameAsString()))) {
                                 onlyIfNull.set(true);   // Predicate verified
+                                System.out.println("Predicate: " + onlyIfNull.get());
                             }
                         }
                         break;  // break the while loop
