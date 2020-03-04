@@ -27,24 +27,24 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     @Override
-    public boolean verify(CompilationUnit cu) {
-        return onlyInstantiatedIfNull(cu) && callsConstructor(cu) && hasStaticInstance(cu) &&
-               hasPrivateConstructor(cu);
+    public boolean verify(CompilationUnit compUnit) {
+        return onlyInstantiatedIfNull(compUnit) && callsConstructor(compUnit) && hasStaticInstance(compUnit) &&
+               hasPrivateConstructor(compUnit);
     }
 
     /**
      * Method for checking if all the constructors in a Java class are private.
      *
-     * @param cu The CompilationUnit representing the Java class to look at
+     * @param compUnit The CompilationUnit representing the Java class to look at
      *
      * @return True iff all constructors are private
      */
-    public boolean hasPrivateConstructor(CompilationUnit cu) {
+    public boolean hasPrivateConstructor(CompilationUnit compUnit) {
         List<Boolean> isPrivate = new ArrayList<>();
         boolean isPrivateConstructor = true;
 
         // Finds and checks if the constructors are private or not.
-        cu.findAll(ConstructorDeclaration.class).forEach(constructor -> {
+        compUnit.findAll(ConstructorDeclaration.class).forEach(constructor -> {
             if (constructor.isPrivate()) {
                 isPrivate.add(true);
             } else {
@@ -65,18 +65,18 @@ public class SingletonVerifier implements IPatternVerifier {
      * https://stackoverflow .com/questions/53300710/how-to-parse-inner-class-from-java-source-code
      * might help solving a check for inner classes
      *
-     * @param cu The CompilationUnit representing the java class to look at
+     * @param compUnit The CompilationUnit representing the java class to look at
      *
      * @return True iff the java class holds a field variable with a static modifier of the same
      *     type as the class itself (eg. static SingletonVerifier sv;)
      */
-    public boolean hasStaticInstance(CompilationUnit cu) {
-        boolean stat = false;
-        boolean priv = false;
+    public boolean hasStaticInstance(CompilationUnit compUnit) {
+        boolean isStatic = false;
+        boolean isPrivate = false;
         for (FieldDeclaration bd : VariableReader.readVariables(
-            cu)) {      // For each FieldDeclaration in the java file
+            compUnit)) {      // For each FieldDeclaration in the java file
             if (bd.getVariables().get(0).getType().toString().equals(
-                cu.getType(0).getNameAsString())) {    // If there is a field of the
+                compUnit.getType(0).getNameAsString())) {    // If there is a field of the
                 // same type as the file itself, probably needs to check for
                 // several different classes in the same file, can have inner
                 // classes etc not sure how javaparser handles that.
@@ -86,16 +86,16 @@ public class SingletonVerifier implements IPatternVerifier {
                 for (Modifier md : bd.getModifiers()) {     // For each modifier on that field
                     if (md.getKeyword().asString().equals(
                         "static")) {  // If that modifier is static
-                        stat = true;
+                        isStatic = true;
                     } else if (md.getKeyword().asString().equals(
                         "private")) { // Else if that modifier is private
-                        priv = true;
+                        isPrivate = true;
                     }
                 }
                 instanceVar = bd;
             }
         }
-        return stat && priv;
+        return isStatic && isPrivate;
     }
 
     /**
@@ -103,23 +103,23 @@ public class SingletonVerifier implements IPatternVerifier {
      * of the Singleton class, does not support a Singleton that is initialized at variable
      * declaration in the Instance field.
      *
-     * @param cu The CompilationUnit representing the java class to look at
+     * @param compUnit The CompilationUnit representing the java class to look at
      *
      * @return
      */
-    public boolean callsConstructor(CompilationUnit cu) {
+    public boolean callsConstructor(CompilationUnit compUnit) {
         boolean instanceMethod = false;
         List<MethodDeclaration> methods = new ArrayList<>();
-        cu.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {  //Make a list of all
+        compUnit.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {  //Make a list of all
             // methods in the class.
             methods.add(methodDeclaration);
         });
         for (MethodDeclaration declaration : methods) { // For each method
             if (declaration.isStatic()) {   // If the method is static
-                if (declaration.getTypeAsString().equals(cu.getPrimaryTypeName().get())) {  // If
+                if (declaration.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {  // If
                     // the method returns an instance of the Singleton
                     if (declaration.isPrivate()) {  // If the method is private
-                        cu.findAll(ConstructorDeclaration.class).forEach(
+                        compUnit.findAll(ConstructorDeclaration.class).forEach(
                             constructor -> constructorDeclaration = constructor);
                         return isMethodCalledFromPublic(methods, declaration);
                         // return findConstructorCall(declaration, constructorDeclaration);
@@ -219,37 +219,37 @@ public class SingletonVerifier implements IPatternVerifier {
      * that the instance variable is null, should be extended to make sure that the returned
      * instance is assigned to the instance variable and not returned directly
      *
-     * @param cu The CompilationUnit representing the java class to look at
+     * @param compUnit The CompilationUnit representing the java class to look at
      *
      * @return true, if a check that the instance variable is null before the constructor is called
      *     is performed.
      */
-    public boolean onlyInstantiatedIfNull(CompilationUnit cu) {
+    public boolean onlyInstantiatedIfNull(CompilationUnit compUnit) {
         AtomicBoolean onlyIfNull = new AtomicBoolean(false);
-        cu.findAll(ObjectCreationExpr.class).forEach(objectCreationExpr -> {    // Find all
+        compUnit.findAll(ObjectCreationExpr.class).forEach(objectCreationExpr -> {    // Find all
             // Object creations in the class
-            if (objectCreationExpr.getTypeAsString().equals(cu.getPrimaryTypeName().get())) {
+            if (objectCreationExpr.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {
                 // If the created object is of the Singletons type
-                Node n = objectCreationExpr.getParentNodeForChildren();
+                Node node = objectCreationExpr.getParentNodeForChildren();
                 while (true) {  // Iterate over parent nodes until you hit either the compilation
                     // unit OR an if statement
-                    if (n instanceof IfStmt) {
-                        if (((IfStmt) n).getCondition().isBinaryExpr()) {   // If null is one of
+                    if (node instanceof IfStmt) {
+                        if (((IfStmt) node).getCondition().isBinaryExpr()) {   // If null is one of
                             // the parts of the binary expression (in the If statement) (Needs to
                             // make sure the instance variable is the other part of the binary
                             // expression.
-                            if (((BinaryExpr) (((IfStmt) n).getCondition())).getLeft()
+                            if (((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
                                                                             .isNullLiteralExpr() ||
-                                ((BinaryExpr) (((IfStmt) n).getCondition())).getRight()
+                                ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
                                                                             .isNullLiteralExpr()) {
                                 onlyIfNull.set(true);   // Predicate verified
                             }
                         }
                         break;  // break the while loop
-                    } else if (n instanceof CompilationUnit) {
+                    } else if (node instanceof CompilationUnit) {
                         break;  // break the while loop if we reach a CompilationUnit
                     }
-                    n = n.getParentNode().get();    // Go to the Parent node,
+                    node = node.getParentNode().get();    // Go to the Parent node,
                 }
 
             }
