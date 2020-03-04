@@ -26,10 +26,11 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        List<CompilationUnit> cus = ProjectParser.projectToAst("src/test");
-        //System.out.println(VariableReader.readVariables(cus.get(1)));
-        SingletonVerifier v = new SingletonVerifier();
-        System.out.println(v.verify(cus.get(0))); // get(0) is the FailingSingletonMock and get
+        List<CompilationUnit> compUnits = ProjectParser.projectToAst("src/test");
+        //System.out.println(VariableReader.readVariables(compUnits.get(1)));
+        SingletonVerifier verifier = new SingletonVerifier();
+        System.out.println(
+            verifier.verify(compUnits.get(0))); // get(0) is the FailingSingletonMock and get
         // (1) is the passeing SingletonMock
 
         startAnalyse(new String[] {"src"});

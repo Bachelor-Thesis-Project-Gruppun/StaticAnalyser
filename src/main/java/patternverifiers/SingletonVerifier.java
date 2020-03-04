@@ -28,8 +28,8 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public boolean verify(CompilationUnit compUnit) {
-        return onlyInstantiatedIfNull(compUnit) && callsConstructor(compUnit) && hasStaticInstance(compUnit) &&
-               hasPrivateConstructor(compUnit);
+        return onlyInstantiatedIfNull(compUnit) && callsConstructor(compUnit) && hasStaticInstance(
+            compUnit) && hasPrivateConstructor(compUnit);
     }
 
     /**
@@ -110,13 +110,15 @@ public class SingletonVerifier implements IPatternVerifier {
     public boolean callsConstructor(CompilationUnit compUnit) {
         boolean instanceMethod = false;
         List<MethodDeclaration> methods = new ArrayList<>();
-        compUnit.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {  //Make a list of all
-            // methods in the class.
-            methods.add(methodDeclaration);
-        });
+        compUnit.findAll(MethodDeclaration.class).forEach(
+            methodDeclaration -> {  //Make a list of all
+                // methods in the class.
+                methods.add(methodDeclaration);
+            });
         for (MethodDeclaration declaration : methods) { // For each method
             if (declaration.isStatic()) {   // If the method is static
-                if (declaration.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {  // If
+                if (declaration.getTypeAsString().equals(
+                    compUnit.getPrimaryTypeName().get())) {  // If
                     // the method returns an instance of the Singleton
                     if (declaration.isPrivate()) {  // If the method is private
                         compUnit.findAll(ConstructorDeclaration.class).forEach(
@@ -194,18 +196,19 @@ public class SingletonVerifier implements IPatternVerifier {
         result = !publicCalls.isEmpty();    // If a public call was found, set result to true
         if (!result) {   // If result is false
             for (MethodCallExpr currentExpr : privateCalls) {   // For each private call found
-                Node n = currentExpr;   // Assign the current private call to n
-                while (!(n instanceof CompilationUnit) && !result) {   // While n is not a
+                Node node = currentExpr;   // Assign the current private call to node
+                while (!(node instanceof CompilationUnit) && !result) {   // While node is not a
                     // CompilationUnit
-                    // (Since CompilationUnits are high up the the hierarchy, n being a
+                    // (Since CompilationUnits are high up the the hierarchy, node being a
                     // CompilationUnit would most likely mean it has gone past all
                     // MethodDeclarations and can therefor go to the next MethodCallExpr
-                    if (n instanceof MethodDeclaration) {   // If n is a MethodDeclaration
-                        result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) n);
+                    if (node instanceof MethodDeclaration) {   // If node is a MethodDeclaration
+                        result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) node);
                         // Call the same method recursively on that method to see if that method
                         // is called from a public method
-                    } else {    // If n is not a MethodDeclaration
-                        n = n.getParentNode().get();    // Find the parent node of n and check if
+                    } else {    // If node is not a MethodDeclaration
+                        node = node.getParentNode()
+                                   .get();    // Find the parent node of node and check if
                         // that is a MethodDeclaration
                     }
                 }
@@ -239,9 +242,9 @@ public class SingletonVerifier implements IPatternVerifier {
                             // make sure the instance variable is the other part of the binary
                             // expression.
                             if (((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
-                                                                            .isNullLiteralExpr() ||
+                                                                               .isNullLiteralExpr() ||
                                 ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
-                                                                            .isNullLiteralExpr()) {
+                                                                               .isNullLiteralExpr()) {
                                 onlyIfNull.set(true);   // Predicate verified
                             }
                         }

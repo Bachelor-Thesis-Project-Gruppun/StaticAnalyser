@@ -18,13 +18,13 @@ public class VariableReader {
      * Reads all variables from a given Java file and returns them in a List of
      * VariableDeclarations.
      *
-     * @param cu The CompilationUnit describing the Java file to be read
+     * @param compUnit The CompilationUnit describing the Java file to be read
      *
      * @return A List of VariableDeclarattions containing all variables in the Java file
      */
-    public static List<FieldDeclaration> readVariables(CompilationUnit cu) {
+    public static List<FieldDeclaration> readVariables(CompilationUnit compUnit) {
         List<FieldDeclaration> variables = new ArrayList<>();
-        for (TypeDeclaration<?> typeDec : cu.getTypes()) {
+        for (TypeDeclaration<?> typeDec : compUnit.getTypes()) {
             for (BodyDeclaration<?> member : typeDec.getMembers()) {
                 member.toFieldDeclaration().ifPresent(field -> {
                     for (VariableDeclarator variable : field.getVariables()) {
