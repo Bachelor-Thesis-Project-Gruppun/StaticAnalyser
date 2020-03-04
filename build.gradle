@@ -58,11 +58,8 @@ pmd {
     pmdTest.enabled = false
     consoleOutput false
     sourceSets = [sourceSets.main]
-//    ruleSetFiles = files(
-//                    "config/pmd/ruleSet.xml",
-//                    "config/pmd/bestpractices.xml",
-//                    "config/pmd/design.xml",
-//                    "config/pmd/errorprone.xml")
+    ruleSetFiles = files("$project.rootDir/config/pmd/rules-pmd.xml")
+    ruleSets = [] // Remove built in rulesets
 }
 
 jacoco {
@@ -78,10 +75,10 @@ jacocoTestReport {
 
 
 checkstyle {
-    toolVersion '8.11'
+    toolVersion '8.29'
     checkstyleTest.enabled = false
     ignoreFailures false
-    configFile file("config/checkstyle/checkstyle.xml")
+//    configFile file("config/checkstyle/checkstyle.xml")
     maxWarnings 0
 }
 checkstyleMain {
