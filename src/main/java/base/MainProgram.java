@@ -29,11 +29,10 @@ public final class MainProgram {
         List<CompilationUnit> compUnits = ProjectParser.projectToAst("src/test");
         //System.out.println(VariableReader.readVariables(compUnits.get(1)));
         SingletonVerifier verifier = new SingletonVerifier();
-        System.out.println("Passing Mock: " + verifier
-            .verify(compUnits.get(1))); // get(0) is the FailingSingletonMock and get
-        // (1) is the passeing SingletonMock
-        System.out.println("Failing Mock: " + verifier.verify(compUnits.get(0)));
-
+        System.out.println("Passing Mock: " + verifier.verify(compUnits.get(2)));
+        System.out.println(
+            "Passing Mock with multiple constructors: " + verifier.verify(compUnits.get(0)));
+        System.out.println("Failing Mock: " + verifier.verify(compUnits.get(1)));
         startAnalyse(new String[] {"src"});
     }
 

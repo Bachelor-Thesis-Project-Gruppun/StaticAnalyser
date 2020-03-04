@@ -19,7 +19,7 @@ import base.VariableReader;
 
 public class SingletonVerifier implements IPatternVerifier {
 
-    private ConstructorDeclaration constructorDeclaration;
+    private List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();
     private boolean isInstantiated;
     private FieldDeclaration instanceVar;
 
@@ -28,7 +28,7 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public boolean verify(CompilationUnit compUnit) {
-        return callsConstructor(compUnit) && hasStaticInstance(compUnit) && onlyInstantiatedIfNull(
+        return callsConstructor(compUnit) && hasAStaticInstance(compUnit) && onlyInstantiatedIfNull(
             compUnit) && hasPrivateConstructor(compUnit);
     }
 
@@ -52,7 +52,7 @@ public class SingletonVerifier implements IPatternVerifier {
             }
         });
 
-        // Takes all boolean values and ANDs them to one value. 
+        // Takes all boolean values and ANDs them to one value.
         for (Boolean bool : isPrivate) {
             isPrivateConstructor &= bool;
         }
@@ -70,20 +70,28 @@ public class SingletonVerifier implements IPatternVerifier {
      * @return True iff the java class holds a field variable with a static modifier of the same
      *     type as the class itself (eg. static SingletonVerifier sv;)
      */
-    public boolean hasStaticInstance(CompilationUnit compUnit) {
+    public boolean hasAStaticInstance(CompilationUnit compUnit) {
         boolean isStatic = false;
         boolean isPrivate = false;
-        for (FieldDeclaration bd : VariableReader.readVariables(
+
+        for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(
             compUnit)) {      // For each FieldDeclaration in the java file
-            if (bd.getVariables().get(0).getType().toString().equals(
+            if (fieldDeclaration.getVariables().get(0).getType().toString().equals(
                 compUnit.getType(0).getNameAsString())) {    // If there is a field of the
                 // same type as the file itself, probably needs to check for
                 // several different classes in the same file, can have inner
                 // classes etc not sure how javaparser handles that.
-                if (!bd.getVariables().get(0).getInitializer().isEmpty()) {
+                if (isStatic && isPrivate) {  // If an instance variable has already been found,
+                    // return false since a singleton should only have one instance.
+                    isStatic = false;
+                    isPrivate = false;
+                    return false;
+                }
+                if (!fieldDeclaration.getVariables().get(0).getInitializer().isEmpty()) {
                     isInstantiated = true;
                 }
-                for (Modifier md : bd.getModifiers()) {     // For each modifier on that field
+                for (Modifier md : fieldDeclaration
+                    .getModifiers()) {     // For each modifier on that field
                     if (md.getKeyword().asString().equals(
                         "static")) {  // If that modifier is static
                         isStatic = true;
@@ -92,7 +100,7 @@ public class SingletonVerifier implements IPatternVerifier {
                         isPrivate = true;
                     }
                 }
-                instanceVar = bd;
+                instanceVar = fieldDeclaration;
             }
         }
         return isStatic && isPrivate;
@@ -108,7 +116,7 @@ public class SingletonVerifier implements IPatternVerifier {
      * @return
      */
     public boolean callsConstructor(CompilationUnit compUnit) {
-        boolean instanceMethod = false;
+        boolean instanceMethod = true;
         List<MethodDeclaration> methods = new ArrayList<>();
         compUnit.findAll(MethodDeclaration.class).forEach(
             methodDeclaration -> {  //Make a list of all
@@ -116,28 +124,32 @@ public class SingletonVerifier implements IPatternVerifier {
                 methods.add(methodDeclaration);
             });
         for (MethodDeclaration declaration : methods) { // For each method
-            if (declaration.isStatic()) {   // If the method is static
-                if (declaration.getTypeAsString().equals(
-                    compUnit.getPrimaryTypeName().get())) {  // If
-                    // the method returns an instance of the Singleton
+            if (declaration.getTypeAsString().equals(
+                compUnit.getPrimaryTypeName().get())) {   // If the method
+                // returns an instance of the Singleton
+                if (declaration.isStatic()) {  // If the method is static
                     if (declaration.isPrivate()) {  // If the method is private
                         compUnit.findAll(ConstructorDeclaration.class).forEach(
-                            constructor -> constructorDeclaration = constructor);
-                        return isMethodCalledFromPublic(methods, declaration);
+                            constructor -> constructorDeclarations.add(constructor));
+                        instanceMethod &= isMethodCalledFromPublic(methods, declaration);   //
+                        // Check if the method is called from a public method
+                        // (isMethodCalledFromPublic calls itself recursively to find nested
+                        // method calls)
                         // return findConstructorCall(declaration, constructorDeclaration);
                     } else {
-                        instanceMethod = true;
+                        instanceMethod &= true; // AND with true
                     }
+                } else {
+                    instanceMethod &= false;    // AND with false
                 }
             }
         }
-        return instanceMethod;
+        return instanceMethod;  // Return result
     }
 
     /**
-     * Method to look for a (specific, does not look for different constructors if multiple exist in
-     * a class) constructor call, might be useful to differentiate between different types of
-     * singletons in the future, currently unused
+     * Method to look for a constructor call, might be useful to differentiate between different
+     * types of singletons in the future, currently unused
      *
      * @param declaration A method to look inside to see if there is a ConstructorCall
      * @param constructor A ConstructorDeclaration for the class
@@ -157,6 +169,7 @@ public class SingletonVerifier implements IPatternVerifier {
             }
         });
         return !calledMethods.isEmpty(); // If the list of ObjectCreationExpr is empty -> return
+        // true
     }
 
     /**
@@ -228,7 +241,7 @@ public class SingletonVerifier implements IPatternVerifier {
      *     is performed.
      */
     public boolean onlyInstantiatedIfNull(CompilationUnit compUnit) {
-        AtomicBoolean onlyIfNull = new AtomicBoolean(false);
+        AtomicBoolean onlyIfNull = new AtomicBoolean(true);
         compUnit.findAll(ObjectCreationExpr.class).forEach(objectCreationExpr -> {    // Find all
             // Object creations in the class
             if (objectCreationExpr.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {
@@ -237,40 +250,49 @@ public class SingletonVerifier implements IPatternVerifier {
                 while (true) {  // Iterate over parent nodes until you hit either the compilation
                     // unit OR an if statement
                     if (node instanceof IfStmt) {
-                        if (((IfStmt) node).getCondition().isBinaryExpr()) {   // If null is one of
+                        IfStmt nodeAsIfStmt = (IfStmt) node;
+                        if (nodeAsIfStmt.getCondition().isBinaryExpr()) {   // If null is one of
                             // the parts of the binary expression (in the If statement) and the
                             // name of the instance variable is the other part of the binary
                             // expression
                             if ((
-                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
-                                                                                   .isNullLiteralExpr() ||
-                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
-                                                                                   .isNullLiteralExpr()) &&
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getLeft()
+                                                                                .isNullLiteralExpr() ||
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getRight()
+                                                                                .isNullLiteralExpr()) &&
                                 (
-                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getLeft()
-                                                                                   .asNameExpr()
-                                                                                   .getName()
-                                                                                   .toString()
-                                                                                   .equals(
-                                                                                       instanceVar
-                                                                                           .getVariable(
-                                                                                               0)
-                                                                                           .getNameAsString()) ||
-                                    ((BinaryExpr) (((IfStmt) node).getCondition())).getRight()
-                                                                                   .asNameExpr()
-                                                                                   .getName()
-                                                                                   .toString()
-                                                                                   .equals(
-                                                                                       instanceVar
-                                                                                           .getVariable(
-                                                                                               0)
-                                                                                           .getNameAsString()))) {
-                                onlyIfNull.set(true);   // Predicate verified
-                                System.out.println("Predicate: " + onlyIfNull.get());
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getLeft()
+                                                                                .asNameExpr()
+                                                                                .getName()
+                                                                                .toString().equals(
+                                        instanceVar.getVariable(0).getNameAsString()) ||
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getRight()
+                                                                                .asNameExpr()
+                                                                                .getName()
+                                                                                .toString().equals(
+                                        instanceVar.getVariable(0).getNameAsString()))) {
+                                if (nodeAsIfStmt.hasElseBlock()) {      // DOES NOT WORK CURRENTLY
+                                    nodeAsIfStmt.getElseStmt().get().findAll(
+                                        ObjectCreationExpr.class).forEach(objectCreationExpr1 -> {
+                                        if (objectCreationExpr1.getTypeAsString().equals(
+                                            instanceVar.getVariable(0).getNameAsString())) {
+                                            onlyIfNull.set(onlyIfNull.get() && false);
+                                        }
+                                    });
+                                }
+                                onlyIfNull.set(onlyIfNull.get() && true);   // Predicate verified
+                                System.out.println("Object is only instantiated after a check if " +
+                                                   "the instance variable is null: " +
+                                                   onlyIfNull.get());
+                            } else {
+                                onlyIfNull.set(onlyIfNull.get() && false);
                             }
+                        } else {
+                            onlyIfNull.set(onlyIfNull.get() && false);
                         }
                         break;  // break the while loop
                     } else if (node instanceof CompilationUnit) {
+                        onlyIfNull.set(onlyIfNull.get() && false);
                         break;  // break the while loop if we reach a CompilationUnit
                     }
                     node = node.getParentNode().get();    // Go to the Parent node,
