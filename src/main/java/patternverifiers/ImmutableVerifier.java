@@ -166,6 +166,14 @@ public class ImmutableVerifier implements IPatternVerifier {
                             method.getNameAsString());
     }
 
+    /**
+     * Is the given expression a variable assignment for the given variableDeclarator.
+     *
+     * @param expr      The expression to check.
+     * @param variable  The variable declaration to check against.
+     * @param localVars A list of variables that are in a local scope and therefore not the same
+     *                  variable.
+     */
     @SuppressWarnings({"PMD.LinguisticNaming", "PMD.AvoidDeeplyNestedIfStmts"})
     private Feedback isVariableAssignment(
         Expression expr, VariableDeclarator variable, List<String> localVars) {
