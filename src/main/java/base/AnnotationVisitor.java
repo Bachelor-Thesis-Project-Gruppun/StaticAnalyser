@@ -2,6 +2,7 @@ package base;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -20,6 +21,8 @@ import patternverifiers.PatternVerifierFactory;
  * corresponding pattern verifier.</p>
  */
 class AnnotationVisitor extends VoidVisitorAdapter<Void> {
+
+    private Map<Pattern, List<CompilationUnit>> patternCompUnitMap;
 
     public AnnotationVisitor() {
         super();
