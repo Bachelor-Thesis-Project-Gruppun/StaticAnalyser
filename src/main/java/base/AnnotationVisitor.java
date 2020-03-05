@@ -1,6 +1,7 @@
 package base;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,9 +11,6 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import patternverifiers.PatternVerifierFactory;
 
 /**
  * <p>A visitor that retrieves Java annotations and checks if a given annotation
@@ -26,6 +24,8 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
 
     public AnnotationVisitor() {
         super();
+
+        patternCompUnitMap = new HashMap<>();
     }
 
     /**
@@ -37,7 +37,6 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
      * @param args           Required by visit, not used in this instance
      */
 
-    @SuppressWarnings("PMD.SystemPrintln")
     @Override
     public void visit(
         NormalAnnotationExpr annotationExpr, Void args) {
@@ -51,20 +50,13 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         CompilationUnit compilationUnit = optional.get();
 
         for (Pattern pattern : getPatternsFromAnnotation(annotationExpr)) {
-
-            boolean validPattern = PatternVerifierFactory.getVerifier(pattern).verify(
-                compilationUnit);
-            // Everything below this is just to show something, will probably
-            // not be here in the future
-            String fileName;
-            if (compilationUnit.getStorage().isEmpty()) {
-                fileName = "File name not found";
+            if (patternCompUnitMap.containsKey(pattern)) {
+                patternCompUnitMap.get(pattern).add(compilationUnit);
             } else {
-                fileName = compilationUnit.getStorage().get().getFileName();
+                List<CompilationUnit> compUnits = new ArrayList<>();
+                compUnits.add(compilationUnit);
+                patternCompUnitMap.put(pattern, compUnits);
             }
-
-            System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " + validPattern);
         }
     }
 
@@ -99,4 +91,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         return parsedEnumName.equalsIgnoreCase(prefix + pattern.toString());
     }
 
+    public Map<Pattern, List<CompilationUnit>> getMap() {
+        return this.patternCompUnitMap;
+    }
 }
