@@ -1,11 +1,16 @@
 package patternverifiers;
 
+import java.util.List;
+
 import com.github.javaparser.ast.CompilationUnit;
 
 /**
  * A verifier for the decorator pattern.
  */
 public class DecoratorVerifier implements IPatternVerifier {
+
+    private CompilationUnit interfaceCompUnit;
+    private List<CompilationUnit> compUnits;
 
     /**
      * Constructor.
@@ -22,6 +27,7 @@ public class DecoratorVerifier implements IPatternVerifier {
      */
     @Override
     public boolean verify(CompilationUnit compUnit) {
+        
         return false;
     }
 }
