@@ -3,15 +3,16 @@ package patternverifiers;
 import java.io.File;
 import java.io.IOException;
 
+import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * Pattern verifier for the immutable pattern. The following predicates will be
- * Every variable needs to be static, final or it needs to be private and no
- * method changes it.
+ * Pattern verifier for the immutable pattern. The following predicates will be Every variable needs
+ * to be static, final or it needs to be private and no method changes it.
  */
 public class ImmutableVerifierTest {
 
@@ -22,7 +23,7 @@ public class ImmutableVerifierTest {
 
         File file = new File(classLoader.getResource(fileName).getFile());
         CompilationUnit cu = StaticJavaParser.parse(file);
-        new ImmutableVerifier().verify(cu);
+        assertTrue(new ImmutableVerifier().verify(cu));
     }
 
 }

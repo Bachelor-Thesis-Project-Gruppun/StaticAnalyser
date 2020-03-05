@@ -31,7 +31,7 @@ public class ImmutableVerifier implements IPatternVerifier {
     }
 
     /**
-     * Verifies if every class in the given compilationalunit is immutable.
+     * Verifies if every class in the given compilationalUnit is immutable.
      */
     @Override
     public boolean verify(CompilationUnit compUnit) {
@@ -94,6 +94,10 @@ public class ImmutableVerifier implements IPatternVerifier {
         if (field.hasModifier(Modifier.Keyword.STATIC) || field.hasModifier(
             Modifier.Keyword.FINAL)) {
             return new Feedback(true);
+        }
+
+        if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
+            return new Feedback(false, "Field " + field.toString() + " is public");
         }
 
         Map<MethodDeclaration, Feedback> methodMutates = new ConcurrentHashMap();
