@@ -3,12 +3,18 @@ package patternverifiers;
 import com.github.javaparser.ast.CompilationUnit;
 
 /**
- * A verifier for the decorator pattern
+ * A verifier for the decorator pattern.
  */
 public class DecoratorVerifier implements IPatternVerifier {
 
     /**
-     * Verifies that every class in the CompilationUnit is part of the Decorator pattern
+     * Constructor.
+     */
+    public DecoratorVerifier() {
+    }
+
+    /**
+     * Verifies that every class in the CompilationUnit is part of the Decorator pattern.
      *
      * @param compUnit The CompilationUnit of files to look at
      *
