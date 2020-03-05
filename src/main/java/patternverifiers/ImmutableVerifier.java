@@ -93,7 +93,7 @@ public class ImmutableVerifier implements IPatternVerifier {
     private Feedback verifyField(FieldDeclaration field, ClassOrInterfaceDeclaration classOrI) {
         if (field.hasModifier(Modifier.Keyword.STATIC) || field.hasModifier(
             Modifier.Keyword.FINAL)) {
-            return new Feedback(false);
+            return new Feedback(true);
         }
 
         Map<MethodDeclaration, Feedback> methodMutates = new ConcurrentHashMap();
