@@ -10,6 +10,7 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import patternverifiers.PatternVerifierFactory;
 
 /**
@@ -32,53 +33,50 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
      * @param annotationExpr The annotation
      * @param args           Required by visit, not used in this instance
      */
+
+    @SuppressWarnings("PMD.SystemPrintln")
     @Override
     public void visit(
         NormalAnnotationExpr annotationExpr, Void args) {
         super.visit(annotationExpr, args);
 
-        Optional<CompilationUnit> optional =
-            annotationExpr.findRootNode().findCompilationUnit();
+        Optional<CompilationUnit> optional = annotationExpr.findRootNode().findCompilationUnit();
         if (optional.isEmpty()) {
             return;
         }
 
-        CompilationUnit cu = optional.get();
+        CompilationUnit compilationUnit = optional.get();
 
         for (Pattern pattern : getPatternsFromAnnotation(annotationExpr)) {
 
-            boolean validPattern = PatternVerifierFactory.getVerifier(pattern)
-                                                         .verify(cu);
-            System.out.println(pattern);
-            System.out.println(validPattern);
+            boolean validPattern = PatternVerifierFactory.getVerifier(pattern).verify(
+                compilationUnit);
             // Everything below this is just to show something, will probably
             // not be here in the future
             String fileName;
-            if (cu.getStorage().isEmpty()) {
+            if (compilationUnit.getStorage().isEmpty()) {
                 fileName = "File name not found";
             } else {
-                fileName = cu.getStorage().get().getFileName();
+                fileName = compilationUnit.getStorage().get().getFileName();
             }
 
             System.out.println(
-                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " +
-                validPattern);
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " + validPattern);
         }
     }
 
-
     private List<Pattern> getPatternsFromAnnotation(NormalAnnotationExpr annotation) {
         NodeList<MemberValuePair> pairs = annotation.getPairs();
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
 
-        for (int i = 0; i < pairs.size() ; i++) {
+        for (int i = 0; i < pairs.size(); i++) {
             MemberValuePair pair = pairs.get(i);
-            if (isPatternKey(pair)){
-                var p = pair.getValue().asArrayInitializerExpr().getValues().toArray();
-                for (int j = 0; j < p.length; j++) {
-                    for (Pattern pattern:Pattern.values()) {
-                        if (isDesignPatternEnum(p[i].toString(), pattern,
-                                                "pattern.")) {
+            if (isPatternKey(pair)) {
+                var patternsInPair = pair.getValue().asArrayInitializerExpr().getValues().toArray();
+                for (int j = 0; j < patternsInPair.length; j++) {
+                    for (Pattern pattern : Pattern.values()) {
+                        if (isDesignPatternEnum(
+                            patternsInPair[i].toString(), pattern, "pattern.")) {
                             patterns.add(pattern);
                         }
                     }
@@ -90,18 +88,12 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         return patterns;
     }
 
-    private boolean isPatternKey(MemberValuePair pair){
+    private boolean isPatternKey(MemberValuePair pair) {
         return pair.getName().asString().equalsIgnoreCase("pattern");
     }
 
-
-    private boolean isDesignPatternEnum(String s, Pattern p, String prefix){
-        return s.equalsIgnoreCase(prefix + p.toString());
+    private boolean isDesignPatternEnum(String parsedEnumName, Pattern pattern, String prefix) {
+        return parsedEnumName.equalsIgnoreCase(prefix + pattern.toString());
     }
-
-    private boolean isDesignPatternEnum(String s, Pattern p){
-        return isDesignPatternEnum(s, p, "");
-    }
-
 
 }
