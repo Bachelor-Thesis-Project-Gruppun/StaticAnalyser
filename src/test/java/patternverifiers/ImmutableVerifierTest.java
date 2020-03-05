@@ -3,7 +3,7 @@ package patternverifiers;
 import java.io.File;
 import java.io.IOException;
 
-import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
+import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -23,7 +23,7 @@ public class ImmutableVerifierTest {
 
         File file = new File(classLoader.getResource(fileName).getFile());
         CompilationUnit cu = StaticJavaParser.parse(file);
-        assertTrue(new ImmutableVerifier().verify(cu));
+        assertFalse(new ImmutableVerifier().verify(cu));
     }
 
 }
