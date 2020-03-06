@@ -20,12 +20,12 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
  */
 class AnnotationVisitor extends VoidVisitorAdapter<Void> {
 
-    private Map<Pattern, List<CompilationUnit>> patternCompUnitMap;
+    private final Map<Pattern, List<CompilationUnit>> patternCompMap;
 
     public AnnotationVisitor() {
         super();
 
-        patternCompUnitMap = new HashMap<>();
+        patternCompMap = new HashMap<>();
     }
 
     /**
@@ -38,6 +38,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
      */
 
     @Override
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public void visit(
         NormalAnnotationExpr annotationExpr, Void args) {
         super.visit(annotationExpr, args);
@@ -50,12 +51,12 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         CompilationUnit compilationUnit = optional.get();
 
         for (Pattern pattern : getPatternsFromAnnotation(annotationExpr)) {
-            if (patternCompUnitMap.containsKey(pattern)) {
-                patternCompUnitMap.get(pattern).add(compilationUnit);
+            if (patternCompMap.containsKey(pattern)) {
+                patternCompMap.get(pattern).add(compilationUnit);
             } else {
                 List<CompilationUnit> compUnits = new ArrayList<>();
                 compUnits.add(compilationUnit);
-                patternCompUnitMap.put(pattern, compUnits);
+                patternCompMap.put(pattern, compUnits);
             }
         }
     }
@@ -91,7 +92,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         return parsedEnumName.equalsIgnoreCase(prefix + pattern.toString());
     }
 
-    public Map<Pattern, List<CompilationUnit>> getMap() {
-        return this.patternCompUnitMap;
+    public Map<Pattern, List<CompilationUnit>> getPatternCompMap() {
+        return this.patternCompMap;
     }
 }
