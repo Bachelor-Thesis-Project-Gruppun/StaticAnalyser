@@ -275,7 +275,7 @@ public class SingletonVerifier implements IPatternVerifier {
                                     nodeAsIfStmt.getElseStmt().get().findAll(
                                         ObjectCreationExpr.class).forEach(objectCreationExpr1 -> {
                                         if (objectCreationExpr1.getTypeAsString().equals(
-                                            instanceVar.getVariable(0).getNameAsString())) {
+                                            instanceVar.getVariable(0).getTypeAsString())) {
                                             onlyIfNull.set(onlyIfNull.get() && false);
                                         }
                                     });

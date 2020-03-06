@@ -23,8 +23,8 @@ public class SingletonMockMultipleConstructors {
     }
 
     /**
-     * private static method getInstance which calls the constructor twice, should pass third
-     * predicate if called.
+     * private static method getInstance which calls the constructor twice, should fail third
+     * predicate if called. Calls constructor in else statement which should fail it.
      *
      * @return The Singleton instance of SingletonMock
      */
