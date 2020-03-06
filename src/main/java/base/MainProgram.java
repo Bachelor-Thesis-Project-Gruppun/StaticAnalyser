@@ -40,7 +40,7 @@ public final class MainProgram {
                 cu.accept(visitor, null);
             }
         }
-        Map<Pattern, List<CompilationUnit>> patternCompUnitMap = visitor.getMap();
-        System.out.println(patternCompUnitMap.toString());
+        Map<Pattern, List<CompilationUnit>> patternCompMap = visitor.getPatternCompMap();
+        System.out.println(patternCompMap.toString());
     }
 }
