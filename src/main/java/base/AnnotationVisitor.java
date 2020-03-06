@@ -1,13 +1,16 @@
 package base;
 
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import patternverifiers.PatternVerifierFactory;
 
 /**
@@ -30,41 +33,67 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
      * @param annotationExpr The annotation
      * @param args           Required by visit, not used in this instance
      */
+
+    @SuppressWarnings("PMD.SystemPrintln")
     @Override
     public void visit(
-        MarkerAnnotationExpr annotationExpr, Void args) {
+        NormalAnnotationExpr annotationExpr, Void args) {
         super.visit(annotationExpr, args);
 
-        if (isPatternAnnotation(annotationExpr)) {
-            Optional<CompilationUnit> optional =
-                annotationExpr.findRootNode().findCompilationUnit();
-            if (optional.isEmpty()) {
-                return;
+        Optional<CompilationUnit> optional = annotationExpr.findRootNode().findCompilationUnit();
+        if (optional.isEmpty()) {
+            return;
+        }
+
+        CompilationUnit compilationUnit = optional.get();
+
+        for (Pattern pattern : getPatternsFromAnnotation(annotationExpr)) {
+
+            boolean validPattern = PatternVerifierFactory.getVerifier(pattern).verify(
+                compilationUnit);
+            // Everything below this is just to show something, will probably
+            // not be here in the future
+            String fileName;
+            if (compilationUnit.getStorage().isEmpty()) {
+                fileName = "File name not found";
+            } else {
+                fileName = compilationUnit.getStorage().get().getFileName();
             }
-            CompilationUnit compUnit = optional.get();
 
-            Pattern pattern = Pattern.valueOf(
-                annotationExpr.getNameAsString().toUpperCase(Locale.ENGLISH));
-
-            PatternVerifierFactory.getVerifier(pattern).verify(compUnit);
+            System.out.println(
+                "File: " + fileName + "\nTested patterns:\n" + pattern + ": " + validPattern);
         }
     }
 
-    /**
-     * Identifies whether or not a given annotation is associated with a known design pattern, which
-     * and therefore indicates that said pattern should exist.
-     *
-     * @param ann the annotation to verify
-     *
-     * @return true if {@link Pattern} contains the given annotation
-     */
-    private boolean isPatternAnnotation(AnnotationExpr ann) {
-        Pattern[] patterns = Pattern.class.getEnumConstants();
-        for (Pattern p : patterns) {
-            if (ann.getNameAsString().equalsIgnoreCase(p.toString())) {
-                return true;
+    private List<Pattern> getPatternsFromAnnotation(NormalAnnotationExpr annotation) {
+        NodeList<MemberValuePair> pairs = annotation.getPairs();
+        List<Pattern> patterns = new ArrayList<>();
+
+        for (int i = 0; i < pairs.size(); i++) {
+            MemberValuePair pair = pairs.get(i);
+            if (isPatternKey(pair)) {
+                var patternsInPair = pair.getValue().asArrayInitializerExpr().getValues().toArray();
+                for (int j = 0; j < patternsInPair.length; j++) {
+                    for (Pattern pattern : Pattern.values()) {
+                        if (isDesignPatternEnum(
+                            patternsInPair[j].toString(), pattern, "pattern.")) {
+                            patterns.add(pattern);
+                        }
+                    }
+                }
+
             }
         }
-        return false;
+
+        return patterns;
     }
+
+    private boolean isPatternKey(MemberValuePair pair) {
+        return pair.getName().asString().equalsIgnoreCase("pattern");
+    }
+
+    private boolean isDesignPatternEnum(String parsedEnumName, Pattern pattern, String prefix) {
+        return parsedEnumName.equalsIgnoreCase(prefix + pattern.toString());
+    }
+
 }
