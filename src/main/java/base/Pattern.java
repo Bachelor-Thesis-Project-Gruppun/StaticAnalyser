@@ -7,5 +7,7 @@ package base;
  * manually.</p>
  */
 public enum Pattern {
-    SINGLETON, IMMUTABLE
+    ADAPTER,
+    IMMUTABLE,
+    SINGLETON
 }
