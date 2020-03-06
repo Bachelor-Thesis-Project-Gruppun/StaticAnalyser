@@ -1,4 +1,4 @@
-package patternverifiers.patternimplementors.decorator;
+package patternimplementors.decorator;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -6,13 +6,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public class Milk extends CoffeeDecorator {
 
     public int cost = 3;
-    private IDecoratable
+    private IDecoratable component;
 
     public Milk(IDecoratable decoratable) {
-        this.IDecoratable = decoratable;
+        this.component = decoratable;
     }
 
-    public void getCost() {
-        return this.decoratable.getCost() + this.cost;
+    @Override
+    public int getCost() {
+        return this.component.getCost() + this.cost;
     }
 }
