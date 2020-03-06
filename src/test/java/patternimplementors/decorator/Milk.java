@@ -6,9 +6,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public class Milk extends CoffeeDecorator {
 
     public int cost = 3;
-    private IDecoratable component;
+    private IBeverageComponent component;
 
-    public Milk(IDecoratable decoratable) {
+    public Milk(IBeverageComponent decoratable) {
         this.component = decoratable;
     }
 

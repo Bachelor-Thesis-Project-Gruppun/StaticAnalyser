@@ -7,8 +7,8 @@ import com.github.javaparser.ast.CompilationUnit;
  */
 public class DecoratorVerifier implements IPatternVerifier {
 
-    //private CompilationUnit interfaceCompUnit;
-    //private List<CompilationUnit> compUnits;
+    // private CompilationUnit interfaceCompUnit;
+    // private List<CompilationUnit> compUnits;
 
     /**
      * Constructor.
