@@ -72,7 +72,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
                 for (int j = 0; j < patternsInPair.length; j++) {
                     for (Pattern pattern : Pattern.values()) {
                         if (isDesignPatternEnum(
-                            patternsInPair[i].toString(), pattern, "pattern.")) {
+                            patternsInPair[j].toString(), pattern, "pattern.")) {
                             patterns.add(pattern);
                         }
                     }
