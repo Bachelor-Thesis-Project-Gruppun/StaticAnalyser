@@ -17,6 +17,9 @@ import com.github.javaparser.ast.stmt.IfStmt;
 
 import base.VariableReader;
 
+/**
+ * A verifier for the singleton pattern.
+ */
 public class SingletonVerifier implements IPatternVerifier {
 
     private List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<ruleset name="customruleset">
+    <description>
+        The ruleset for project 'StaticAnalyser'
+    </description>
+
+    <!-- Use the entirety of these rulesets -->
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="UseVarargs"/>
+        <exclude name="AvoidPrintStackTrace"/>
+    </rule>
+    <rule ref="category/java/codestyle.xml">
+        <!-- This seems kinda nice, we might this -->
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="UnnecessaryConstructor"/>
+    </rule>
+    <rule ref="category/java/design.xml">
+        <exclude name="LawOfDemeter"/>
+        <exclude name="AvoidUncheckedExceptionsInSignatures"/>
+    </rule>
+    <rule ref="category/java/documentation.xml">
+        <exclude name="UncommentedEmptyConstructor"/>
+    </rule>
+    <rule ref="category/java/errorprone.xml">
+        <!-- This seems kinda nice, we might this -->
+        <exclude name="DataflowAnomalyAnalysis"/>
+    </rule>
+    <rule ref="category/java/multithreading.xml"/>
+    <rule ref="category/java/performance.xml"/>
+    <rule ref="category/java/security.xml"/>
+
+    <!-- Customize rules here -->
+    <rule ref="category/java/documentation.xml/CommentRequired">
+        <properties>
+            <property name="methodWithOverrideCommentRequirement" value="Ignored"/>
+            <property name="accessorCommentRequirement" value="Ignored"/>
+            <property name="classCommentRequirement" value="Required"/>
+            <property name="fieldCommentRequirement" value="Ignored"/>
+            <property name="publicMethodCommentRequirement" value="Ignored"/>
+            <property name="protectedMethodCommentRequirement" value="Ignored"/>
+            <property name="enumCommentRequirement" value="Required"/>
+            <property name="serialVersionUIDCommentRequired" value="Ignored"/>
+            <property name="serialPersistentFieldsCommentRequired" value="Ignored"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/documentation.xml/CommentSize">
+        <properties>
+            <property name="maxLines" value="8"/>
+            <property name="maxLineLength" value="100"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ClassNamingConventions">
+        <properties>
+            <property name="classPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="abstractClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="interfacePattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="enumPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="annotationPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="utilityClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+        </properties>
+    </rule>
+
+
+</ruleset>

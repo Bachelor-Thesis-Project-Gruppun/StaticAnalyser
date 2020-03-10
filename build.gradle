@@ -26,7 +26,8 @@ apply plugin: "application"
 apply plugin: "jacoco"
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.4.2')
     implementation 'com.github.javaparser:javaparser-core:3.15.12'
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.15.12'
     implementation 'com.github.javaparser:javaparser-core-serialization:3.15.10'
@@ -58,11 +59,8 @@ pmd {
     pmdTest.enabled = false
     consoleOutput false
     sourceSets = [sourceSets.main]
-//    ruleSetFiles = files(
-//                    "config/pmd/ruleSet.xml",
-//                    "config/pmd/bestpractices.xml",
-//                    "config/pmd/design.xml",
-//                    "config/pmd/errorprone.xml")
+    ruleSetFiles = files("$project.rootDir/config/pmd/rules-pmd.xml")
+    ruleSets = [] // Remove built in rulesets
 }
 
 jacoco {
@@ -97,8 +95,12 @@ tasks.withType(Checkstyle) {
 test {
     useJUnitPlatform()
     jacocoTestReport
+    testLogging {
+        exceptionFormat = 'full'
+        events = ["passed", "failed", "skipped"]
+        showStandardStreams = true
+    }
 }
-
 
 // Custom gradle plugin START
 
