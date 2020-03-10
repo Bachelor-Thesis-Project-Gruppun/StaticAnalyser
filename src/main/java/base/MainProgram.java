@@ -24,7 +24,6 @@ public final class MainProgram {
      *
      * @param args commandline arguments.
      */
-    @DesignPattern(pattern = {Pattern.IMMUTABLE})
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
@@ -38,7 +37,6 @@ public final class MainProgram {
      */
     //@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     @SuppressWarnings("PMD.SystemPrintln")
-    @DesignPattern(pattern = {Pattern.SINGLETON})
     public static void startAnalyse(String[] paths) {
         AnnotationVisitor visitor = new AnnotationVisitor();
         for (String path : paths) {
