@@ -42,7 +42,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         // Verify if the parts are a coherent pattern
 
-        return verifyInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces);
+        return verifyInterfaces(getInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces).getFirst(),
+                                getInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces).getSecond());
     }
 
     /**
@@ -50,14 +51,41 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * the two interfaces should be specified by the annotations, and the interfaces should be
      * different from each other.
      *
-     * @param adaptee    The compilationUnit representing the adaptee
-     * @param adaptor    The compilationUnit representing the adaptor
-     * @param interfaces The list of compilationUnits representing the interfaces
+     * @param adaptee    The tuple representing the adaptee and its interface
+     * @param adaptor    The tuple representing the adaptor and its interface
      *
      * @return Feedback with the result and message
      */
-    private Feedback verifyInterfaces(
-        CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces) {
+    private Feedback verifyInterfaces(Tuple<CompilationUnit,CompilationUnit> adaptor,
+                                      Tuple<CompilationUnit,CompilationUnit> adaptee) {
+
+        boolean adaptorInterfaceExists = false;
+        boolean adapteeInterfaceExists = false;
+        boolean isNotSameInterface = false;
+
+        if(adaptor.getSecond() != null){
+            adaptorInterfaceExists = true;
+        }
+
+        if(adaptee.getSecond() != null){
+            adapteeInterfaceExists = true;
+        }
+
+        if(!adaptor.getSecond().equals(adaptee.getSecond())){
+            isNotSameInterface = true;
+        }
+
+        return new Feedback(adaptorInterfaceExists &&
+                            adapteeInterfaceExists &&
+                            isNotSameInterface,
+                            "Adaptor and" + " adaptee does not "
+                            + "implement the correct interfaces");
+    }
+
+    public Tuple<Tuple<CompilationUnit,CompilationUnit>,Tuple<CompilationUnit,CompilationUnit>> getInterfaces(CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces){
+
+        Tuple<CompilationUnit, CompilationUnit> adaptorIntPair = new Tuple<>();
+        Tuple<CompilationUnit, CompilationUnit> adapteeIntPair = new Tuple<>();
 
         // This is pretty bad, currently assumes the first class in the compilationUnit is the
         // correct one.
@@ -75,17 +103,25 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         for (int i = 0; i < adapteeImplements.size(); i++) {
             // These if statements compares strings, witch feels bad, but it does the job for now.
-            if (adapteeImplements.get(i).toString().equals(interface1) && adaptorImplements.get(i)
-                                                                                           .toString()
-                                                                                           .equals(
-                                                                                               interface2)) {
-                return new Feedback(true);
-            } else if (adapteeImplements.get(i).toString().equals(interface2) &&
-                       adaptorImplements.get(i).toString().equals(interface1)) {
-                return new Feedback(true);
+            if (adapteeImplements.get(i).toString().equals(interface1)) {
+                adapteeIntPair.setFirst(adaptee);
+                adapteeIntPair.setSecond(interfaces.get(0));
+            } else if(adapteeImplements.get(i).toString().equals(interface2))  {
+                adapteeIntPair.setFirst(adaptee);
+                adapteeIntPair.setSecond(interfaces.get(1));
             }
+
+            if (adaptorImplements.get(i).toString().equals(interface1)) {
+                adaptorIntPair.setFirst(adaptor);
+                adaptorIntPair.setSecond(interfaces.get(0));
+            } else if(adaptorImplements.get(i).toString().equals(interface2))  {
+                adaptorIntPair.setFirst(adaptor);
+                adaptorIntPair.setSecond(interfaces.get(1));
+            }
+
         }
-        return new Feedback(false, "Adaptor and adaptee does not implement the correct interfaces");
+
+        return new Tuple<>(adaptorIntPair, adapteeIntPair);
     }
 
     private class Visitor extends VoidVisitorAdapter<List<NodeList>> {
