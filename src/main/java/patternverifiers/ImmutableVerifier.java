@@ -34,20 +34,23 @@ public class ImmutableVerifier implements IPatternVerifier {
      * Verifies if every class in the given compilationalUnit is immutable.
      */
     @Override
-    public boolean verify(CompilationUnit compUnit) {
+    public Feedback verify(CompilationUnit compUnit) {
         Map<ClassOrInterfaceDeclaration, Feedback> classImmutableMap = new ConcurrentHashMap<>();
         compUnit.findAll(ClassOrInterfaceDeclaration.class).stream().forEach(c -> {
             classImmutableMap.put(c, verifyClass(c));
         });
 
         boolean verifySuccessful = true;
+        StringBuilder message = new StringBuilder();
         for (Feedback feedback : classImmutableMap.values()) {
             if (!feedback.getValue()) {
                 verifySuccessful = false;
+                message.append('\n');
+                message.append(feedback.getMessage());
             }
         }
 
-        return verifySuccessful;
+        return new Feedback(verifySuccessful, message.toString());
     }
 
     /**
