@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
 
+import org.gradle.api.GradleException;
 import patternverifiers.Feedback;
 
 /**
@@ -38,7 +39,6 @@ public final class MainProgram {
      */
     //@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     @SuppressWarnings("PMD.SystemPrintln")
-    @DesignPattern(pattern = {Pattern.SINGLETON})
     public static void startAnalyse(String[] paths) {
         AnnotationVisitor visitor = new AnnotationVisitor();
         for (String path : paths) {
@@ -60,9 +60,33 @@ public final class MainProgram {
             feedbacks.add(verFeedback);
         }
 
+        List<String> failingFeedbacks = new ArrayList<>();
         feedbacks.forEach(feedback -> {
-            System.out.println(" - " + feedback.getMessage());
+            if (!feedback.getValue()) {
+                failingFeedbacks.add(feedback.getMessage());
+            }
         });
+
+        if (failingFeedbacks.size() > 0) {
+            failBuild(failingFeedbacks);
+        }
+    }
+
+    /**
+     * Fails the build and prints the failing feedbacks into a nice message.
+     *
+     * @param failingFeedbacks the feedbacks of what went wrong.
+     */
+    private static void failBuild(List<String> failingFeedbacks) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("\n\nStaticAnalyser found the following errors: \n");
+        failingFeedbacks.forEach(feedback -> {
+            msg.append("\n------------------\n");
+            msg.append(feedback);
+        });
+
+        msg.append("\n------------------\n");
+        throw new GradleException(msg.toString());
     }
 
     /**
