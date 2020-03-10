@@ -3,9 +3,12 @@ package base;
 /**
  * Instantiation can be done according to the following example. Using curly brackets to enter an
  * array.
+ * <p>
  *
- * @ DesignPattern(pattern = {Pattern.IMMUTABLE, Pattern.SINGLETON}) public class
- *     Design{}
+ * <pre>
+ *      @ DesignPattern(pattern = {Pattern.IMMUTABLE, Pattern.SINGLETON})
+ *      public class Design{}
+ * </pre>
  */
 public @interface DesignPattern {
 

@@ -20,14 +20,15 @@ import base.Pattern;
 /**
  * A verifier for the adapter pattern.
  */
-public class AdapterVerifier /* REMEMBER TO IMPLEMENT THE INTERFACE */ {
+public class AdapterVerifier implements IPatternGroupVerifier {
 
     List<NodeList> coi = new ArrayList<>();
 
     public AdapterVerifier() {
     }
 
-    public boolean verify(Map<Pattern, List<CompilationUnit>> patternParts) {
+    @Override
+    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
 
         /* MATCH PATTERN PARTS LATER */
 
@@ -40,7 +41,7 @@ public class AdapterVerifier /* REMEMBER TO IMPLEMENT THE INTERFACE */ {
 
         // Verify if the parts are a coherent pattern
 
-        return false;
+        return new Feedback(false);
     }
 
     private boolean verifyInterfaces(
