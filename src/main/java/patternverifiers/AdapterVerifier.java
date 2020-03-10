@@ -3,15 +3,15 @@ package patternverifiers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
-import static base.Pattern.*;
+import static base.Pattern.ADAPTER_ADAPTEE;
+import static base.Pattern.ADAPTER_ADAPTER;
+import static base.Pattern.ADAPTER_CLIENT;
+import static base.Pattern.ADAPTER_INTERFACE;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
@@ -20,9 +20,8 @@ import base.Pattern;
 /**
  * A verifier for the adapter pattern.
  */
-public class AdapterVerifier /* REMEMBER TO IMPLEMENT THE INTERFACE */{
+public class AdapterVerifier /* REMEMBER TO IMPLEMENT THE INTERFACE */ {
 
-    private Visitor v = new Visitor();
     List<NodeList> coi = new ArrayList<>();
 
     public AdapterVerifier() {
@@ -39,69 +38,65 @@ public class AdapterVerifier /* REMEMBER TO IMPLEMENT THE INTERFACE */{
         CompilationUnit clientCompUnit = patternParts.get(ADAPTER_CLIENT).get(0);
         List<CompilationUnit> interfaces = patternParts.get(ADAPTER_INTERFACE);
 
-
         // Verify if the parts are a coherent pattern
 
         return false;
     }
 
-    private boolean verifyInterfaces(CompilationUnit adaptee, CompilationUnit client,
-                                     List<CompilationUnit> interfaces){
-//        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> adapteeCOI = new ConcurrentSkipListSet<>(
-//            adaptee.findAll(ClassOrInterfaceDeclaration.class));
-//
-//        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> clientCOI = new ConcurrentSkipListSet<>(
-//            client.findAll(ClassOrInterfaceDeclaration.class));
-//
-//        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> interfaceCOI =
-//            new ConcurrentSkipListSet<>(interfaces.findAll(ClassOrInterfaceDeclaration.class));
+    private boolean verifyInterfaces(
+        CompilationUnit adaptee, CompilationUnit client, List<CompilationUnit> interfaces) {
+        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> adapteeCOI = new
+        //        ConcurrentSkipListSet<>(
+        //            adaptee.findAll(ClassOrInterfaceDeclaration.class));
+        //
+        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> clientCOI = new
+        //        ConcurrentSkipListSet<>(
+        //            client.findAll(ClassOrInterfaceDeclaration.class));
+        //
+        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> interfaceCOI =
+        //            new ConcurrentSkipListSet<>(interfaces.findAll(ClassOrInterfaceDeclaration
+        //            .class));
 
-        ClassOrInterfaceDeclaration adapteeClass = new ClassOrInterfaceDeclaration();
-        ClassOrInterfaceDeclaration clientClass;
-        ClassOrInterfaceDeclaration interface1;
-        ClassOrInterfaceDeclaration interface2;
+        ClassOrInterfaceDeclaration adapteeClass = adaptee.findAll(
+            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration clientClass = client.findAll(ClassOrInterfaceDeclaration.class)
+                                                        .get(0);
+        ClassOrInterfaceDeclaration interface1 = interfaces.get(0).findAll(
+            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration interface2 = interfaces.get(1).findAll(
+            ClassOrInterfaceDeclaration.class).get(1);
 
-        boolean is = false;
-
-        for (ClassOrInterfaceDeclaration coi :
-            adaptee.findAll(ClassOrInterfaceDeclaration.class) ) {
-            if(!coi.isInnerClass()){
-                adapteeClass = coi;
-                break;
-            }
-        }
-
-        for (ClassOrInterfaceDeclaration coi :
-            client.findAll(ClassOrInterfaceDeclaration.class) ) {
-            if(!coi.isInnerClass()){
-                clientClass = coi;
-                break;
-            }
-        }
-
-        for (ClassOrInterfaceDeclaration coi :
-            interfaces.get(0).findAll(ClassOrInterfaceDeclaration.class) ) {
-            if(!coi.isInnerClass()){
-                interface1 = coi;
-                break;
-            }
-        }
-
-        for (ClassOrInterfaceDeclaration coi :
-            interfaces.get(1).findAll(ClassOrInterfaceDeclaration.class) ) {
-            if(!coi.isInnerClass()){
-                interface2 = coi;
-                break;
-            }
-        }
-
+        ClassOrInterfaceDeclaration adapteeImplements = null;
         for (ClassOrInterfaceType type : adapteeClass.getImplementedTypes()) {
-
+            if (type.asString().equals(interfaces.get(0).getPrimaryTypeName().get())) {
+                adapteeImplements = interface1;
+                break;
+            } else if (type.asString().equals(interfaces.get(1).getPrimaryTypeName().get())) {
+                adapteeImplements = interface2;
+                break;
+            }
         }
 
+        if (adapteeImplements == null) {
+            return false;
+        }
 
+        ClassOrInterfaceDeclaration clientImplements = null;
+        for (ClassOrInterfaceType type : clientClass.getImplementedTypes()) {
+            if (adapteeImplements.equals(interface2)) {
+                if (type.asString().equals(interfaces.get(0).getPrimaryTypeName().get())) {
+                    adapteeImplements = interface1;
+                    break;
+                }
+            } else {
+                if (type.asString().equals(interfaces.get(1).getPrimaryTypeName().get())) {
+                    adapteeImplements = interface2;
+                    break;
+                }
+            }
+        }
 
-        return is;
+        return adapteeImplements != null && clientImplements != null;
     }
 
     private class Visitor extends VoidVisitorAdapter<List<NodeList>> {
