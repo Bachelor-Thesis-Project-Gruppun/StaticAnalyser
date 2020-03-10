@@ -7,5 +7,5 @@ import com.github.javaparser.ast.CompilationUnit;
  */
 public interface IPatternVerifier {
 
-    boolean verify(CompilationUnit compUnit);
+    Feedback verify(CompilationUnit compUnit);
 }

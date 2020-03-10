@@ -23,7 +23,7 @@ public class ImmutableVerifierTest {
 
         File file = new File(classLoader.getResource(fileName).getFile());
         CompilationUnit cu = StaticJavaParser.parse(file);
-        assertFalse(new ImmutableVerifier().verify(cu));
+        assertFalse(new ImmutableVerifier().verify(cu).getValue());
     }
 
 }
