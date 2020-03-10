@@ -30,9 +30,8 @@ public class SingletonVerifier implements IPatternVerifier {
 
     @Override
     public Feedback verify(CompilationUnit compUnit) {
-        boolean isValid =
-            callsConstructor(compUnit) && hasAStaticInstance(compUnit) && onlyInstantiatedIfNull(
-            compUnit) && hasPrivateConstructor(compUnit);
+        boolean isValid = callsConstructor(compUnit) && hasAStaticInstance(compUnit) &&
+                          onlyInstantiatedIfNull(compUnit) && hasPrivateConstructor(compUnit);
 
         return new Feedback(isValid);
     }
@@ -178,9 +177,9 @@ public class SingletonVerifier implements IPatternVerifier {
         // true
     }
 
-
     // (not 100% sure it doesn't end up in an infinite loop if it never finds a public call,
     // might need some help with that)
+
     /**
      * Method returns whether a method is called from a public method in the same class or not.
      * Calls itself recursively until no more calls are found. Method does currently not
@@ -225,10 +224,10 @@ public class SingletonVerifier implements IPatternVerifier {
                         result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) node);
                         // Call the same method recursively on that method to see if that method
                         // is called from a public method
-                    } else {    // If node is not a MethodDeclaration
+                    } else {
                         node = node.getParentNode()
-                                   .get();    // Find the parent node of node and check if
-                    // that is a MethodDeclaration
+                                   .get();    // Find the parent node of node and check if that
+                        // is a MethodDeclaration
                     }
                 }
             }
@@ -256,48 +255,34 @@ public class SingletonVerifier implements IPatternVerifier {
                 while (true) {  // Iterate over parent nodes until you hit either the compilation
                     // unit OR an if statement
                     if (node instanceof IfStmt) {
-                        IfStmt nodeAsIfStmt = (IfStmt) node;
-                        if (nodeAsIfStmt.getCondition().isBinaryExpr()) {   // If null is one of
+                        IfStmt ifStmtNode = (IfStmt) node;
+                        if (ifStmtNode.getCondition().isBinaryExpr()) {   // If null is one of
                             // the parts of the binary expression (in the If statement) and the
                             // name of the instance variable is the other part of the binary
                             // expression
-                            if ((
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition()))
-                                        .getLeft().isNullLiteralExpr() ||
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition()))
-                                        .getRight().isNullLiteralExpr()) &&
-                                (
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getLeft()
-                                                                                .asNameExpr()
-                                                                                .getName()
-                                                                                .toString().equals(
-                                        instanceVar.getVariable(0).getNameAsString()) ||
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getRight()
-                                                                                .asNameExpr()
-                                                                                .getName()
-                                                                                .toString().equals(
-                                        instanceVar.getVariable(0).getNameAsString()))) {
-                                if (nodeAsIfStmt.hasElseBlock()) {      // DOES NOT WORK CURRENTLY
-                                    nodeAsIfStmt.getElseStmt().get().findAll(
-                                        ObjectCreationExpr.class).forEach(objCreateExpr1 -> {
-                                            if (objCreateExpr1.getTypeAsString().equals(
-                                                instanceVar.getVariable(0).getTypeAsString())) {
-                                                onlyIfNull.set(onlyIfNull.get() && false);
-                                            }
-                                        });
+                            if (checkForNull(ifStmtNode) && checkForType(ifStmtNode, instanceVar)) {
+                                if (ifStmtNode.hasElseBlock()) {
+                                    ifStmtNode.getElseStmt().get().findAll(ObjectCreationExpr.class)
+                                              .forEach(objCreateExpr1 -> {
+                                                  if (objCreateExpr1.getTypeAsString().equals(
+                                                      instanceVar.getVariable(0)
+                                                                 .getTypeAsString())) {
+                                                      onlyIfNull.set(false);
+                                                  }
+                                              });
                                 }
-                                onlyIfNull.set(onlyIfNull.get() && true);   // Predicate verified
+                                onlyIfNull.compareAndSet(true, true);   // Predicate verified
                                 //System.out.println("Object is only instantiated after a check
                                 // if " + "the instance variable is null: " + onlyIfNull.get());
                             } else {
-                                onlyIfNull.set(onlyIfNull.get() && false);
+                                onlyIfNull.set(false);
                             }
                         } else {
-                            onlyIfNull.set(onlyIfNull.get() && false);
+                            onlyIfNull.set(false);
                         }
                         break;  // break the while loop
                     } else if (node instanceof CompilationUnit) {
-                        onlyIfNull.set(onlyIfNull.get() && false);
+                        onlyIfNull.set(false);
                         break;  // break the while loop if we reach a CompilationUnit
                     }
                     node = node.getParentNode().get();    // Go to the Parent node,
@@ -307,6 +292,21 @@ public class SingletonVerifier implements IPatternVerifier {
         });
         return onlyIfNull.get();    // Return result
     }
+
+    private boolean checkForNull(IfStmt ifStmt) {
+        boolean isNull = false;
+        BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
+        isNull |= ifAsBinary.getLeft().isNullLiteralExpr();
+        isNull |= ifAsBinary.getRight().isNullLiteralExpr();
+        return isNull;
+    }
+
+    private boolean checkForType(IfStmt ifStmt, FieldDeclaration compareVariable) {
+        boolean isOfType = false;
+        BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
+        String comparedTypeName = compareVariable.getVariables().get(0).getNameAsString();
+        isOfType |= ifAsBinary.getLeft().asNameExpr().getNameAsString().equals(comparedTypeName);
+        isOfType |= ifAsBinary.getRight().asNameExpr().getNameAsString().equals(comparedTypeName);
+        return isOfType;
+    }
 }
-
-
