@@ -10,8 +10,9 @@ import patternverifiers.SingletonVerifier;
  * A design pattern covering all parts of that pattern..
  */
 public enum PatternGroup {
-    SINGLETON(new SingleClassVerifier(new SingletonVerifier())), IMMUTABLE(
-        new SingleClassVerifier(new ImmutableVerifier())), ADAPTER(new AdapterVerifier());
+    SINGLETON(new SingleClassVerifier(new SingletonVerifier())),
+    IMMUTABLE(new SingleClassVerifier(new ImmutableVerifier())),
+    ADAPTER(new AdapterVerifier());
 
     private IPatternGroupVerifier verifier;
 
