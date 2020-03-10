@@ -38,66 +38,54 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         CompilationUnit clientCompUnit = patternParts.get(ADAPTER_CLIENT).get(0);
         List<CompilationUnit> interfaces = patternParts.get(ADAPTER_INTERFACE);
 
-        verifyInterfaces(adapteeCompUnit, clientCompUnit, interfaces);
+        System.out.println(interfaces.size());
+
         // Verify if the parts are a coherent pattern
 
-        return new Feedback(false, "Bad programmer");
+        return verifyInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces);
     }
 
-    private boolean verifyInterfaces(
-        CompilationUnit adaptee, CompilationUnit client, List<CompilationUnit> interfaces) {
-        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> adapteeCOI = new
-        //        ConcurrentSkipListSet<>(
-        //            adaptee.findAll(ClassOrInterfaceDeclaration.class));
-        //
-        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> clientCOI = new
-        //        ConcurrentSkipListSet<>(
-        //            client.findAll(ClassOrInterfaceDeclaration.class));
-        //
-        //        ConcurrentSkipListSet<ClassOrInterfaceDeclaration> interfaceCOI =
-        //            new ConcurrentSkipListSet<>(interfaces.findAll(ClassOrInterfaceDeclaration
-        //            .class));
+    /**
+     * A method that verifies that the adaptor and the adaptee implements the correct interfaces,
+     * the two interfaces should be specified by the annotations, and the interfaces should be
+     * different from each other.
+     *
+     * @param adaptee    The compilationUnit representing the adaptee
+     * @param adaptor    The compilationUnit representing the adaptor
+     * @param interfaces The list of compilationUnits representing the interfaces
+     *
+     * @return Feedback with the result and message
+     */
+    private Feedback verifyInterfaces(
+        CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces) {
 
+        // This is pretty bad, currently assumes the first class in the compilationUnit is the
+        // correct one.
         ClassOrInterfaceDeclaration adapteeClass = adaptee.findAll(
             ClassOrInterfaceDeclaration.class).get(0);
-        ClassOrInterfaceDeclaration clientClass = client.findAll(ClassOrInterfaceDeclaration.class)
-                                                        .get(0);
-        ClassOrInterfaceDeclaration interface1 = interfaces.get(0).findAll(
+        ClassOrInterfaceDeclaration adaptorClass = adaptor.findAll(
             ClassOrInterfaceDeclaration.class).get(0);
-        ClassOrInterfaceDeclaration interface2 = interfaces.get(1).findAll(
-            ClassOrInterfaceDeclaration.class).get(1);
 
-        ClassOrInterfaceDeclaration adapteeImplements = null;
-        for (ClassOrInterfaceType type : adapteeClass.getImplementedTypes()) {
-            if (type.equals(interfaces.get(0).getPrimaryType().get())) {
-                adapteeImplements = interface1;
-                break;
-            } else if (type.asString().equals(interfaces.get(1).getPrimaryTypeName().get())) {
-                adapteeImplements = interface2;
-                break;
+        // This assumes the two first interfaces are the correct ones
+        String interface1 = interfaces.get(0).getPrimaryTypeName().get();
+        String interface2 = interfaces.get(1).getPrimaryTypeName().get();
+
+        NodeList<ClassOrInterfaceType> adapteeImplements = adapteeClass.getImplementedTypes();
+        NodeList<ClassOrInterfaceType> adaptorImplements = adaptorClass.getImplementedTypes();
+
+        for (int i = 0; i < adapteeImplements.size(); i++) {
+            // These if statements compares strings, witch feels bad, but it does the job for now.
+            if (adapteeImplements.get(i).toString().equals(interface1) && adaptorImplements.get(i)
+                                                                                           .toString()
+                                                                                           .equals(
+                                                                                               interface2)) {
+                return new Feedback(true);
+            } else if (adapteeImplements.get(i).toString().equals(interface2) &&
+                       adaptorImplements.get(i).toString().equals(interface1)) {
+                return new Feedback(true);
             }
         }
-
-        if (adapteeImplements == null) {
-            return false;
-        }
-
-        ClassOrInterfaceDeclaration clientImplements = null;
-        for (ClassOrInterfaceType type : clientClass.getImplementedTypes()) {
-            if (adapteeImplements.equals(interface2)) {
-                if (type.asString().equals(interfaces.get(0).getPrimaryTypeName().get())) {
-                    adapteeImplements = interface1;
-                    break;
-                }
-            } else {
-                if (type.asString().equals(interfaces.get(1).getPrimaryTypeName().get())) {
-                    adapteeImplements = interface2;
-                    break;
-                }
-            }
-        }
-
-        return adapteeImplements != null && clientImplements != null;
+        return new Feedback(false, "Adaptor and adaptee does not implement the correct interfaces");
     }
 
     private class Visitor extends VoidVisitorAdapter<List<NodeList>> {
