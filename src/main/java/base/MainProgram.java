@@ -67,7 +67,7 @@ public final class MainProgram {
             }
         });
 
-        if (failingFeedbacks.size() > 0) {
+        if (!failingFeedbacks.isEmpty()) {
             failBuild(failingFeedbacks);
         }
     }
@@ -78,14 +78,13 @@ public final class MainProgram {
      * @param failingFeedbacks the feedbacks of what went wrong.
      */
     private static void failBuild(List<String> failingFeedbacks) {
-        StringBuilder msg = new StringBuilder();
-        msg.append("\n\nStaticAnalyser found the following errors: \n");
+        StringBuilder msg = new StringBuilder(100);
+        msg.append("\n\nStaticAnalyser found the following errors: \n\n------------------\n");
         failingFeedbacks.forEach(feedback -> {
-            msg.append("\n------------------\n");
             msg.append(feedback);
+            msg.append("\n------------------\n");
         });
 
-        msg.append("\n------------------\n");
         throw new GradleException(msg.toString());
     }
 
