@@ -22,9 +22,8 @@ import base.VariableReader;
  */
 public class SingletonVerifier implements IPatternVerifier {
 
-    private List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();
-    private boolean isInstantiated;
-    private FieldDeclaration instanceVar;
+    private final transient List<ConstructorDeclaration> constDeclList = new ArrayList<>();
+    private transient FieldDeclaration instanceVar;
 
     public SingletonVerifier() {
     }
@@ -46,24 +45,24 @@ public class SingletonVerifier implements IPatternVerifier {
      * @return True iff all constructors are private
      */
     public boolean hasPrivateConstructor(CompilationUnit compUnit) {
-        List<Boolean> isPrivate = new ArrayList<>();
-        boolean isPrivateConstructor = true;
+        List<Boolean> listOfIsPrivate = new ArrayList<>();
+        boolean isPrivConstr = true;
 
         // Finds and checks if the constructors are private or not.
         compUnit.findAll(ConstructorDeclaration.class).forEach(constructor -> {
             if (constructor.isPrivate()) {
-                isPrivate.add(true);
+                listOfIsPrivate.add(true);
             } else {
-                isPrivate.add(false);
+                listOfIsPrivate.add(false);
             }
         });
 
         // Takes all boolean values and ANDs them to one value.
-        for (Boolean bool : isPrivate) {
-            isPrivateConstructor &= bool;
+        for (Boolean bool : listOfIsPrivate) {
+            isPrivConstr &= bool;
         }
 
-        return isPrivateConstructor;
+        return isPrivConstr;
     }
 
     /**
@@ -79,6 +78,7 @@ public class SingletonVerifier implements IPatternVerifier {
     public boolean hasAStaticInstance(CompilationUnit compUnit) {
         boolean isStatic = false;
         boolean isPrivate = false;
+        boolean isInstantiated = false;
 
         for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(
             compUnit)) {      // For each FieldDeclaration in the java file
@@ -109,7 +109,7 @@ public class SingletonVerifier implements IPatternVerifier {
                 instanceVar = fieldDeclaration;
             }
         }
-        return isStatic && isPrivate;
+        return isStatic && isPrivate && isInstantiated; // should isInstansiated be here?
     }
 
     /**
@@ -136,7 +136,7 @@ public class SingletonVerifier implements IPatternVerifier {
                 if (declaration.isStatic()) {  // If the method is static
                     if (declaration.isPrivate()) {  // If the method is private
                         compUnit.findAll(ConstructorDeclaration.class).forEach(
-                            constructor -> constructorDeclarations.add(constructor));
+                            constructor -> constDeclList.add(constructor));
                         instanceMethod &= isMethodCalledFromPublic(methods, declaration);   //
                         // Check if the method is called from a public method
                         // (isMethodCalledFromPublic calls itself recursively to find nested
@@ -155,7 +155,7 @@ public class SingletonVerifier implements IPatternVerifier {
 
     /**
      * Method to look for a constructor call, might be useful to differentiate between different
-     * types of singletons in the future, currently unused
+     * types of singletons in the future, currently unused.
      *
      * @param declaration A method to look inside to see if there is a ConstructorCall
      * @param constructor A ConstructorDeclaration for the class
@@ -178,16 +178,16 @@ public class SingletonVerifier implements IPatternVerifier {
         // true
     }
 
+
+    // (not 100% sure it doesn't end up in an infinite loop if it never finds a public call,
+    // might need some help with that)
     /**
-     * Method that returns whether a method is called from another public method in the same class
-     * or not. Calls itself recursively until no more calls are found (not 100% sure it doesn't end
-     * up in an infinite loop if it never finds a public call, might need some help with that)
-     * Method does currently not differentiate between overloaded methods since it compares names of
-     * methods at this time.
+     * Method returns whether a method is called from a public method in the same class or not.
+     * Calls itself recursively until no more calls are found. Method does currently not
+     * differentiate between overloaded methods since it compares names of methods at this time.
      *
      * @param allMethods      A list of MethodDeclarations of all methods in a class
-     * @param methodToLookFor The method to look for if it is called from a public method in the
-     *                        same class
+     * @param methodToLookFor Method checks if it is called from a public method in the same class
      *
      * @return True if the method is called from another public method in the same class
      */
@@ -203,10 +203,10 @@ public class SingletonVerifier implements IPatternVerifier {
                     methodToLookFor.getNameAsString())) {   // If the Method called has the same
                     // name as the one we are looking for (so not differentiating between
                     // overloaded methods) AND the method calling the method is not private
-                    if (!current.isPrivate()) {
-                        publicCalls.add(methodCallExpr);  // Add the call to a list of viable calls
+                    if (current.isPrivate()) {
+                        privateCalls.add(methodCallExpr);  // Add the call to a list of viable calls
                     } else {
-                        privateCalls.add(methodCallExpr);   // Add the call to a list of calls
+                        publicCalls.add(methodCallExpr);   // Add the call to a list of calls
                         // from other private methods
                     }
                 }
@@ -228,7 +228,7 @@ public class SingletonVerifier implements IPatternVerifier {
                     } else {    // If node is not a MethodDeclaration
                         node = node.getParentNode()
                                    .get();    // Find the parent node of node and check if
-                        // that is a MethodDeclaration
+                    // that is a MethodDeclaration
                     }
                 }
             }
@@ -239,7 +239,7 @@ public class SingletonVerifier implements IPatternVerifier {
     /**
      * Method for checking that an object of the Singleton class is only instantiated after checking
      * that the instance variable is null, should be extended to make sure that the returned
-     * instance is assigned to the instance variable and not returned directly
+     * instance is assigned to the instance variable and not returned directly.
      *
      * @param compUnit The CompilationUnit representing the java class to look at
      *
@@ -248,11 +248,11 @@ public class SingletonVerifier implements IPatternVerifier {
      */
     public boolean onlyInstantiatedIfNull(CompilationUnit compUnit) {
         AtomicBoolean onlyIfNull = new AtomicBoolean(true);
-        compUnit.findAll(ObjectCreationExpr.class).forEach(objectCreationExpr -> {    // Find all
+        compUnit.findAll(ObjectCreationExpr.class).forEach(objCreateExpr -> {    // Find all
             // Object creations in the class
-            if (objectCreationExpr.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {
+            if (objCreateExpr.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {
                 // If the created object is of the Singletons type
-                Node node = objectCreationExpr.getParentNodeForChildren();
+                Node node = objCreateExpr.getParentNodeForChildren();
                 while (true) {  // Iterate over parent nodes until you hit either the compilation
                     // unit OR an if statement
                     if (node instanceof IfStmt) {
@@ -262,10 +262,10 @@ public class SingletonVerifier implements IPatternVerifier {
                             // name of the instance variable is the other part of the binary
                             // expression
                             if ((
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getLeft()
-                                                                                .isNullLiteralExpr() ||
-                                    ((BinaryExpr) (nodeAsIfStmt.getCondition())).getRight()
-                                                                                .isNullLiteralExpr()) &&
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition()))
+                                        .getLeft().isNullLiteralExpr() ||
+                                    ((BinaryExpr) (nodeAsIfStmt.getCondition()))
+                                        .getRight().isNullLiteralExpr()) &&
                                 (
                                     ((BinaryExpr) (nodeAsIfStmt.getCondition())).getLeft()
                                                                                 .asNameExpr()
@@ -279,17 +279,16 @@ public class SingletonVerifier implements IPatternVerifier {
                                         instanceVar.getVariable(0).getNameAsString()))) {
                                 if (nodeAsIfStmt.hasElseBlock()) {      // DOES NOT WORK CURRENTLY
                                     nodeAsIfStmt.getElseStmt().get().findAll(
-                                        ObjectCreationExpr.class).forEach(objectCreationExpr1 -> {
-                                        if (objectCreationExpr1.getTypeAsString().equals(
-                                            instanceVar.getVariable(0).getTypeAsString())) {
-                                            onlyIfNull.set(onlyIfNull.get() && false);
-                                        }
-                                    });
+                                        ObjectCreationExpr.class).forEach(objCreateExpr1 -> {
+                                            if (objCreateExpr1.getTypeAsString().equals(
+                                                instanceVar.getVariable(0).getTypeAsString())) {
+                                                onlyIfNull.set(onlyIfNull.get() && false);
+                                            }
+                                        });
                                 }
                                 onlyIfNull.set(onlyIfNull.get() && true);   // Predicate verified
-                                System.out.println("Object is only instantiated after a check if " +
-                                                   "the instance variable is null: " +
-                                                   onlyIfNull.get());
+                                //System.out.println("Object is only instantiated after a check
+                                // if " + "the instance variable is null: " + onlyIfNull.get());
                             } else {
                                 onlyIfNull.set(onlyIfNull.get() && false);
                             }

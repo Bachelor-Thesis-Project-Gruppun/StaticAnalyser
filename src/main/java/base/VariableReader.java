@@ -12,7 +12,11 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 /**
  * Class for reading variables from a given java class (CompilationUnit).
  */
-public class VariableReader {
+public final class VariableReader {
+
+    private VariableReader(){
+
+    }
 
     /**
      * Reads all variables from a given Java file and returns them in a List of
@@ -20,7 +24,7 @@ public class VariableReader {
      *
      * @param compUnit The CompilationUnit describing the Java file to be read
      *
-     * @return A List of VariableDeclarattions containing all variables in the Java file
+     * @return A List of VariableDeclarations containing all variables in the Java file
      */
     public static List<FieldDeclaration> readVariables(CompilationUnit compUnit) {
         List<FieldDeclaration> variables = new ArrayList<>();

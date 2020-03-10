@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import patternverifiers.SingletonVerifier;
-
 import org.gradle.api.GradleException;
 import patternverifiers.Feedback;
 
@@ -17,10 +15,6 @@ import patternverifiers.Feedback;
  * The main entry point for the analysis.
  */
 public final class MainProgram {
-
-    // private int i = 0;       // Used for debugging VariableReader
-    private static String str = "0";     // Used for debugging VariableReader
-    private static MainProgram mp = new MainProgram();
 
     private MainProgram() {
 
@@ -32,15 +26,15 @@ public final class MainProgram {
      * @param args commandline arguments.
      */
     public static void main(String[] args) {
-        //Just use this project for now (src), will have to change
-        //to the target project with the gradle stuff
-        List<CompilationUnit> compUnits = ProjectParser.projectToAst("src/test");
-        //System.out.println(VariableReader.readVariables(compUnits.get(1)));
-        SingletonVerifier verifier = new SingletonVerifier();
-        System.out.println("Passing Mock: " + verifier.verify(compUnits.get(2)));
-        System.out.println(
-            "Passing Mock with multiple constructors: " + verifier.verify(compUnits.get(0)));
-        System.out.println("Failing Mock: " + verifier.verify(compUnits.get(1)));
+        // Just use this project for now (src), will have to change
+        // to the target project with the gradle stuff
+        // List<CompilationUnit> compUnits = ProjectParser.projectToAst("src/test");
+        // System.out.println(VariableReader.readVariables(compUnits.get(1)));
+        // SingletonVerifier verifier = new SingletonVerifier();
+        // System.out.println("Passing Mock: " + verifier.verify(compUnits.get(2)));
+        // System.out.println(
+        //     "Passing Mock with multiple constructors: " + verifier.verify(compUnits.get(0)));
+        // System.out.println("Failing Mock: " + verifier.verify(compUnits.get(1)));
         startAnalyse(new String[] {"src"});
     }
 
