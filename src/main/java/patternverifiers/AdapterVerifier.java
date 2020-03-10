@@ -33,15 +33,15 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         /* MATCH PATTERN PARTS LATER */
 
         /* VERIFICATION */
-
         CompilationUnit adaptorCompUnit = patternParts.get(ADAPTER_ADAPTER).get(0);
         CompilationUnit adapteeCompUnit = patternParts.get(ADAPTER_ADAPTEE).get(0);
         CompilationUnit clientCompUnit = patternParts.get(ADAPTER_CLIENT).get(0);
         List<CompilationUnit> interfaces = patternParts.get(ADAPTER_INTERFACE);
 
+        verifyInterfaces(adapteeCompUnit, clientCompUnit, interfaces);
         // Verify if the parts are a coherent pattern
 
-        return new Feedback(false);
+        return new Feedback(false, "Bad programmer");
     }
 
     private boolean verifyInterfaces(
@@ -69,7 +69,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         ClassOrInterfaceDeclaration adapteeImplements = null;
         for (ClassOrInterfaceType type : adapteeClass.getImplementedTypes()) {
-            if (type.asString().equals(interfaces.get(0).getPrimaryTypeName().get())) {
+            if (type.equals(interfaces.get(0).getPrimaryType().get())) {
                 adapteeImplements = interface1;
                 break;
             } else if (type.asString().equals(interfaces.get(1).getPrimaryTypeName().get())) {
