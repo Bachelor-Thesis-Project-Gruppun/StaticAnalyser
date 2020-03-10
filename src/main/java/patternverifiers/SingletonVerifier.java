@@ -30,9 +30,12 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     @Override
-    public boolean verify(CompilationUnit compUnit) {
-        return callsConstructor(compUnit) && hasAStaticInstance(compUnit) && onlyInstantiatedIfNull(
+    public Feedback verify(CompilationUnit compUnit) {
+        boolean isValid =
+            callsConstructor(compUnit) && hasAStaticInstance(compUnit) && onlyInstantiatedIfNull(
             compUnit) && hasPrivateConstructor(compUnit);
+
+        return new Feedback(isValid);
     }
 
     /**
