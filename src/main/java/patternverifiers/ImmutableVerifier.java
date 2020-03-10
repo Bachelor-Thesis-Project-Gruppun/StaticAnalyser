@@ -78,8 +78,9 @@ public class ImmutableVerifier implements IPatternVerifier {
             Feedback feedback = entry.getValue();
             if (!feedback.getValue()) {
                 verifySuccessful = false;
-                message = "Verification failed for class '" + classOrI.getNameAsString() +
-                          "' due to \n\n" + feedback.getMessage();
+                message =
+                    "Verification failed for class '" + classOrI.getNameAsString() + "' due to \n" +
+                    feedback.getMessage();
             }
         }
         return new Feedback(verifySuccessful, message);
@@ -123,7 +124,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             Feedback feedback = entry.getValue();
             if (feedback.getValue()) {
                 verifySuccessful = false;
-                message = "Verification failed for field '" + field.toString() + "' due to \n\n" +
+                message = "Verification failed for field '" + field.toString() + "' due to \n" +
                           feedback.getMessage();
             }
         }

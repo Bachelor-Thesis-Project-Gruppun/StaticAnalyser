@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
 
+import org.gradle.api.GradleException;
 import patternverifiers.Feedback;
 
 /**
@@ -57,9 +58,32 @@ public final class MainProgram {
             feedbacks.add(verFeedback);
         }
 
+        List<String> failingFeedbacks = new ArrayList<>();
         feedbacks.forEach(feedback -> {
-            System.out.println(" - " + feedback.getMessage());
+            if (!feedback.getValue()) {
+                failingFeedbacks.add(feedback.getMessage());
+            }
         });
+
+        if (!failingFeedbacks.isEmpty()) {
+            failBuild(failingFeedbacks);
+        }
+    }
+
+    /**
+     * Fails the build and prints the failing feedbacks into a nice message.
+     *
+     * @param failingFeedbacks the feedbacks of what went wrong.
+     */
+    private static void failBuild(List<String> failingFeedbacks) {
+        StringBuilder msg = new StringBuilder(100);
+        msg.append("\n\nStaticAnalyser found the following errors: \n\n------------------\n");
+        failingFeedbacks.forEach(feedback -> {
+            msg.append(feedback);
+            msg.append("\n------------------\n");
+        });
+
+        throw new GradleException(msg.toString());
     }
 
     /**
