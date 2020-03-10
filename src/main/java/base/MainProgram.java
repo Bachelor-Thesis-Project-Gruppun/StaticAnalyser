@@ -25,7 +25,6 @@ public final class MainProgram {
      *
      * @param args commandline arguments.
      */
-    @DesignPattern(pattern = {Pattern.IMMUTABLE})
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
