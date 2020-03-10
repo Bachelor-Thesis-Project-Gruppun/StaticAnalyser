@@ -1,4 +1,4 @@
-package designpatternmocks;
+package designpatternmocks.singletonpattern;
 
 /**
  * Mock class for the SingletonPattern, contains a private static field of SingletonMock, a private

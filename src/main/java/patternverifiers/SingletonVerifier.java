@@ -24,6 +24,8 @@ public class SingletonVerifier implements IPatternVerifier {
 
     private final transient List<ConstructorDeclaration> constDeclList = new ArrayList<>();
     private transient FieldDeclaration instanceVar;
+    private transient boolean isInstantiated;       // Tbh idk what transient means but PMD would
+    // not let it work without it.
 
     public SingletonVerifier() {
     }
@@ -31,7 +33,8 @@ public class SingletonVerifier implements IPatternVerifier {
     @Override
     public Feedback verify(CompilationUnit compUnit) {
         boolean isValid = callsConstructor(compUnit) && hasAStaticInstance(compUnit) &&
-                          onlyInstantiatedIfNull(compUnit) && hasPrivateConstructor(compUnit);
+                          onlyInstantiatedIfNull(compUnit) && hasPrivateConstructor(compUnit) &&
+                          isInstantiated;
 
         return new Feedback(isValid);
     }
@@ -77,7 +80,6 @@ public class SingletonVerifier implements IPatternVerifier {
     public boolean hasAStaticInstance(CompilationUnit compUnit) {
         boolean isStatic = false;
         boolean isPrivate = false;
-        boolean isInstantiated = false;
 
         for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(
             compUnit)) {      // For each FieldDeclaration in the java file
@@ -108,7 +110,7 @@ public class SingletonVerifier implements IPatternVerifier {
                 instanceVar = fieldDeclaration;
             }
         }
-        return isStatic && isPrivate && isInstantiated; // should isInstansiated be here?
+        return isStatic && isPrivate; // should isInstansiated be here?
     }
 
     /**
@@ -145,7 +147,7 @@ public class SingletonVerifier implements IPatternVerifier {
                         instanceMethod &= true; // AND with true
                     }
                 } else {
-                    instanceMethod &= false;    // AND with false
+                    instanceMethod = false;    // AND with false
                 }
             }
         }
@@ -224,6 +226,7 @@ public class SingletonVerifier implements IPatternVerifier {
                         result = isMethodCalledFromPublic(allMethods, (MethodDeclaration) node);
                         // Call the same method recursively on that method to see if that method
                         // is called from a public method
+                        break;
                     } else {
                         node = node.getParentNode()
                                    .get();    // Find the parent node of node and check if that
@@ -272,6 +275,7 @@ public class SingletonVerifier implements IPatternVerifier {
                                               });
                                 }
                                 onlyIfNull.compareAndSet(true, true);   // Predicate verified
+                                isInstantiated = true;
                                 //System.out.println("Object is only instantiated after a check
                                 // if " + "the instance variable is null: " + onlyIfNull.get());
                             } else {
@@ -293,6 +297,13 @@ public class SingletonVerifier implements IPatternVerifier {
         return onlyIfNull.get();    // Return result
     }
 
+    /**
+     * Checks if an IfStmt contains a NullLiteralExpr.
+     *
+     * @param ifStmt The IfStmt to check.
+     *
+     * @return true iff the IfStmt contains a NullLiteralExpr.
+     */
     private boolean checkForNull(IfStmt ifStmt) {
         boolean isNull = false;
         BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
@@ -301,12 +312,28 @@ public class SingletonVerifier implements IPatternVerifier {
         return isNull;
     }
 
+    /**
+     * Method for checking if an IfStmt has a partial expression of the same type as a variable in a
+     * class.
+     *
+     * @param ifStmt          If statement to check.
+     * @param compareVariable The variable to compare with.
+     *
+     * @return true iff the IfStmt contains an expression with the same type as a variable in a
+     *     class.
+     */
     private boolean checkForType(IfStmt ifStmt, FieldDeclaration compareVariable) {
         boolean isOfType = false;
         BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
         String comparedTypeName = compareVariable.getVariables().get(0).getNameAsString();
-        isOfType |= ifAsBinary.getLeft().asNameExpr().getNameAsString().equals(comparedTypeName);
-        isOfType |= ifAsBinary.getRight().asNameExpr().getNameAsString().equals(comparedTypeName);
+        if (!ifAsBinary.getLeft().isNullLiteralExpr()) {
+            isOfType |= ifAsBinary.getLeft().asNameExpr().getNameAsString().equals(
+                comparedTypeName);
+        }
+        if (!ifAsBinary.getRight().isNullLiteralExpr()) {
+            isOfType |= ifAsBinary.getRight().asNameExpr().getNameAsString().equals(
+                comparedTypeName);
+        }
         return isOfType;
     }
 }

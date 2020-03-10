@@ -28,13 +28,6 @@ public final class MainProgram {
     public static void main(String[] args) {
         // Just use this project for now (src), will have to change
         // to the target project with the gradle stuff
-        // List<CompilationUnit> compUnits = ProjectParser.projectToAst("src/test");
-        // System.out.println(VariableReader.readVariables(compUnits.get(1)));
-        // SingletonVerifier verifier = new SingletonVerifier();
-        // System.out.println("Passing Mock: " + verifier.verify(compUnits.get(2)));
-        // System.out.println(
-        //     "Passing Mock with multiple constructors: " + verifier.verify(compUnits.get(0)));
-        // System.out.println("Failing Mock: " + verifier.verify(compUnits.get(1)));
         startAnalyse(new String[] {"src"});
     }
 

@@ -1,4 +1,4 @@
-package designpatternmocks;
+package designpatternmocks.singletonpattern;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
