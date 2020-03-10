@@ -36,7 +36,6 @@ public final class MainProgram {
      *
      * @param paths an array of paths to analyse.
      */
-    //@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     @SuppressWarnings("PMD.SystemPrintln")
     public static void startAnalyse(String[] paths) {
         AnnotationVisitor visitor = new AnnotationVisitor();
@@ -46,9 +45,9 @@ public final class MainProgram {
                 cu.accept(visitor, null);
             }
         }
-        Map<Pattern, List<CompilationUnit>> patternCompMap = visitor.getPatternCompMap();
+        Map<Pattern, List<CompilationUnit>> patCompUnitMap = visitor.getPatternCompMap();
         Map<PatternGroup, Map<Pattern, List<CompilationUnit>>> patternGroupMap = mapToMap(
-            patternCompMap);
+            patCompUnitMap);
 
         List<Feedback> feedbacks = new ArrayList<>();
         for (Map.Entry<PatternGroup, Map<Pattern, List<CompilationUnit>>> entry : patternGroupMap
