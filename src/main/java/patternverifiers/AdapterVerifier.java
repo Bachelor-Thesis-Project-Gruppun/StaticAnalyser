@@ -16,7 +16,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import base.Pattern;
 
@@ -48,11 +48,10 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         Tuple<CompilationUnit, CompilationUnit> adapteeInterface = getInterfaces(
             adapteeCompUnit, adaptorCompUnit, interfaces).getSecond();
 
-        Feedback result = new Feedback(false);
-        adaptorCompUnit.accept(new Visitor(), adapteeInterface.getSecond());
         // Verify if the parts are a coherent pattern
 
-        return verifyInterfaces(adaptorInterface, adapteeInterface);
+        // return verifyInterfaces(adaptorInterface, adapteeInterface);
+        return adaptorCompUnit.accept(new Visitor(), adapteeInterface.getSecond());
     }
 
     /**
@@ -142,35 +141,45 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         return new Tuple<>(adaptorIntPair, adapteeIntPair);
     }
 
-    private class Visitor extends VoidVisitorAdapter<CompilationUnit> {
+    private class Visitor extends GenericVisitorAdapter<Feedback, CompilationUnit> {
 
         @Override
-        public void visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
+        public Feedback visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
             super.visit(method, adapteeInterface);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    isWrapper(method, adapteeInterface);
+                    if (isWrapper(method, adapteeInterface)) {
+                        return new Feedback(true);
+                    }
                 }
             }
+            return new Feedback(
+                false, "You are bad and should feel bad. \nGet your shit " +
+                       "together before you even try to run me again");
 
         }
 
-        private Feedback isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
+        private boolean isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
 
-            method.accept(new MethodCallVisitor(), null);
+            method.accept(new MethodCallVisitor(), adapteeInterface);
 
-            return new Feedback(false);
+            return false;
         }
     }
 
 
-    class MethodCallVisitor extends VoidVisitorAdapter<Void> {
+    class MethodCallVisitor extends GenericVisitorAdapter<Boolean, CompilationUnit> {
 
         @Override
-        public void visit(MethodCallExpr n, Void arg) {
-            super.visit(n, arg);
+        public Boolean visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
+            super.visit(n, adapteeInterface);
+            if (n.getScope().toString().equalsIgnoreCase(
+                adapteeInterface.getPrimaryTypeName().get())) {
+                return Boolean.TRUE;
 
+            }
+            return Boolean.FALSE;
         }
     }
 
