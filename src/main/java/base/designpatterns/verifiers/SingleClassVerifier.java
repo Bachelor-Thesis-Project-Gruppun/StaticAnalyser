@@ -1,4 +1,4 @@
-package patternverifiers;
+package base.designpatterns.verifiers;
 
 import java.util.Iterator;
 import java.util.List;
@@ -6,7 +6,9 @@ import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.Pattern;
+import base.designpatterns.Pattern;
+import base.designpatterns.verifiers.singleclassverifiers.IPatternVerifier;
+import base.util.Feedback;
 
 /**
  * A class that will verify a PatternGroup that only has one pattern (i.e. single class patterns)

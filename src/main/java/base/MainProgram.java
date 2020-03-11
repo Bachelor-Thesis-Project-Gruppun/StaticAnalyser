@@ -8,8 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
 
+import base.designpatterns.Pattern;
+import base.designpatterns.PatternGroup;
 import org.gradle.api.GradleException;
-import patternverifiers.Feedback;
+import base.util.Feedback;
 
 /**
  * The main entry point for the analysis.

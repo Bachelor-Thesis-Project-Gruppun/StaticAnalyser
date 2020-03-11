@@ -1,9 +1,9 @@
-package base;
+package base.designpatterns;
 
-import patternverifiers.IPatternGroupVerifier;
-import patternverifiers.ImmutableVerifier;
-import patternverifiers.SingleClassVerifier;
-import patternverifiers.SingletonVerifier;
+import base.designpatterns.verifiers.IPatternGroupVerifier;
+import base.designpatterns.verifiers.singleclassverifiers.ImmutableVerifier;
+import base.designpatterns.verifiers.SingleClassVerifier;
+import base.designpatterns.verifiers.singleclassverifiers.SingletonVerifier;
 
 /**
  * A design pattern covering all parts of that pattern..
@@ -18,7 +18,7 @@ public enum PatternGroup {
         verifier = groupVerifier;
     }
 
-    IPatternGroupVerifier getVerifier() {
+    public IPatternGroupVerifier getVerifier() {
         return verifier;
     }
 }

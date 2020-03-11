@@ -1,4 +1,4 @@
-package patternverifiers;
+package base.util;
 
 /**
  * Simple class to store and manage feedback to the user.

@@ -12,6 +12,8 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
+import base.designpatterns.Pattern;
+
 /**
  * <p>A visitor that retrieves Java annotations and checks if a given annotation
  * indicates the presence of a design pattern. </p>

@@ -1,6 +1,8 @@
-package patternverifiers;
+package base.designpatterns.verifiers.singleclassverifiers;
 
 import com.github.javaparser.ast.CompilationUnit;
+
+import base.util.Feedback;
 
 /**
  * A verifier for the singleton pattern.

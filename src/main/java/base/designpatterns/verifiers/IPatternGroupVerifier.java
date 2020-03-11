@@ -1,11 +1,12 @@
-package patternverifiers;
+package base.designpatterns.verifiers;
 
 import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.Pattern;
+import base.designpatterns.Pattern;
+import base.util.Feedback;
 
 /**
  * Verifies a pattern group.
