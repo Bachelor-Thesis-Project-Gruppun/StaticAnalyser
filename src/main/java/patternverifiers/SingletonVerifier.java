@@ -179,9 +179,6 @@ public class SingletonVerifier implements IPatternVerifier {
         // true
     }
 
-    // (not 100% sure it doesn't end up in an infinite loop if it never finds a public call,
-    // might need some help with that)
-
     /**
      * Method returns whether a method is called from a public method in the same class or not.
      * Calls itself recursively until no more calls are found. Method does currently not
