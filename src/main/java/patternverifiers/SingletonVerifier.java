@@ -81,8 +81,6 @@ public class SingletonVerifier implements IPatternVerifier {
             if (fieldDeclaration.getVariables().get(0).getType().toString().equals(
                 compUnit.getType(0).getNameAsString())) {
                 if (isStatic && isPrivate) {
-                    isStatic = false;
-                    isPrivate = false;
                     return false;
                 }
                 if (!fieldDeclaration.getVariables().get(0).getInitializer().isEmpty()) {
