@@ -52,11 +52,7 @@ public class SingletonVerifier implements IPatternVerifier {
 
         // Finds and checks if the constructors are private or not.
         compUnit.findAll(ConstructorDeclaration.class).forEach(constructor -> {
-            if (constructor.isPrivate()) {
-                listOfIsPrivate.add(true);
-            } else {
-                listOfIsPrivate.add(false);
-            }
+                listOfIsPrivate.add(constructor.isPrivate());
         });
 
         // Takes all boolean values and ANDs them to one value.
