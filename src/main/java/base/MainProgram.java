@@ -10,6 +10,8 @@ import com.github.javaparser.ast.CompilationUnit;
 
 import org.gradle.api.GradleException;
 import patternverifiers.Feedback;
+import patternverifiers.IPatternGroupVerifier;
+import patternverifiers.VerifierFactory;
 
 /**
  * The main entry point for the analysis.
@@ -36,7 +38,6 @@ public final class MainProgram {
      *
      * @param paths an array of paths to analyse.
      */
-    @SuppressWarnings("PMD.SystemPrintln")
     public static void startAnalyse(String[] paths) {
         AnnotationVisitor visitor = new AnnotationVisitor();
         for (String path : paths) {
@@ -54,7 +55,8 @@ public final class MainProgram {
             .entrySet()) {
             PatternGroup group = entry.getKey();
             Map<Pattern, List<CompilationUnit>> patternMap = entry.getValue();
-            Feedback verFeedback = group.getVerifier().verifyGroup(patternMap);
+            IPatternGroupVerifier verifier = VerifierFactory.createGroupVerifier(group);
+            Feedback verFeedback = verifier.verifyGroup(patternMap);
             feedbacks.add(verFeedback);
         }
 
