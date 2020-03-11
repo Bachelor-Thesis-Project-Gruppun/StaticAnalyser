@@ -12,6 +12,9 @@ import static base.Pattern.ADAPTER_INTERFACE;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
@@ -40,21 +43,24 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         System.out.println(interfaces.size());
 
+        Tuple<CompilationUnit, CompilationUnit> adaptorInterface = getInterfaces(
+            adapteeCompUnit, adaptorCompUnit, interfaces).getFirst();
+        Tuple<CompilationUnit, CompilationUnit> adapteeInterface = getInterfaces(
+            adapteeCompUnit, adaptorCompUnit, interfaces).getSecond();
+
+        Feedback result = new Feedback(false);
+        adaptorCompUnit.accept(new Visitor(), adapteeInterface.getSecond());
         // Verify if the parts are a coherent pattern
 
-        return verifyInterfaces(getInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces).getFirst(),
-                                getInterfaces(adapteeCompUnit, adaptorCompUnit, interfaces).getSecond());
+        return verifyInterfaces(adaptorInterface, adapteeInterface);
     }
 
     /**
-     *
      * @return
      */
-    private Feedback verifyAdaptor(Tuple<CompilationUnit,CompilationUnit> adaptor,
-                                   Tuple<CompilationUnit,CompilationUnit> adaptee){
-
-
-
+    private Feedback verifyAdaptor(
+        Tuple<CompilationUnit, CompilationUnit> adaptor,
+        Tuple<CompilationUnit, CompilationUnit> adaptee) {
 
         return new Feedback(false);
     }
@@ -64,41 +70,39 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * the two interfaces should be specified by the annotations, and the interfaces should be
      * different from each other.
      *
-     * @param adaptee    The tuple representing the adaptee and its interface
-     * @param adaptor    The tuple representing the adaptor and its interface
+     * @param adaptee The tuple representing the adaptee and its interface
+     * @param adaptor The tuple representing the adaptor and its interface
      *
      * @return Feedback with the result and message
      */
-    private Feedback verifyInterfaces(Tuple<CompilationUnit,CompilationUnit> adaptor,
-                                      Tuple<CompilationUnit,CompilationUnit> adaptee) {
+    private Feedback verifyInterfaces(
+        Tuple<CompilationUnit, CompilationUnit> adaptor,
+        Tuple<CompilationUnit, CompilationUnit> adaptee) {
 
         boolean adaptorInterfaceExists = false;
         boolean adapteeInterfaceExists = false;
         boolean isNotSameInterface = false;
 
-        if(adaptor.getSecond() != null){
+        if (adaptor.getSecond() != null) {
             adaptorInterfaceExists = true;
         }
 
-        if(adaptee.getSecond() != null){
+        if (adaptee.getSecond() != null) {
             adapteeInterfaceExists = true;
         }
 
-        if(!adaptor.getSecond().equals(adaptee.getSecond())){
+        if (!adaptor.getSecond().equals(adaptee.getSecond())) {
             isNotSameInterface = true;
         }
 
-        return new Feedback(adaptorInterfaceExists &&
-                            adapteeInterfaceExists &&
-                            isNotSameInterface,
-                            "Adaptor and" + " adaptee does not "
-                            + "implement the correct interfaces");
+        return new Feedback(adaptorInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
+                            "Adaptor and" + " adaptee does not " +
+                            "implement the correct interfaces");
     }
 
-    public Tuple<Tuple<CompilationUnit,CompilationUnit>,Tuple<CompilationUnit,CompilationUnit>>
-    getInterfaces(CompilationUnit adaptee,
-                  CompilationUnit adaptor,
-                  List<CompilationUnit> interfaces){
+    public Tuple<Tuple<CompilationUnit, CompilationUnit>,
+        Tuple<CompilationUnit, CompilationUnit>> getInterfaces(
+        CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces) {
 
         Tuple<CompilationUnit, CompilationUnit> adaptorIntPair = new Tuple<>();
         Tuple<CompilationUnit, CompilationUnit> adapteeIntPair = new Tuple<>();
@@ -122,7 +126,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             if (adapteeImplements.get(i).toString().equals(interface1)) {
                 adapteeIntPair.setFirst(adaptee);
                 adapteeIntPair.setSecond(interfaces.get(0));
-            } else if(adapteeImplements.get(i).toString().equals(interface2))  {
+            } else if (adapteeImplements.get(i).toString().equals(interface2)) {
                 adapteeIntPair.setFirst(adaptee);
                 adapteeIntPair.setSecond(interfaces.get(1));
             }
@@ -130,26 +134,42 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             if (adaptorImplements.get(i).toString().equals(interface1)) {
                 adaptorIntPair.setFirst(adaptor);
                 adaptorIntPair.setSecond(interfaces.get(0));
-            } else if(adaptorImplements.get(i).toString().equals(interface2))  {
+            } else if (adaptorImplements.get(i).toString().equals(interface2)) {
                 adaptorIntPair.setFirst(adaptor);
                 adaptorIntPair.setSecond(interfaces.get(1));
+            }
+        }
+        return new Tuple<>(adaptorIntPair, adapteeIntPair);
+    }
+
+    private class Visitor extends VoidVisitorAdapter<CompilationUnit> {
+
+        @Override
+        public void visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
+            super.visit(method, adapteeInterface);
+
+            for (AnnotationExpr annotation : method.getAnnotations()) {
+                if (annotation.getNameAsString().equalsIgnoreCase("override")) {
+                    isWrapper(method, adapteeInterface);
+                }
             }
 
         }
 
-        return new Tuple<>(adaptorIntPair, adapteeIntPair);
+        private Feedback isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
+
+            method.accept(new MethodCallVisitor(), null);
+
+            return new Feedback(false);
+        }
     }
 
 
-
-    private class Visitor extends VoidVisitorAdapter<List<NodeList>> {
+    class MethodCallVisitor extends VoidVisitorAdapter<Void> {
 
         @Override
-        public void visit(ClassOrInterfaceDeclaration n, List<NodeList> arg) {
+        public void visit(MethodCallExpr n, Void arg) {
             super.visit(n, arg);
-
-            // Start with not considering inner classes.
-            arg.add(n.getImplementedTypes());
 
         }
     }
