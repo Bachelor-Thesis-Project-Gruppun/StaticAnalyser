@@ -23,7 +23,7 @@ public final class VerifierFactory {
                 return new SingleClassVerifier(new SingletonVerifier());
             default:
                 throw new IllegalArgumentException(
-                    "The avaliable pattergroups and the factory " + "does not match.");
+                    "The avaliable pattergroups and the factory does not match.");
         }
     }
 }
