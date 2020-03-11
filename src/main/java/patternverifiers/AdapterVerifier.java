@@ -47,6 +47,19 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
+     *
+     * @return
+     */
+    private Feedback verifyAdaptor(Tuple<CompilationUnit,CompilationUnit> adaptor,
+                                   Tuple<CompilationUnit,CompilationUnit> adaptee){
+
+
+
+
+        return new Feedback(false);
+    }
+
+    /**
      * A method that verifies that the adaptor and the adaptee implements the correct interfaces,
      * the two interfaces should be specified by the annotations, and the interfaces should be
      * different from each other.
@@ -82,7 +95,10 @@ public class AdapterVerifier implements IPatternGroupVerifier {
                             + "implement the correct interfaces");
     }
 
-    public Tuple<Tuple<CompilationUnit,CompilationUnit>,Tuple<CompilationUnit,CompilationUnit>> getInterfaces(CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces){
+    public Tuple<Tuple<CompilationUnit,CompilationUnit>,Tuple<CompilationUnit,CompilationUnit>>
+    getInterfaces(CompilationUnit adaptee,
+                  CompilationUnit adaptor,
+                  List<CompilationUnit> interfaces){
 
         Tuple<CompilationUnit, CompilationUnit> adaptorIntPair = new Tuple<>();
         Tuple<CompilationUnit, CompilationUnit> adapteeIntPair = new Tuple<>();
@@ -123,6 +139,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         return new Tuple<>(adaptorIntPair, adapteeIntPair);
     }
+
+
 
     private class Visitor extends VoidVisitorAdapter<List<NodeList>> {
 
