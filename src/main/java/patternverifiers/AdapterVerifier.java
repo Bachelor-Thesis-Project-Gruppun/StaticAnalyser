@@ -46,11 +46,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         CompilationUnit clientCompUnit = patternParts.get(ADAPTER_CLIENT).get(0);
         List<CompilationUnit> interfaces = patternParts.get(ADAPTER_INTERFACE);
 
-        System.out.println(interfaces.size());
-
-        Tuple<CompilationUnit, CompilationUnit> adaptorInterface = getInterfaces(
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adaptorInterface = getInterfaces(
             adapteeCompUnit, adaptorCompUnit, interfaces).getFirst();
-        Tuple<CompilationUnit, CompilationUnit> adapteeInterface = getInterfaces(
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adapteeInterface = getInterfaces(
             adapteeCompUnit, adaptorCompUnit, interfaces).getSecond();
 
         // Verify if the parts are a coherent pattern
@@ -63,8 +61,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * @return
      */
     private Feedback verifyAdaptor(
-        Tuple<CompilationUnit, CompilationUnit> adaptor,
-        Tuple<CompilationUnit, CompilationUnit> adaptee) {
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adaptor,
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adaptee) {
 
         List<Feedback> feedbackList = adaptor.getFirst().accept(new Visitor(), adaptee.getSecond());
         for (Feedback f : feedbackList) {
@@ -120,12 +118,12 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      *
      * @return
      */
-    public Tuple<Tuple<CompilationUnit, CompilationUnit>,
-        Tuple<CompilationUnit, CompilationUnit>> getInterfaces(
+    public Tuple<Tuple<CompilationUnit, ClassOrInterfaceDeclaration>, Tuple<CompilationUnit,
+        ClassOrInterfaceDeclaration>> getInterfaces(
         CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces) {
 
-        Tuple<CompilationUnit, CompilationUnit> adaptorIntPair = new Tuple<>();
-        Tuple<CompilationUnit, CompilationUnit> adapteeIntPair = new Tuple<>();
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adaptorIntPair = new Tuple<>();
+        Tuple<CompilationUnit, ClassOrInterfaceDeclaration> adapteeIntPair = new Tuple<>();
 
         // This is pretty bad, currently assumes the first class in the compilationUnit is the
         // correct one.
@@ -145,18 +143,26 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             // These if statements compares strings, witch feels bad, but it does the job for now.
             if (adapteeImplements.get(i).toString().equals(interface1)) {
                 adapteeIntPair.setFirst(adaptee);
-                adapteeIntPair.setSecond(interfaces.get(0));
+                adapteeIntPair.setSecond(interfaces.get(0)
+                                                   .findAll(ClassOrInterfaceDeclaration.class)
+                                                   .get(0));
             } else if (adapteeImplements.get(i).toString().equals(interface2)) {
                 adapteeIntPair.setFirst(adaptee);
-                adapteeIntPair.setSecond(interfaces.get(1));
+                adapteeIntPair.setSecond(interfaces.get(1)
+                                                   .findAll(ClassOrInterfaceDeclaration.class)
+                                                   .get(0));
             }
 
             if (adaptorImplements.get(i).toString().equals(interface1)) {
                 adaptorIntPair.setFirst(adaptor);
-                adaptorIntPair.setSecond(interfaces.get(0));
+                adaptorIntPair.setSecond(interfaces.get(0)
+                                                   .findAll(ClassOrInterfaceDeclaration.class)
+                                                   .get(0));
             } else if (adaptorImplements.get(i).toString().equals(interface2)) {
                 adaptorIntPair.setFirst(adaptor);
-                adaptorIntPair.setSecond(interfaces.get(1));
+                adaptorIntPair.setSecond(interfaces.get(0)
+                                                   .findAll(ClassOrInterfaceDeclaration.class)
+                                                   .get(1));
             }
         }
         return new Tuple<>(adaptorIntPair, adapteeIntPair);
@@ -165,7 +171,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      *
      */
-    private class Visitor extends GenericListVisitorAdapter<Feedback, CompilationUnit> {
+    private class Visitor extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
 
         /**
          * HOW TO GET THIS TO GO THROUGH EVERYTHING?
@@ -176,7 +182,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          * @return
          */
         @Override
-        public List<Feedback> visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
+        public List<Feedback> visit(
+            MethodDeclaration method, ClassOrInterfaceDeclaration adapteeInterface) {
             List<Feedback> feedbackList = super.visit(method, adapteeInterface);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
@@ -187,9 +194,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
                     }
                 }
             }
-            feedbackList.add(
-                new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
-                                    "together before you even try to run me again"));
+            feedbackList.add(new Feedback(false,
+                                          "You are bad and should feel bad. \nGet your shit " +
+                                          "together before you even try to run me again"));
             return feedbackList;
         }
 
@@ -199,11 +206,11 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          *
          * @return
          */
-        private boolean isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
+        private boolean isWrapper(
+            MethodDeclaration method, ClassOrInterfaceDeclaration adapteeInterface) {
             List<Boolean> list = method.accept(new MethodCallVisitor(), adapteeInterface);
 
             for (Boolean bool : list) {
-                System.out.println(bool);
                 if (bool) {
                     return true;
                 }
@@ -211,17 +218,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             return false;
         }
     }
-    
+
 
     /**
      * HOW DO WE GET FALSE FOR THIS?
      */
-    class MethodCallVisitor extends GenericListVisitorAdapter<Boolean, CompilationUnit> {
+    class MethodCallVisitor
+        extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         @Override
-        public List<Boolean> visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
+        public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adapteeInterface) {
             List<Boolean> boolList = super.visit(n, adapteeInterface);
-            System.out.println(n.getScope().get());
             if (n.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
                 return boolList;
