@@ -17,7 +17,6 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
-import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import base.Pattern;
 
@@ -32,8 +31,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     *
      * @param patternParts
+     *
      * @return
      */
     @Override
@@ -57,7 +56,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         // Verify if the parts are a coherent pattern
 
         // return verifyInterfaces(adaptorInterface, adapteeInterface);
-        return adaptorCompUnit.accept(new Visitor(), adapteeInterface.getSecond());
+        return verifyAdaptor(adaptorInterface, adapteeInterface);
     }
 
     /**
@@ -67,7 +66,16 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         Tuple<CompilationUnit, CompilationUnit> adaptor,
         Tuple<CompilationUnit, CompilationUnit> adaptee) {
 
-        return new Feedback(false);
+        List<Feedback> feedbackList = adaptor.getFirst().accept(new Visitor(), adaptee.getSecond());
+        for (Feedback f : feedbackList) {
+            if (f.getValue()) {
+                return new Feedback(true);
+            }
+        }
+
+        return new Feedback(
+            false, "You are bad and should feel bad. \nGet your shit " +
+                   "together before you even try to run me again");
     }
 
     /**
@@ -106,10 +114,10 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     *
      * @param adaptee
      * @param adaptor
      * @param interfaces
+     *
      * @return
      */
     public Tuple<Tuple<CompilationUnit, CompilationUnit>,
@@ -157,35 +165,38 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      *
      */
-    private class Visitor extends GenericVisitorAdapter<Feedback, CompilationUnit> {
+    private class Visitor extends GenericListVisitorAdapter<Feedback, CompilationUnit> {
 
         /**
          * HOW TO GET THIS TO GO THROUGH EVERYTHING?
+         *
          * @param method
          * @param adapteeInterface
+         *
          * @return
          */
         @Override
-        public Feedback visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
-            super.visit(method, adapteeInterface);
+        public List<Feedback> visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
+            List<Feedback> feedbackList = super.visit(method, adapteeInterface);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
                     if (isWrapper(method, adapteeInterface)) {
-                        return new Feedback(true);
+                        feedbackList.add(new Feedback(true));
+                        return feedbackList;
                     }
                 }
             }
-            return new Feedback(
-                false, "You are bad and should feel bad. \nGet your shit " +
-                       "together before you even try to run me again");
-
+            feedbackList.add(
+                new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
+                                    "together before you even try to run me again"));
+            return feedbackList;
         }
 
         /**
-         *
          * @param method
          * @param adapteeInterface
+         *
          * @return
          */
         private boolean isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
@@ -193,17 +204,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
             for (Boolean bool : list) {
                 System.out.println(bool);
-                if(bool){
+                if (bool) {
                     return true;
                 }
             }
             return false;
         }
     }
-
+    
 
     /**
-     *  HOW DO WE GET FALSE FOR THIS?
+     * HOW DO WE GET FALSE FOR THIS?
      */
     class MethodCallVisitor extends GenericListVisitorAdapter<Boolean, CompilationUnit> {
 
@@ -211,8 +222,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         public List<Boolean> visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
             List<Boolean> boolList = super.visit(n, adapteeInterface);
             System.out.println(n.getScope().get());
-            if (n.getScope().get().toString().equalsIgnoreCase(
-                "super")) {
+            if (n.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
                 return boolList;
             }
