@@ -4,7 +4,7 @@ import base.DesignPattern;
 import base.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_CLIENT})
-public class AdapterDemo {
+public class Client {
 
     static void rechargeMicroUsbPhone(MicroUsbPhone phone) {
         phone.useMicroUsb();

@@ -161,8 +161,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         }
 
         private boolean isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
-
-            method.accept(new MethodCallVisitor(), adapteeInterface);
+            System.out.println(method.accept(new MethodCallVisitor(), adapteeInterface));
 
             return false;
         }
@@ -173,13 +172,12 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         @Override
         public Boolean visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
-            super.visit(n, adapteeInterface);
+            System.out.println(n.getScope());
             if (n.getScope().toString().equalsIgnoreCase(
                 adapteeInterface.getPrimaryTypeName().get())) {
                 return Boolean.TRUE;
-
             }
-            return Boolean.FALSE;
+            return super.visit(n, adapteeInterface);
         }
     }
 
