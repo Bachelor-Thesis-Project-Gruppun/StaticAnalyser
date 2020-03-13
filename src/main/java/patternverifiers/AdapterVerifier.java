@@ -71,9 +71,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             }
         }
 
-        return new Feedback(
-            false, "You are bad and should feel bad. \nGet your shit " +
-                   "together before you even try to run me again");
+        return new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
+                                   "together before you even try to run me again");
     }
 
     /**
@@ -106,9 +105,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             isNotSameInterface = true;
         }
 
-        return new Feedback(adaptorInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
-                            "Adaptor and" + " adaptee does not " +
-                            "implement the correct interfaces");
+        return new Feedback(
+            adaptorInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
+            "Adaptor and" + " adaptee does not " + "implement the correct interfaces");
     }
 
     /**
@@ -139,6 +138,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         NodeList<ClassOrInterfaceType> adapteeImplements = adapteeClass.getImplementedTypes();
         NodeList<ClassOrInterfaceType> adaptorImplements = adaptorClass.getImplementedTypes();
 
+        // TODO: CANNOT HANDLE COMMENTS IN CLASS/INTERFACE DECLARATION
         for (int i = 0; i < adapteeImplements.size(); i++) {
             // These if statements compares strings, witch feels bad, but it does the job for now.
             if (adapteeImplements.get(i).toString().equals(interface1)) {
@@ -160,9 +160,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
                                                    .get(0));
             } else if (adaptorImplements.get(i).toString().equals(interface2)) {
                 adaptorIntPair.setFirst(adaptor);
-                adaptorIntPair.setSecond(interfaces.get(0)
+                adaptorIntPair.setSecond(interfaces.get(1)
                                                    .findAll(ClassOrInterfaceDeclaration.class)
-                                                   .get(1));
+                                                   .get(0));
             }
         }
         return new Tuple<>(adaptorIntPair, adapteeIntPair);
@@ -229,7 +229,14 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         @Override
         public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adapteeInterface) {
             List<Boolean> boolList = super.visit(n, adapteeInterface);
-            if (n.getScope().get().toString().equalsIgnoreCase("super")) {
+
+            System.out.println(adapteeInterface.getNameAsString() + " ######################");
+
+            if(adapteeInterface.isInterface()){
+                if(n.getScope().get().toString().equalsIgnoreCase(adapteeInterface.getNameAsString())){
+                    System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                }
+            } else if (n.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
                 return boolList;
             }
