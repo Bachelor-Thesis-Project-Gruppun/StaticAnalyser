@@ -16,6 +16,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 
 import base.Pattern;
@@ -30,6 +31,11 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     public AdapterVerifier() {
     }
 
+    /**
+     *
+     * @param patternParts
+     * @return
+     */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
 
@@ -99,6 +105,13 @@ public class AdapterVerifier implements IPatternGroupVerifier {
                             "implement the correct interfaces");
     }
 
+    /**
+     *
+     * @param adaptee
+     * @param adaptor
+     * @param interfaces
+     * @return
+     */
     public Tuple<Tuple<CompilationUnit, CompilationUnit>,
         Tuple<CompilationUnit, CompilationUnit>> getInterfaces(
         CompilationUnit adaptee, CompilationUnit adaptor, List<CompilationUnit> interfaces) {
@@ -141,8 +154,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         return new Tuple<>(adaptorIntPair, adapteeIntPair);
     }
 
+    /**
+     *
+     */
     private class Visitor extends GenericVisitorAdapter<Feedback, CompilationUnit> {
 
+        /**
+         * HOW TO GET THIS TO GO THROUGH EVERYTHING?
+         * @param method
+         * @param adapteeInterface
+         * @return
+         */
         @Override
         public Feedback visit(MethodDeclaration method, CompilationUnit adapteeInterface) {
             super.visit(method, adapteeInterface);
@@ -160,24 +182,42 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
         }
 
+        /**
+         *
+         * @param method
+         * @param adapteeInterface
+         * @return
+         */
         private boolean isWrapper(MethodDeclaration method, CompilationUnit adapteeInterface) {
-            System.out.println(method.accept(new MethodCallVisitor(), adapteeInterface));
+            List<Boolean> list = method.accept(new MethodCallVisitor(), adapteeInterface);
 
+            for (Boolean bool : list) {
+                System.out.println(bool);
+                if(bool){
+                    return true;
+                }
+            }
             return false;
         }
     }
 
 
-    class MethodCallVisitor extends GenericVisitorAdapter<Boolean, CompilationUnit> {
+    /**
+     *  HOW DO WE GET FALSE FOR THIS?
+     */
+    class MethodCallVisitor extends GenericListVisitorAdapter<Boolean, CompilationUnit> {
 
         @Override
-        public Boolean visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
-            System.out.println(n.getScope());
-            if (n.getScope().toString().equalsIgnoreCase(
-                adapteeInterface.getPrimaryTypeName().get())) {
-                return Boolean.TRUE;
+        public List<Boolean> visit(MethodCallExpr n, CompilationUnit adapteeInterface) {
+            List<Boolean> boolList = super.visit(n, adapteeInterface);
+            System.out.println(n.getScope().get());
+            if (n.getScope().get().toString().equalsIgnoreCase(
+                "super")) {
+                boolList.add(Boolean.TRUE);
+                return boolList;
             }
-            return super.visit(n, adapteeInterface);
+            boolList.add(Boolean.FALSE);
+            return boolList;
         }
     }
 
