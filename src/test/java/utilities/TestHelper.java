@@ -19,7 +19,7 @@ public class TestHelper {
     private static String getFullMockPath(String filePath) {
         if (fullMockPath == "") {
             String userDir = System.getProperty("user.dir");
-            fullMockPath = userDir + mockpath;
+            fullMockPath = userDir + "/" + mockpath;
         }
 
         return fullMockPath + filePath;
@@ -34,7 +34,7 @@ public class TestHelper {
      * @throws FileNotFoundException in case the file could not be found.
      */
     public static CompilationUnit getMockCompUnit(String pattern, String className) throws FileNotFoundException {
-        String path = getFullMockPath(pattern + "/" + className);
+        String path = getFullMockPath(pattern + "/" + className + ".java");
         File file = new File(path);
         CompilationUnit compUnit = StaticJavaParser.parse(file);
         return compUnit;
