@@ -22,15 +22,23 @@ public class SingletonVerifierTest {
         String failingName = basePath + "FailingSingletonMock.java";
         String baseMock = basePath + "SingletonMock.java";
         String multipleConstructors = basePath + "SingletonMockMultipleConstructors.java";
+        String failMockElseStmt = basePath + "SingletonMockWithElseStmt.java";
+        String eagerSingleton = basePath + "EagerSingletonMock.java";
         File failingFile = new File(failingName);
+        File eagerSingletonFile = new File(eagerSingleton);
         File baseFile = new File(baseMock);
         File multipleConsFile = new File(multipleConstructors);
+        File failMockElseStmtFile = new File(failMockElseStmt);
         CompilationUnit failingCompUnit = StaticJavaParser.parse(failingFile);
+        CompilationUnit eagerSingletonCU = StaticJavaParser.parse(eagerSingletonFile);
         CompilationUnit baseCompUnit = StaticJavaParser.parse(baseFile);
         CompilationUnit multipleConsCompUnit = StaticJavaParser.parse(multipleConsFile);
+        CompilationUnit failMockElseStmtCU = StaticJavaParser.parse(failMockElseStmtFile);
+        assertTrue(new SingletonVerifier().verify(eagerSingletonCU).getValue());
         assertFalse(new SingletonVerifier().verify(failingCompUnit).getValue());
         assertTrue(new SingletonVerifier().verify(baseCompUnit).getValue());
-        assertFalse(new SingletonVerifier().verify(multipleConsCompUnit).getValue());
+        assertTrue(new SingletonVerifier().verify(multipleConsCompUnit).getValue());
+        assertFalse(new SingletonVerifier().verify(failMockElseStmtCU).getValue());
 
     }
 

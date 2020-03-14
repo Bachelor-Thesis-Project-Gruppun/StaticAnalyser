@@ -211,7 +211,7 @@ public class SingletonVerifier implements IPatternVerifier {
         compUnit.findAll(ObjectCreationExpr.class).forEach(objCreateExpr -> {
             if (objCreateExpr.getTypeAsString().equals(compUnit.getPrimaryTypeName().get())) {
                 Node node = objCreateExpr.getParentNodeForChildren();
-                while (true) {
+                while (true && !isInstantiated) {
                     if (node instanceof IfStmt) {
                         IfStmt ifStmtNode = (IfStmt) node;
                         if (ifStmtNode.getCondition().isBinaryExpr()) {

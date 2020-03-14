@@ -31,8 +31,6 @@ public class SingletonMockMultipleConstructors {
     private static SingletonMockMultipleConstructors getInstance() {
         if (instance == null) {
             instance = new SingletonMockMultipleConstructors();
-        } else {
-            instance = new SingletonMockMultipleConstructors(" ");
         }
         return instance;
     }

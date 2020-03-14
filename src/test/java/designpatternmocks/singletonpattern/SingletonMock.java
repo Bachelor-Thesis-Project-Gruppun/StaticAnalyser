@@ -2,7 +2,7 @@ package designpatternmocks.singletonpattern;
 
 /**
  * Mock class for the SingletonPattern, contains a private static field of SingletonMock, a private
- * constructor aswell as a private static method which calls the constructor.
+ * constructor aswell as a public static method which calls the constructor.
  */
 //@DesignPattern(pattern={Pattern.SINGLETON})
 public class SingletonMock {
