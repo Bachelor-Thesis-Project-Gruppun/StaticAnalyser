@@ -227,7 +227,6 @@ public class SingletonVerifier implements IPatternVerifier {
                                               });
                                 }
                                 onlyIfNull.compareAndSet(true, true);
-                                isInstantiated = true;
                             } else {
                                 onlyIfNull.set(false);
                             }
@@ -244,6 +243,9 @@ public class SingletonVerifier implements IPatternVerifier {
 
             }
         });
+        if (onlyIfNull.get()) {
+            isInstantiated = true;
+        }
         return onlyIfNull.get();
     }
 
