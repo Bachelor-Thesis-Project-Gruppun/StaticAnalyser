@@ -17,7 +17,7 @@ public class TestHelper {
     private static String fullMockPath = "";
 
     private static String getFullMockPath(String filePath) {
-        if (fullMockPath == "") {
+        if (fullMockPath.equals("")) {
             String userDir = System.getProperty("user.dir");
             fullMockPath = userDir + "/" + mockpath;
         }
