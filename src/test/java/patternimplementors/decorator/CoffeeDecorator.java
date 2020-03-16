@@ -2,8 +2,8 @@ package patternimplementors.decorator;
 
 public abstract class CoffeeDecorator implements IBeverageComponent {
 
-    private int cost;
     private IBeverageComponent component;
+    private int cost;
 
     public CoffeeDecorator(IBeverageComponent component) {
         this.component = component;

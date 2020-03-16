@@ -40,7 +40,8 @@ public class DecoratorVerifier implements IPatternVerifier {
      */
     @Override
     public boolean verify(CompilationUnit compUnit) {
-        return hasAComponent(compUnit).getValue();
+        return componentInitializedInConstructor(compUnit).getValue() && hasAComponent(compUnit)
+            .getValue();
     }
 
     /**
@@ -89,24 +90,30 @@ public class DecoratorVerifier implements IPatternVerifier {
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
+        String nameOfInterface = interfaceName.getPrimaryTypeName().get();
         for (FieldDeclaration currentField : fieldsInClass) {
-            String fieldType = toTest.getPrimaryTypeName().get();
-            List<String> constructorParams = new ArrayList<>();
-            if (currentField.isPublic()) {
-                isInitialized.set(false);
-            } else {
-                currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
-                    isInitialized.set(false);
-                });
-                toTest.findAll(ConstructorDeclaration.class).forEach(constructorDeclaration -> {
-                    constructorParams.add(constructorDeclaration.getParameterByType(fieldType).get()
-                                                                .getNameAsString());
-                });
-                toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
-                    if (!constructorParams.contains(variableDeclarator.getNameAsString())) {
-                        
-                    }
-                });
+            if (currentField.getCommonType().toString().equals(nameOfInterface)) {
+                List<String> constructorParams = new ArrayList<>();
+                isInitialized.compareAndSet(true, !currentField.isPublic());
+                if (!isInitialized.get()) {
+                    currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
+                        isInitialized.set(false);
+                    });
+                    toTest.findAll(ConstructorDeclaration.class).forEach(constructorDeclaration -> {
+                        constructorParams.add(constructorDeclaration.getParameterByType(
+                            nameOfInterface).get().getNameAsString());
+                    });
+                    toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
+                        if (variableDeclarator.getNameAsString().equals(
+                            currentField.getVariable(0).getNameAsString())) {
+                            if (!variableDeclarator.getInitializer().isEmpty() &&
+                                !constructorParams.contains(
+                                    variableDeclarator.getInitializer().get().toString())) {
+                                isInitialized.set(false);
+                            }
+                        }
+                    });
+                }
             }
         }
         if (isInitialized.get()) {
@@ -114,8 +121,7 @@ public class DecoratorVerifier implements IPatternVerifier {
         } else {
             result = new Feedback(false, "All constructors did not initialize the Component field");
         }
-        throw new UnsupportedOperationException();
-        //return result;
+        return result;
     }
 
 }

@@ -23,21 +23,21 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        startAnalyse(new String[] {"src"});
         List<CompilationUnit> compUnits = ProjectParser.projectToAst(
             "src/test/java" + "/patternimplementors" + "/decorator");
         List<CompilationUnit> testUnits = new ArrayList<>();
-        testUnits.add(compUnits.get(0));
         testUnits.add(compUnits.get(1));
-        testUnits.add(compUnits.get(3));
-        DecoratorVerifier verifier = new DecoratorVerifier(compUnits.get(2)/*, testUnits*/);
-        verifier.verify(compUnits.get(0));
+        testUnits.add(compUnits.get(0));
+        testUnits.add(compUnits.get(4));
+        DecoratorVerifier verifier = new DecoratorVerifier(compUnits.get(3)/*, testUnits*/);
+        verifier.verify(compUnits.get(1));
         // DEBUG BELOW
         for (CompilationUnit compUnit : testUnits) {
-            //     System.out.println(verifier.verify(compUnit) + " for compUnit: " +
-            //                        compUnit.getPrimaryTypeName().get());
+            System.out.println(verifier.verify(compUnit) + " for compUnit: " +
+                               compUnit.getPrimaryTypeName().get());
             verifier.verify(compUnit);
         }
+        startAnalyse(new String[] {"src"});
     }
 
     /**
