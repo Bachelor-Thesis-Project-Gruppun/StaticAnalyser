@@ -1,5 +1,7 @@
 package patternverifiers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -10,12 +12,12 @@ import com.github.javaparser.ast.body.VariableDeclarator;
  */
 public class DecoratorVerifier implements IPatternVerifier {
 
-    private final transient CompilationUnit interfaceName;
-    //private final transient List<CompilationUnit> components;
-    //    private List<CompilationUnit> absDecorator;
-    //    // Does not necessarily need to be abstract
-    //    // or an interface, could be a concrete class
-    //    private List<CompilationUnit> decorators;    // Class that extends the iDecorator
+    private final CompilationUnit interfaceName;
+    private final List<CompilationUnit> components = new ArrayList<>();
+    private List<CompilationUnit> absDecorator;
+    // Does not necessarily need to be abstract
+    // or an interface, could be a concrete class
+    private List<CompilationUnit> decorators;    // Class that extends the iDecorator
 
     /**
      * Constructor.
@@ -35,7 +37,7 @@ public class DecoratorVerifier implements IPatternVerifier {
      */
     @Override
     public boolean verify(CompilationUnit compUnit) {
-        return hasAComponent(compUnit);
+        return hasAComponent(compUnit).getValue();
     }
 
     /**
@@ -46,7 +48,8 @@ public class DecoratorVerifier implements IPatternVerifier {
      *
      * @return true iff toTest has a variable of the same type as the interface found in iComponent
      */
-    private boolean hasAComponent(CompilationUnit toTest) {
+    private Feedback hasAComponent(CompilationUnit toTest) {
+        Feedback result;
         AtomicBoolean hasAComponent = new AtomicBoolean(false);  // Declare result variable
         toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {  //For each
             // variable declaration in toTest
@@ -55,9 +58,37 @@ public class DecoratorVerifier implements IPatternVerifier {
                 // of the same type as the
                 // interface iComponents
                 hasAComponent.set(true); // set the result to true
+
             }
         });
-        return hasAComponent.get(); // Return result
+        if (hasAComponent.get()) {
+            result = new Feedback(true, "Component was found for class " +
+                                        toTest.getPrimaryTypeName().get());
+        } else {
+            result = new Feedback(false, "There was no Component field found for class " +
+                                         toTest.getPrimaryTypeName().get());
+        }
+        return result; // Return result
+    }
+
+    /**
+     * Method to check if all constructors in a given class initialize the Component field in the
+     * class.
+     *
+     * @param toTest The CompilationUnit (class) to check.
+     *
+     * @return True iff all constructors in a given class does initialize the class' Component
+     */
+    private Feedback componentInitializedInConstructor(CompilationUnit toTest) {
+        Feedback result;
+        AtomicBoolean isInitialized = new AtomicBoolean(false);
+        if (isInitialized.get()) {
+            result = new Feedback(true, "All constructors initialize the Component field");
+        } else {
+            result = new Feedback(false, "All constructors did not initialize the Component field");
+        }
+        throw new UnsupportedOperationException();
+        //return result;
     }
 
 }

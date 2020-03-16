@@ -1,15 +1,16 @@
 package patternimplementors.decorator;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-@SuppressFBWarnings(justification = "Mock class")
 public abstract class CoffeeDecorator implements IBeverageComponent {
 
     private int cost;
     private IBeverageComponent component;
 
+    public CoffeeDecorator(IBeverageComponent component) {
+        this.component = component;
+    }
+
     @Override
     public int getCost() {
-        return cost;
+        return component.getCost() + cost;
     }
 }

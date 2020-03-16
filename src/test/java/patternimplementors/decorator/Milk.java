@@ -1,14 +1,12 @@
 package patternimplementors.decorator;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-@SuppressFBWarnings(justification = "Mock class")
 public class Milk extends CoffeeDecorator {
 
     public int cost = 3;
     private IBeverageComponent component;
 
     public Milk(IBeverageComponent decoratable) {
+        super(decoratable);
         this.component = decoratable;
     }
 
