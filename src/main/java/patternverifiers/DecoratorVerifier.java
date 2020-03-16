@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -83,19 +84,29 @@ public class DecoratorVerifier implements IPatternVerifier {
      */
     private Feedback componentInitializedInConstructor(CompilationUnit toTest) {
         Feedback result;
-        AtomicBoolean isInitialized = new AtomicBoolean(false);
+        AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
         for (FieldDeclaration currentField : fieldsInClass) {
+            String fieldType = toTest.getPrimaryTypeName().get();
+            List<String> constructorParams = new ArrayList<>();
             if (currentField.isPublic()) {
                 isInitialized.set(false);
             } else {
                 currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
                     isInitialized.set(false);
                 });
-                //toTest.findAll()
+                toTest.findAll(ConstructorDeclaration.class).forEach(constructorDeclaration -> {
+                    constructorParams.add(constructorDeclaration.getParameterByType(fieldType).get()
+                                                                .getNameAsString());
+                });
+                toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
+                    if (!constructorParams.contains(variableDeclarator.getNameAsString())) {
+                        
+                    }
+                });
             }
         }
         if (isInitialized.get()) {

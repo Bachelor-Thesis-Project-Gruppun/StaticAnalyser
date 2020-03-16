@@ -13,5 +13,5 @@ public class SingletonVerifier implements IPatternVerifier {
     @Override
     public boolean verify(CompilationUnit compUnit) {
         throw new UnsupportedOperationException();
-    }
+/}
 }
