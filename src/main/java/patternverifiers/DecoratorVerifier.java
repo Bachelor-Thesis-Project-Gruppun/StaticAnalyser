@@ -54,15 +54,11 @@ public class DecoratorVerifier implements IPatternVerifier {
      */
     private Feedback hasAComponent(CompilationUnit toTest) {
         Feedback result;
-        AtomicBoolean hasAComponent = new AtomicBoolean(false);  // Declare result variable
-        toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {  //For each
-            // variable declaration in toTest
-            if (fieldDeclaration.getTypeAsString()// If the variable declaration
-                                .contains(interfaceName.getPrimaryTypeName().get())) {      // Is
-                // of the same type as the
-                // interface iComponents
-                hasAComponent.set(true); // set the result to true
-
+        AtomicBoolean hasAComponent = new AtomicBoolean(false);
+        toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {
+            if (fieldDeclaration.getTypeAsString().contains(
+                interfaceName.getPrimaryTypeName().get())) {
+                hasAComponent.set(true);
             }
         });
         if (hasAComponent.get()) {
@@ -72,7 +68,7 @@ public class DecoratorVerifier implements IPatternVerifier {
             result = new Feedback(false, "There was no Component field found for class " +
                                          toTest.getPrimaryTypeName().get());
         }
-        return result; // Return result
+        return result;
     }
 
     /**
