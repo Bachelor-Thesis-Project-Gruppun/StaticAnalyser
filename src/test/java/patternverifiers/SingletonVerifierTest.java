@@ -1,6 +1,7 @@
 package patternverifiers;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
@@ -16,34 +17,55 @@ import org.junit.jupiter.api.Test;
  */
 public class SingletonVerifierTest {
 
+    String basePath = "src/test/java/designpatternmocks/singletonpattern/";
+
     @Test
-    public void testVerify() throws IOException {
-        String basePath = "src/test/java/designpatternmocks/singletonpattern/";
-        String failingName = basePath + "FailingSingletonMock.java";
-        String baseMock = basePath + "SingletonMock.java";
-        String multipleConstructors = basePath + "SingletonMockMultipleConstructors.java";
-        String failMockElseStmt = basePath + "SingletonMockWithElseStmt.java";
-        String eagerSingleton = basePath + "EagerSingletonMock.java";
-        String multipleAccessMethod = basePath + "SingletonMockMultipleAccessMethods.java";
-        File failingFile = new File(failingName);
-        File eagerSingletonFile = new File(eagerSingleton);
+    public void testVerifyLazySingleton() throws IOException {
+        String baseMock = basePath + "LazySingletonMock.java";
         File baseFile = new File(baseMock);
-        File multipleConsFile = new File(multipleConstructors);
-        File failMockElseStmtFile = new File(failMockElseStmt);
-        File multipleAccessFile = new File(multipleAccessMethod);
-        CompilationUnit failingCompUnit = StaticJavaParser.parse(failingFile);
-        CompilationUnit eagerSingletonCU = StaticJavaParser.parse(eagerSingletonFile);
         CompilationUnit baseCompUnit = StaticJavaParser.parse(baseFile);
+        assertTrue(new SingletonVerifier().verify(baseCompUnit).getValue());
+    }
+
+    @Test
+    public void testVerifyIncorrectImplementation() throws FileNotFoundException {
+        String failingName = basePath + "FailingSingletonMock.java";
+        File failingFile = new File(failingName);
+        CompilationUnit failingCompUnit = StaticJavaParser.parse(failingFile);
+        assertFalse(new SingletonVerifier().verify(failingCompUnit).getValue());
+    }
+
+    @Test
+    public void testVerifyMultipleConstructors() throws FileNotFoundException {
+        String multipleConstructors = basePath + "SingletonMockMultipleConstructors.java";
+        File multipleConsFile = new File(multipleConstructors);
         CompilationUnit multipleConsCompUnit = StaticJavaParser.parse(multipleConsFile);
+        assertTrue(new SingletonVerifier().verify(multipleConsCompUnit).getValue());
+
+    }
+
+    @Test
+    public void testVerifyEagerSingleton() throws FileNotFoundException {
+        String eagerSingleton = basePath + "EagerSingletonMock.java";
+        File eagerSingletonFile = new File(eagerSingleton);
+        CompilationUnit eagerSingletonCU = StaticJavaParser.parse(eagerSingletonFile);
+        assertTrue(new SingletonVerifier().verify(eagerSingletonCU).getValue());
+    }
+
+    @Test
+    public void testVerifyElseStmt() throws FileNotFoundException {
+        String failMockElseStmt = basePath + "SingletonMockWithElseStmt.java";
+        File failMockElseStmtFile = new File(failMockElseStmt);
         CompilationUnit failMockElseStmtCU = StaticJavaParser.parse(failMockElseStmtFile);
+        assertFalse(new SingletonVerifier().verify(failMockElseStmtCU).getValue());
+    }
+
+    @Test
+    public void testVerifyMultipleAcces() throws FileNotFoundException {
+        String multipleAccessMethod = basePath + "SingletonMockMultipleAccessMethods.java";
+        File multipleAccessFile = new File(multipleAccessMethod);
         CompilationUnit multipleAccessCU = StaticJavaParser.parse(multipleAccessFile);
         assertFalse(new SingletonVerifier().verify(multipleAccessCU).getValue());
-        assertFalse(new SingletonVerifier().verify(failingCompUnit).getValue());
-        assertFalse(new SingletonVerifier().verify(failMockElseStmtCU).getValue());
-        assertTrue(new SingletonVerifier().verify(baseCompUnit).getValue());
-        assertTrue(new SingletonVerifier().verify(multipleConsCompUnit).getValue());
-        assertTrue(new SingletonVerifier().verify(eagerSingletonCU).getValue());
-
     }
 
 }
