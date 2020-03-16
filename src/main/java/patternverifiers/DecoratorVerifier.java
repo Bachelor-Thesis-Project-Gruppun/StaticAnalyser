@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 
 /**
@@ -82,6 +84,20 @@ public class DecoratorVerifier implements IPatternVerifier {
     private Feedback componentInitializedInConstructor(CompilationUnit toTest) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(false);
+        List<FieldDeclaration> fieldsInClass = new ArrayList<>();
+        toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
+            fieldsInClass.add(fieldDeclaration);
+        });
+        for (FieldDeclaration currentField : fieldsInClass) {
+            if (currentField.isPublic()) {
+                isInitialized.set(false);
+            } else {
+                currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
+                    isInitialized.set(false);
+                });
+                //toTest.findAll()
+            }
+        }
         if (isInitialized.get()) {
             result = new Feedback(true, "All constructors initialize the Component field");
         } else {
