@@ -18,6 +18,13 @@ public class EagerSingletonMock {
     }
 
     /**
+     * Private constructor, should pass second predicate
+     */
+    private EagerSingletonMock(String s) {
+        System.out.println("Constructor called with parameter " + s);
+    }
+
+    /**
      * private static method getInstance which returns the instance, should pass tests
      *
      * @return The Singleton instance of SingletonMock

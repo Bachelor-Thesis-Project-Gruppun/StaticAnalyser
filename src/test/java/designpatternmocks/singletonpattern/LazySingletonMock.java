@@ -18,6 +18,13 @@ public class LazySingletonMock {
     }
 
     /**
+     * Private constructor, should pass second predicate
+     */
+    private LazySingletonMock(String s) {
+        System.out.println("Constructor called with parameter " + s);
+    }
+
+    /**
      * private static method getInstance which calls the constructor, should pass third predicate if
      * called
      *

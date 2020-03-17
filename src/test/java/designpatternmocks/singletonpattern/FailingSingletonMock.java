@@ -10,13 +10,16 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressFBWarnings(justification = "Mock class")
 public class FailingSingletonMock {
 
-    public static FailingSingletonMock failMock;
+    public static FailingSingletonMock firstInstance;
+    public static FailingSingletonMock secondInstance = new FailingSingletonMock();
 
     public FailingSingletonMock getInstance() {
         if ("" == null) {
-            failMock = new FailingSingletonMock();
+            firstInstance = new FailingSingletonMock();
+        } else {
+            return secondInstance;
         }
-        return failMock;
+        return firstInstance;
     }
 
 }

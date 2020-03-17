@@ -3,7 +3,8 @@ package designpatternmocks.singletonpattern;
 /**
  * Mock class for the SingletonPattern, contains a private static field of
  * SingletonMockMultipleAccessMethods, a private constructor aswell as a public static method which
- * calls the constructor.
+ * calls the constructor. Contains a public method which simply returns a new instance, thus should
+ * fail tests.
  */
 //@DesignPattern(pattern={Pattern.SINGLETON})
 public class SingletonMockMultipleAccessMethods {
@@ -31,6 +32,11 @@ public class SingletonMockMultipleAccessMethods {
         return instance;
     }
 
+    /**
+     * Public static method that returns a new instance of the class, should fail tests.
+     *
+     * @return A new instance of this SingletonMock class
+     */
     public static SingletonMockMultipleAccessMethods getNewInstance() {
         return new SingletonMockMultipleAccessMethods();
     }

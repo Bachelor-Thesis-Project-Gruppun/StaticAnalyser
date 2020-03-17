@@ -21,10 +21,10 @@ public class SingletonVerifierTest {
 
     @Test
     public void testVerifyLazySingleton() throws IOException {
-        String baseMock = basePath + "LazySingletonMock.java";
-        File baseFile = new File(baseMock);
-        CompilationUnit baseCompUnit = StaticJavaParser.parse(baseFile);
-        assertTrue(new SingletonVerifier().verify(baseCompUnit).getValue());
+        String lazySingleton = basePath + "LazySingletonMock.java";
+        File lazySingletonFile = new File(lazySingleton);
+        CompilationUnit lazySingletonCU = StaticJavaParser.parse(lazySingletonFile);
+        assertTrue(new SingletonVerifier().verify(lazySingletonCU).getValue());
     }
 
     @Test
