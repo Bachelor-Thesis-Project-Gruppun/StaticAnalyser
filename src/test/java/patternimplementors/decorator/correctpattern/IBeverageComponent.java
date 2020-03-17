@@ -1,4 +1,4 @@
-package patternimplementors.decorator;
+package patternimplementors.decorator.correctpattern;
 
 public interface IBeverageComponent {
 
