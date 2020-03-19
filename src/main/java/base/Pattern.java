@@ -6,7 +6,11 @@ package base;
  */
 public enum Pattern {
     IMMUTABLE(PatternGroup.IMMUTABLE),
-    SINGLETON(PatternGroup.SINGLETON);
+    SINGLETON(PatternGroup.SINGLETON),
+    DECORATOR_INTERFACE_COMPONENT(PatternGroup.DECORATOR),
+    DECORATOR_CONCRETE_COMPONENT(PatternGroup.DECORATOR),
+    DECORATOR_ABSTRACT_DECORATOR(PatternGroup.DECORATOR),
+    DECORATOR_CONCRETE_DECORATOR(PatternGroup.DECORATOR);
 
     private PatternGroup group;
 

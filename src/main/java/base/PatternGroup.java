@@ -1,5 +1,6 @@
 package base;
 
+import patternverifiers.DecoratorVerifier;
 import patternverifiers.IPatternGroupVerifier;
 import patternverifiers.ImmutableVerifier;
 import patternverifiers.SingleClassVerifier;
@@ -10,8 +11,8 @@ import patternverifiers.SingletonVerifier;
  */
 public enum PatternGroup {
     SINGLETON(new SingleClassVerifier(new SingletonVerifier())),
-    IMMUTABLE(new SingleClassVerifier(new ImmutableVerifier()));
-
+    IMMUTABLE(new SingleClassVerifier(new ImmutableVerifier())),
+    DECORATOR(new DecoratorVerifier());
     private IPatternGroupVerifier verifier;
 
     PatternGroup(IPatternGroupVerifier groupVerifier) {

@@ -1,10 +1,14 @@
 package patternverifiers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import base.Pattern;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.InitializerDeclaration;
@@ -13,46 +17,123 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 /**
  * A verifier for the decorator pattern.
  */
-public class DecoratorVerifier implements IPatternVerifier {
-
-    private final CompilationUnit interfaceName;
-    private final List<CompilationUnit> components = new ArrayList<>();
-    private List<CompilationUnit> absDecorator;
-    // Does not necessarily need to be abstract
-    // or an interface, could be a concrete class
-    private List<CompilationUnit> decorators;    // Class that extends the iDecorator
+public class DecoratorVerifier implements IPatternGroupVerifier {
 
     /**
      * Constructor.
      */
-    public DecoratorVerifier(
-        CompilationUnit interfaceCompUnit/*, List<CompilationUnit> components*/) {
-        this.interfaceName = interfaceCompUnit;
-        //this.components = components;
+    public DecoratorVerifier() {
+    }
+
+    @Override
+    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
+        List<PatternInstance> patternInstances = getPatternInstances(map);
+        //Under construction
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public Feedback verify(PatternInstance pi) {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    //Maybe make a model-folder for all pattern instances instead of having any given PI inside
+    // of its own verifier class?
+
+    /**
+     * <p>TODO documentation</p>
+     * Used to group parts of the same pattern instance (an implementation of the pattern) in one place.
+     */
+    private class PatternInstance {
+        CompilationUnit interfaceComponent;
+        List<CompilationUnit> concreteComponents = new ArrayList<>();
+        List<CompilationUnit> abstractDecorators = new ArrayList<>();
+        List<CompilationUnit> concreteDecorators = new ArrayList<>();
+
+        public PatternInstance() {
+        }
+
+        //Debug
+        public void printContents() {
+            System.out.println(interfaceComponent.getClass());
+        }
     }
 
     /**
-     * Verifies that every class in the CompilationUnit is part of the Decorator pattern.
+     * Method for identifying which {@link CompilationUnit}s are part of the same decorator pattern instance.
+     * The identified instances will be returned as a list of {@link PatternInstance}.
      *
-     * @param compUnit The CompilationUnit of files to look at
-     *
-     * @return True if all classes in the CompilationUnit is part of the Decorator design pattern
+     * @param map A HashMap where every key is a decorator pattern element (such as "concrete component") and
+     *            every value is a compilation units of said pattern element type.
+     * @return A list of all identified instances of the pattern.
      */
-    @Override
-    public boolean verify(CompilationUnit compUnit) {
-        return componentInitializedInConstructor(compUnit).getValue() && hasAComponent(compUnit)
-            .getValue();
+    public List<PatternInstance> getPatternInstances(Map<Pattern, List<CompilationUnit>> map) {
+        List<CompilationUnit> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
+        List<CompilationUnit> concreteComponents = map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
+        List<CompilationUnit> abstractDecorators = map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
+        List<CompilationUnit> concreteDecorators = map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
+        HashMap<CompilationUnit, PatternInstance> componentToPatternInstance = new HashMap();
+
+        //Create incomplete PIs to be populated below, easier to use isDescendantOf below by doing this
+        interfaceComponents.forEach((interfaceComponent) -> {
+            PatternInstance pi = new PatternInstance();
+            pi.interfaceComponent = interfaceComponent;
+            componentToPatternInstance.putIfAbsent(interfaceComponent, pi);
+        });
+
+        //Found no better way to populate PIs than looping through everything multiple times
+        //To-do: cleanup
+        interfaceComponents.forEach((interfaceComponentCU) -> {
+            var componentInterface = interfaceComponentCU.findFirst(ClassOrInterfaceDeclaration.class);
+            if (componentInterface.isPresent() && componentInterface.get().isInterface()) {
+                String interfaceName = componentInterface.get().getNameAsString();
+
+                concreteComponents.forEach(cc -> {
+                    ClassOrInterfaceDeclaration concComp = cc.findFirst(ClassOrInterfaceDeclaration.class).get();
+                    concComp.getImplementedTypes().forEach(implementedInterface -> {
+                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                            PatternInstance pi = componentToPatternInstance.get(interfaceComponentCU);
+                            pi.concreteComponents.add(cc);
+                        }
+                    });
+                });
+
+                abstractDecorators.forEach(ad -> {
+                    ClassOrInterfaceDeclaration absDec = ad.findFirst(ClassOrInterfaceDeclaration.class).get();
+                    absDec.getImplementedTypes().forEach(implementedInterface -> {
+                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                            PatternInstance pi = componentToPatternInstance.get(interfaceComponentCU);
+                            pi.abstractDecorators.add(ad);
+
+                            //Check which concreteComponents extend this abstractDecorator
+                            //And update PI accordingly
+                            concreteDecorators.forEach(cd -> {
+                                ClassOrInterfaceDeclaration concDec = cd.findFirst(ClassOrInterfaceDeclaration.class).get();
+                                concDec.getExtendedTypes().forEach(extendedClass -> {
+                                    if (extendedClass.getNameAsString().equals(absDec.getName().asString())) {
+                                        pi.concreteDecorators.add(cd);
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+            } else {
+                throw new UnsupportedOperationException("Was not an interface or something wrong happened");
+            }
+        });
+        var a = componentToPatternInstance.values().toArray();
+        return null;
     }
+
 
     /**
      * Method for checking that the CompilationUnit toTest has a component of the same type as the
      * interface found in iComponent.
      *
      * @param toTest The CompilationUnit (class) to check
-     *
      * @return true iff toTest has a variable of the same type as the interface found in iComponent
      */
-    private Feedback hasAComponent(CompilationUnit toTest) {
+    private Feedback hasAComponent(CompilationUnit toTest, CompilationUnit interfaceName) {
         Feedback result;
         AtomicBoolean hasAComponent = new AtomicBoolean(false);
         toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {
@@ -63,10 +144,10 @@ public class DecoratorVerifier implements IPatternVerifier {
         });
         if (hasAComponent.get()) {
             result = new Feedback(true, "Component was found for class " +
-                                        toTest.getPrimaryTypeName().get());
+                toTest.getPrimaryTypeName().get());
         } else {
             result = new Feedback(false, "There was no Component field found for class " +
-                                         toTest.getPrimaryTypeName().get());
+                toTest.getPrimaryTypeName().get());
         }
         return result;
     }
@@ -76,10 +157,9 @@ public class DecoratorVerifier implements IPatternVerifier {
      * class.
      *
      * @param toTest The CompilationUnit (class) to check.
-     *
      * @return True iff all constructors in a given class does initialize the class' Component
      */
-    private Feedback componentInitializedInConstructor(CompilationUnit toTest) {
+    private Feedback componentInitializedInConstructor(CompilationUnit toTest, CompilationUnit interfaceName) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
@@ -119,5 +199,4 @@ public class DecoratorVerifier implements IPatternVerifier {
         }
         return result;
     }
-
 }
