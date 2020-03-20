@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import base.Pattern;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -28,20 +29,22 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
         List<PatternInstance> patternInstances = getPatternInstances(map);
-        //Under construction
         throw new UnsupportedOperationException("not implemented");
     }
 
+    /**
+     * @param pi An instance of the decorator pattern to be verified
+     * @return A {@link Feedback} object that contains the result and information
+     * regarding whether or not the instance of the pattern was valid
+     */
     public Feedback verify(PatternInstance pi) {
         throw new UnsupportedOperationException("not implemented");
     }
 
     //Maybe make a model-folder for all pattern instances instead of having any given PI inside
     // of its own verifier class?
-
     /**
-     * <p>TODO documentation</p>
-     * Used to group parts of the same pattern instance (an implementation of the pattern) in one place.
+     * Used to group parts of the same pattern instance (an implementation of the pattern) in one place
      */
     private class PatternInstance {
         CompilationUnit interfaceComponent;
@@ -51,20 +54,15 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
 
         public PatternInstance() {
         }
-
-        //Debug
-        public void printContents() {
-            System.out.println(interfaceComponent.getClass());
-        }
     }
 
     /**
      * Method for identifying which {@link CompilationUnit}s are part of the same decorator pattern instance.
-     * The identified instances will be returned as a list of {@link PatternInstance}.
+     * The identified instances will be returned as a list of {@link PatternInstance}
      *
-     * @param map A HashMap where every key is a decorator pattern element (such as "concrete component") and
-     *            every value is a compilation units of said pattern element type.
-     * @return A list of all identified instances of the pattern.
+     * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is mapped to all the
+     *           compilation units of said element type
+     * @return A list of all identified instances of the pattern
      */
     public List<PatternInstance> getPatternInstances(Map<Pattern, List<CompilationUnit>> map) {
         List<CompilationUnit> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
@@ -81,7 +79,6 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
         });
 
         //Found no better way to populate PIs than looping through everything multiple times
-        //To-do: cleanup
         interfaceComponents.forEach((interfaceComponentCU) -> {
             var componentInterface = interfaceComponentCU.findFirst(ClassOrInterfaceDeclaration.class);
             if (componentInterface.isPresent() && componentInterface.get().isInterface()) {
@@ -121,24 +118,23 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                 throw new UnsupportedOperationException("Was not an interface or something wrong happened");
             }
         });
-        var a = componentToPatternInstance.values().toArray();
-        return null;
+        return new ArrayList<PatternInstance>(componentToPatternInstance.values());
     }
 
 
     /**
-     * Method for checking that the CompilationUnit toTest has a component of the same type as the
-     * interface found in iComponent.
+     * Method for checking that the CompilationUnit toTest (class) contains a field of a certain type
      *
      * @param toTest The CompilationUnit (class) to check
-     * @return true iff toTest has a variable of the same type as the interface found in iComponent
+     * @param interfaceCU The (CompilationUnit of the) interface to search for in toTest
+     * @return true iff toTest has a variable of the same type as the interface in interfaceCU
      */
-    private Feedback hasAComponent(CompilationUnit toTest, CompilationUnit interfaceName) {
+    private Feedback hasAComponent(CompilationUnit toTest, CompilationUnit interfaceCU) {
         Feedback result;
         AtomicBoolean hasAComponent = new AtomicBoolean(false);
         toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {
             if (fieldDeclaration.getTypeAsString().contains(
-                interfaceName.getPrimaryTypeName().get())) {
+                interfaceCU.getPrimaryTypeName().get())) {
                 hasAComponent.set(true);
             }
         });
@@ -159,14 +155,14 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      * @param toTest The CompilationUnit (class) to check.
      * @return True iff all constructors in a given class does initialize the class' Component
      */
-    private Feedback componentInitializedInConstructor(CompilationUnit toTest, CompilationUnit interfaceName) {
+    private Feedback componentInitializedInConstructor(CompilationUnit toTest, CompilationUnit interfaceCU) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
-        String nameOfInterface = interfaceName.getPrimaryTypeName().get();
+        String nameOfInterface = interfaceCU.getPrimaryTypeName().get();
         for (FieldDeclaration currentField : fieldsInClass) {
             if (currentField.getCommonType().toString().equals(nameOfInterface)) {
                 List<String> constructorParams = new ArrayList<>();

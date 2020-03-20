@@ -2,19 +2,16 @@ package base;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
-
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import org.gradle.api.GradleException;
-import patternverifiers.Feedback;
 
+import org.gradle.api.GradleException;
+
+import patternverifiers.Feedback;
 import patternverifiers.DecoratorVerifier;
 
 /**
@@ -23,7 +20,6 @@ import patternverifiers.DecoratorVerifier;
 public final class MainProgram {
 
     private MainProgram() {
-
     }
 
     /**
@@ -135,7 +131,6 @@ public final class MainProgram {
      * converted to a map with keys "Adatpter, Immutable", with values same maps as earlier.
      *
      * @param map The map to convert.
-     *
      * @return The converted map.
      */
     private static Map<PatternGroup, Map<Pattern, List<CompilationUnit>>> mapToMap(
