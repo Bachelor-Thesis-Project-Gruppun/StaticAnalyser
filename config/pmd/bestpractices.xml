@@ -56,7 +56,7 @@ public abstract class Foo {
         <description>
             Instantiation by way of private constructors from outside of the constructor's class often causes the
             generation of an accessor. A factory method, or non-privatization of the constructor can eliminate this
-            situation. The generated class file is actually an interface.  It gives the accessing class the ability
+            situation. The generated class file is actually an interface. It gives the accessing class the ability
             to invoke a new hidden package scope constructor that takes the interface as a supplementary parameter.
             This turns a private constructor effectively into one with package scope, and is challenging to discern.
         </description>
@@ -83,8 +83,10 @@ public class Outer {
           class="net.sourceforge.pmd.lang.java.rule.bestpractices.AccessorMethodGenerationRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#accessormethodgeneration">
         <description>
-            When accessing a private field / method from another class, the Java compiler will generate a accessor methods
-            with package-private visibility. This adds overhead, and to the dex method count on Android. This situation can
+            When accessing a private field / method from another class, the Java compiler will generate a accessor
+            methods
+            with package-private visibility. This adds overhead, and to the dex method count on Android. This situation
+            can
             be avoided by changing the visibility of the field / method from private to package-private.
         </description>
         <priority>3</priority>
@@ -105,30 +107,30 @@ public class OuterClass {
 ]]>
         </example>
     </rule>
-<!--
-    <rule name="ArrayIsStoredDirectly"
-          since="2.2"
-          message="The user-supplied array ''{0}'' is stored directly."
-          class="net.sourceforge.pmd.lang.java.rule.bestpractices.ArrayIsStoredDirectlyRule"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#arrayisstoreddirectly">
-        <description>
-            Constructors and methods receiving arrays should clone objects and store the copy.
-            This prevents future changes from the user from affecting the original array.
-        </description>
-        <priority>3</priority>
-        <example>
-            <![CDATA[
-public class Foo {
-    private String [] x;
-        public void foo (String [] param) {
-        // Don't do this, make a copy of the array at least
-        this.x=param;
+    <!--
+        <rule name="ArrayIsStoredDirectly"
+              since="2.2"
+              message="The user-supplied array ''{0}'' is stored directly."
+              class="net.sourceforge.pmd.lang.java.rule.bestpractices.ArrayIsStoredDirectlyRule"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#arrayisstoreddirectly">
+            <description>
+                Constructors and methods receiving arrays should clone objects and store the copy.
+                This prevents future changes from the user from affecting the original array.
+            </description>
+            <priority>3</priority>
+            <example>
+                <![CDATA[
+    public class Foo {
+        private String [] x;
+            public void foo (String [] param) {
+            // Don't do this, make a copy of the array at least
+            this.x=param;
+        }
     }
-}
-]]>
-        </example>
-    </rule>
--->
+    ]]>
+            </example>
+        </rule>
+    -->
     <rule name="AvoidPrintStackTrace"
           language="java"
           since="3.2"
@@ -171,7 +173,7 @@ class Foo {
           class="net.sourceforge.pmd.lang.java.rule.bestpractices.AvoidReassigningParametersRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#avoidreassigningparameters">
         <description>
-            Reassigning values to incoming parameters is not recommended.  Use temporary local variables instead.
+            Reassigning values to incoming parameters is not recommended. Use temporary local variables instead.
         </description>
         <priority>2</priority>
         <example>
@@ -273,7 +275,9 @@ if (rst.next()) {    // result is properly examined and used
         </description>
         <priority>3</priority>
         <properties>
-            <property name="ignoreIfHasMethods" type="Boolean" description="Whether to ignore constants in interfaces if the interface defines any methods" value="true"/>
+            <property name="ignoreIfHasMethods" type="Boolean"
+                      description="Whether to ignore constants in interfaces if the interface defines any methods"
+                      value="true"/>
             <property name="xpath">
                 <value>
                     <![CDATA[
@@ -442,7 +446,8 @@ public class GoodTest {
         <description>
             In JUnit 3, the tearDown method was used to clean up all data entities required in running tests.
             JUnit 4 skips the tearDown method and executes all methods annotated with @After after running each test.
-            JUnit 5 introduced @AfterEach and @AfterAll annotations to execute methods after each test or after all tests in the class, respectively.
+            JUnit 5 introduced @AfterEach and @AfterAll annotations to execute methods after each test or after all
+            tests in the class, respectively.
         </description>
         <priority>3</priority>
         <properties>
@@ -486,7 +491,8 @@ public class MyTest2 {
         <description>
             In JUnit 3, the setUp method was used to set up all data entities required in running tests.
             JUnit 4 skips the setUp method and executes all methods annotated with @Before before all tests.
-            JUnit 5 introduced @BeforeEach and @BeforeAll annotations to execute methods before each test or before all tests in the class, respectively.
+            JUnit 5 introduced @BeforeEach and @BeforeAll annotations to execute methods before each test or before all
+            tests in the class, respectively.
         </description>
         <priority>3</priority>
         <properties>
@@ -519,159 +525,159 @@ public class MyTest2 {
 ]]>
         </example>
     </rule>
-<!--
-    <rule name="JUnit4TestShouldUseTestAnnotation"
-          language="java"
-          since="4.0"
-          message="JUnit 4 tests that execute tests should use the @Test annotation, JUnit 5 tests should use @Test, @RepeatedTest, @TestFactory, @TestTemplate or @ParameterizedTest"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junit4testshouldusetestannotation">
-        <description>
-            In JUnit 3, the framework executed all methods which started with the word test as a unit test.
-            In JUnit 4, only methods annotated with the @Test annotation are executed.
-            In JUnit 5, one of the following annotations should be used for tests: @Test, @RepeatedTest, @TestFactory, @TestTemplate or @ParameterizedTest.
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//ClassOrInterfaceDeclaration[
-       matches(@Image, $testClassPattern)
-        or ExtendsList/ClassOrInterfaceType[pmd-java:typeIs('junit.framework.TestCase')]]
-    /ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[MethodDeclaration[@Public=true()]/MethodDeclarator[starts-with(@Image, 'test')]]
-    [not(Annotation//Name[
-        pmd-java:typeIs('org.junit.Test')
-        or pmd-java:typeIs('org.junit.jupiter.api.Test') or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
-        or pmd-java:typeIs('org.junit.jupiter.api.TestFactory') or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
-        or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
-    ])]
-]]>
-                </value>
-            </property>
-            <property name="testClassPattern" type="Regex" description="The regex pattern used to identify test classes" value="Test" />
-            <property name="version" value="2.0"/>
-        </properties>
-        <example>
-            <![CDATA[
-public class MyTest {
-    public void testBad() {
-        doSomething();
+    <!--
+        <rule name="JUnit4TestShouldUseTestAnnotation"
+              language="java"
+              since="4.0"
+              message="JUnit 4 tests that execute tests should use the @Test annotation, JUnit 5 tests should use @Test, @RepeatedTest, @TestFactory, @TestTemplate or @ParameterizedTest"
+              class="net.sourceforge.pmd.lang.rule.XPathRule"
+              typeResolution="true"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junit4testshouldusetestannotation">
+            <description>
+                In JUnit 3, the framework executed all methods which started with the word test as a unit test.
+                In JUnit 4, only methods annotated with the @Test annotation are executed.
+                In JUnit 5, one of the following annotations should be used for tests: @Test, @RepeatedTest, @TestFactory, @TestTemplate or @ParameterizedTest.
+            </description>
+            <priority>3</priority>
+            <properties>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //ClassOrInterfaceDeclaration[
+           matches(@Image, $testClassPattern)
+            or ExtendsList/ClassOrInterfaceType[pmd-java:typeIs('junit.framework.TestCase')]]
+        /ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration[MethodDeclaration[@Public=true()]/MethodDeclarator[starts-with(@Image, 'test')]]
+        [not(Annotation//Name[
+            pmd-java:typeIs('org.junit.Test')
+            or pmd-java:typeIs('org.junit.jupiter.api.Test') or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
+            or pmd-java:typeIs('org.junit.jupiter.api.TestFactory') or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
+            or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
+        ])]
+    ]]>
+                    </value>
+                </property>
+                <property name="testClassPattern" type="Regex" description="The regex pattern used to identify test classes" value="Test" />
+                <property name="version" value="2.0"/>
+            </properties>
+            <example>
+                <![CDATA[
+    public class MyTest {
+        public void testBad() {
+            doSomething();
+        }
+        @Test
+        public void testGood() {
+            doSomething();
+        }
     }
-    @Test
-    public void testGood() {
-        doSomething();
+    ]]>
+            </example>
+        </rule>
+    -->
+    <!--
+        <rule name="JUnitAssertionsShouldIncludeMessage"
+              since="1.04"
+              message="JUnit assertions should include a message"
+              class="net.sourceforge.pmd.lang.java.rule.bestpractices.JUnitAssertionsShouldIncludeMessageRule"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junitassertionsshouldincludemessage">
+            <description>
+                JUnit assertions should include an informative message - i.e., use the three-argument version of
+                assertEquals(), not the two-argument version.
+            </description>
+            <priority>3</priority>
+            <example>
+                <![CDATA[
+    public class Foo extends TestCase {
+        public void testSomething() {
+            assertEquals("foo", "bar");
+            // Use the form:
+            // assertEquals("Foo does not equals bar", "foo", "bar");
+            // instead
+        }
     }
-}
-]]>
-        </example>
-    </rule>
--->
-<!--
-    <rule name="JUnitAssertionsShouldIncludeMessage"
-          since="1.04"
-          message="JUnit assertions should include a message"
-          class="net.sourceforge.pmd.lang.java.rule.bestpractices.JUnitAssertionsShouldIncludeMessageRule"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junitassertionsshouldincludemessage">
-        <description>
-            JUnit assertions should include an informative message - i.e., use the three-argument version of
-            assertEquals(), not the two-argument version.
-        </description>
-        <priority>3</priority>
-        <example>
-            <![CDATA[
-public class Foo extends TestCase {
-    public void testSomething() {
-        assertEquals("foo", "bar");
-        // Use the form:
-        // assertEquals("Foo does not equals bar", "foo", "bar");
-        // instead
-    }
-}
-]]>
-        </example>
-    </rule>
--->
-<!--
-    <rule name="JUnitTestContainsTooManyAsserts"
-          language="java"
-          since="5.0"
-          message="Unit tests should not contain more than ${maximumAsserts} assert(s)."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junittestcontainstoomanyasserts">
-        <description>
-            Unit tests should not contain too many asserts. Many asserts are indicative of a complex test, for which
-            it is harder to verify correctness.  Consider breaking the test scenario into multiple, shorter test scenarios.
-            Customize the maximum number of assertions used by this Rule to suit your needs.
+    ]]>
+            </example>
+        </rule>
+    -->
+    <!--
+        <rule name="JUnitTestContainsTooManyAsserts"
+              language="java"
+              since="5.0"
+              message="Unit tests should not contain more than ${maximumAsserts} assert(s)."
+              class="net.sourceforge.pmd.lang.rule.XPathRule"
+              typeResolution="true"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junittestcontainstoomanyasserts">
+            <description>
+                Unit tests should not contain too many asserts. Many asserts are indicative of a complex test, for which
+                it is harder to verify correctness.  Consider breaking the test scenario into multiple, shorter test scenarios.
+                Customize the maximum number of assertions used by this Rule to suit your needs.
 
-            This rule checks for JUnit4, JUnit5 and TestNG Tests, as well as methods starting with "test".
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="maximumAsserts" type="Integer" min="1" max="1000" description="Maximum number of Asserts in a test method" value="1"/>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//MethodDeclarator[@Image[fn:matches(.,'^test')] or ../../Annotation/MarkerAnnotation/Name[
-           pmd-java:typeIs('org.junit.Test')
-        or pmd-java:typeIs('org.junit.jupiter.api.Test')
-        or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
-        or pmd-java:typeIs('org.junit.jupiter.api.TestFactory')
-        or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
-        or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
-        or pmd-java:typeIs('org.testng.annotations.Test')
-    ]]
-    [count(..//PrimaryPrefix/Name[@Image[fn:matches(.,'^assert')]]) > $maximumAsserts]
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class MyTestCase extends TestCase {
-    // Ok
-    public void testMyCaseWithOneAssert() {
-        boolean myVar = false;
-        assertFalse("should be false", myVar);
+                This rule checks for JUnit4, JUnit5 and TestNG Tests, as well as methods starting with "test".
+            </description>
+            <priority>3</priority>
+            <properties>
+                <property name="maximumAsserts" type="Integer" min="1" max="1000" description="Maximum number of Asserts in a test method" value="1"/>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //MethodDeclarator[@Image[fn:matches(.,'^test')] or ../../Annotation/MarkerAnnotation/Name[
+               pmd-java:typeIs('org.junit.Test')
+            or pmd-java:typeIs('org.junit.jupiter.api.Test')
+            or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
+            or pmd-java:typeIs('org.junit.jupiter.api.TestFactory')
+            or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
+            or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
+            or pmd-java:typeIs('org.testng.annotations.Test')
+        ]]
+        [count(..//PrimaryPrefix/Name[@Image[fn:matches(.,'^assert')]]) > $maximumAsserts]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    public class MyTestCase extends TestCase {
+        // Ok
+        public void testMyCaseWithOneAssert() {
+            boolean myVar = false;
+            assertFalse("should be false", myVar);
+        }
+        // Bad, too many asserts (assuming max=1)
+        public void testMyCaseWithMoreAsserts() {
+            boolean myVar = false;
+            assertFalse("myVar should be false", myVar);
+            assertEquals("should equals false", false, myVar);
+        }
     }
-    // Bad, too many asserts (assuming max=1)
-    public void testMyCaseWithMoreAsserts() {
-        boolean myVar = false;
-        assertFalse("myVar should be false", myVar);
-        assertEquals("should equals false", false, myVar);
+    ]]>
+            </example>
+        </rule>
+    -->
+    <!--
+        <rule name="JUnitTestsShouldIncludeAssert"
+              since="2.0"
+              message="JUnit tests should include assert() or fail()"
+              class="net.sourceforge.pmd.lang.java.rule.bestpractices.JUnitTestsShouldIncludeAssertRule"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junittestsshouldincludeassert">
+            <description>
+                JUnit tests should include at least one assertion.  This makes the tests more robust, and using assert
+                with messages provide the developer a clearer idea of what the test does.
+            </description>
+            <priority>3</priority>
+            <example>
+                <![CDATA[
+    public class Foo extends TestCase {
+       public void testSomething() {
+          Bar b = findBar();
+       // This is better than having a NullPointerException
+       // assertNotNull("bar not found", b);
+       b.work();
+       }
     }
-}
-]]>
-        </example>
-    </rule>
--->
-<!--
-    <rule name="JUnitTestsShouldIncludeAssert"
-          since="2.0"
-          message="JUnit tests should include assert() or fail()"
-          class="net.sourceforge.pmd.lang.java.rule.bestpractices.JUnitTestsShouldIncludeAssertRule"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#junittestsshouldincludeassert">
-        <description>
-            JUnit tests should include at least one assertion.  This makes the tests more robust, and using assert
-            with messages provide the developer a clearer idea of what the test does.
-        </description>
-        <priority>3</priority>
-        <example>
-            <![CDATA[
-public class Foo extends TestCase {
-   public void testSomething() {
-      Bar b = findBar();
-   // This is better than having a NullPointerException
-   // assertNotNull("bar not found", b);
-   b.work();
-   }
-}
-]]>
-        </example>
-    </rule>
--->
+    ]]>
+            </example>
+        </rule>
+    -->
     <rule name="JUnitUseExpected"
           since="4.0"
           message="In JUnit4, use the @Test(expected) annotation to denote tests that should throw exceptions"
@@ -715,8 +721,8 @@ public class MyTest {
         <priority>3</priority>
         <example>
             <![CDATA[
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.tool.util.ArrayList;
+import java.tool.util.HashSet;
 public class Bar {
     // sub-optimal approach
     private ArrayList<SomeType> list = new ArrayList<>();
@@ -946,11 +952,11 @@ public class Foo {
     <rule name="ReplaceEnumerationWithIterator"
           language="java"
           since="3.4"
-          message="Consider replacing this Enumeration with the newer java.util.Iterator"
+          message="Consider replacing this Enumeration with the newer java.tool.util.Iterator"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#replaceenumerationwithiterator">
         <description>
-            Consider replacing Enumeration usages with the newer java.util.Iterator
+            Consider replacing Enumeration usages with the newer java.tool.util.Iterator
         </description>
         <priority>3</priority>
         <properties>
@@ -980,11 +986,11 @@ public class Foo implements Enumeration {
     <rule name="ReplaceHashtableWithMap"
           language="java"
           since="3.4"
-          message="Consider replacing this Hashtable with the newer java.util.Map"
+          message="Consider replacing this Hashtable with the newer java.tool.util.Map"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#replacehashtablewithmap">
         <description>
-            Consider replacing Hashtable usage with the newer java.util.Map if thread safety is not required.
+            Consider replacing Hashtable usage with the newer java.tool.util.Map if thread safety is not required.
         </description>
         <priority>3</priority>
         <properties>
@@ -1006,11 +1012,12 @@ public class Foo {
     <rule name="ReplaceVectorWithList"
           language="java"
           since="3.4"
-          message="Consider replacing this Vector with the newer java.util.List"
+          message="Consider replacing this Vector with the newer java.tool.util.List"
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#replacevectorwithlist">
         <description>
-            Consider replacing Vector usages with the newer java.util.ArrayList if expensive thread-safe operations are not required.
+            Consider replacing Vector usages with the newer java.tool.util.ArrayList if expensive thread-safe operations
+            are not required.
         </description>
         <priority>3</priority>
         <properties>
@@ -1062,46 +1069,46 @@ public void bar() {
         </example>
     </rule>
 
-<!--
-    <rule name="SystemPrintln"
-          language="java"
-          since="2.1"
-          message="{0} is used"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#systemprintln">
-        <description>
-            References to System.(out|err).print are usually intended for debugging purposes and can remain in
-            the codebase even in production code. By using a logger one can enable/disable this behaviour at
-            will (and by priority) and avoid clogging the Standard out log.
-        </description>
-        <priority>2</priority>
-        <properties>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//Name[
-    starts-with(@Image, 'System.out.print')
-    or
-    starts-with(@Image, 'System.err.print')
-    ]
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-class Foo{
-    Logger log = Logger.getLogger(Foo.class.getName());
-    public void testA () {
-        System.out.println("Entering test");
-        // Better use this
-        log.fine("Entering test");
+    <!--
+        <rule name="SystemPrintln"
+              language="java"
+              since="2.1"
+              message="{0} is used"
+              class="net.sourceforge.pmd.lang.rule.XPathRule"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#systemprintln">
+            <description>
+                References to System.(out|err).print are usually intended for debugging purposes and can remain in
+                the codebase even in production code. By using a logger one can enable/disable this behaviour at
+                will (and by priority) and avoid clogging the Standard out log.
+            </description>
+            <priority>2</priority>
+            <properties>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //Name[
+        starts-with(@Image, 'System.out.print')
+        or
+        starts-with(@Image, 'System.err.print')
+        ]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    class Foo{
+        Logger log = Logger.getLogger(Foo.class.getName());
+        public void testA () {
+            System.out.println("Entering test");
+            // Better use this
+            log.fine("Entering test");
+        }
     }
-}
-]]>
-        </example>
-    </rule>
--->
+    ]]>
+            </example>
+        </rule>
+    -->
     <rule name="UnusedFormalParameter"
           language="java"
           since="0.8"
@@ -1137,7 +1144,7 @@ public class Foo {
         <example>
             <![CDATA[
 import java.io.File;  // not referenced or required
-import java.util.*;   // not referenced or required
+import java.tool.util.*;   // not referenced or required
 public class Foo {}
 ]]>
         </example>
@@ -1215,7 +1222,8 @@ public class Something {
           typeResolution="true"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#useassertequalsinsteadofasserttrue">
         <description>
-            This rule detects JUnit assertions in object equality. These assertions should be made by more specific methods, like assertEquals.
+            This rule detects JUnit assertions in object equality. These assertions should be made by more specific
+            methods, like assertEquals.
         </description>
         <priority>3</priority>
         <properties>
@@ -1301,54 +1309,54 @@ public class FooTest extends TestCase {
         </example>
     </rule>
 
-<!--
-    <rule name="UseAssertSameInsteadOfAssertTrue"
-          language="java"
-          since="3.1"
-          message="Use assertSame(x, y) instead of assertTrue(x==y), or assertNotSame(x,y) vs assertFalse(x==y)"
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          typeResolution="true"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#useassertsameinsteadofasserttrue">
-        <description>
-            This rule detects JUnit assertions in object references equality. These assertions should be made
-            by more specific methods, like assertSame, assertNotSame.
-        </description>
-        <priority>3</priority>
-        <properties>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//PrimaryExpression[
-    PrimaryPrefix/Name
-     [@Image = 'assertTrue' or @Image = 'assertFalse']
-]
-[PrimarySuffix/Arguments
- /ArgumentList/Expression
- /EqualityExpression[count(.//NullLiteral) = 0]]
-[ancestor::ClassOrInterfaceDeclaration[//ClassOrInterfaceType[pmd-java:typeIs('junit.framework.TestCase')]
-    or //MarkerAnnotation/Name[
-        pmd-java:typeIs('org.junit.Test')
-        or pmd-java:typeIs('org.junit.jupiter.api.Test') or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
-        or pmd-java:typeIs('org.junit.jupiter.api.TestFactory') or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
-        or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
+    <!--
+        <rule name="UseAssertSameInsteadOfAssertTrue"
+              language="java"
+              since="3.1"
+              message="Use assertSame(x, y) instead of assertTrue(x==y), or assertNotSame(x,y) vs assertFalse(x==y)"
+              class="net.sourceforge.pmd.lang.rule.XPathRule"
+              typeResolution="true"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#useassertsameinsteadofasserttrue">
+            <description>
+                This rule detects JUnit assertions in object references equality. These assertions should be made
+                by more specific methods, like assertSame, assertNotSame.
+            </description>
+            <priority>3</priority>
+            <properties>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //PrimaryExpression[
+        PrimaryPrefix/Name
+         [@Image = 'assertTrue' or @Image = 'assertFalse']
     ]
-]]]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class FooTest extends TestCase {
-    void testCode() {
-        Object a, b;
-        assertTrue(a == b); // bad usage
-        assertSame(a, b);   // good usage
+    [PrimarySuffix/Arguments
+     /ArgumentList/Expression
+     /EqualityExpression[count(.//NullLiteral) = 0]]
+    [ancestor::ClassOrInterfaceDeclaration[//ClassOrInterfaceType[pmd-java:typeIs('junit.framework.TestCase')]
+        or //MarkerAnnotation/Name[
+            pmd-java:typeIs('org.junit.Test')
+            or pmd-java:typeIs('org.junit.jupiter.api.Test') or pmd-java:typeIs('org.junit.jupiter.api.RepeatedTest')
+            or pmd-java:typeIs('org.junit.jupiter.api.TestFactory') or pmd-java:typeIs('org.junit.jupiter.api.TestTemplate')
+            or pmd-java:typeIs('org.junit.jupiter.params.ParameterizedTest')
+        ]
+    ]]]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    public class FooTest extends TestCase {
+        void testCode() {
+            Object a, b;
+            assertTrue(a == b); // bad usage
+            assertSame(a, b);   // good usage
+        }
     }
-}
-]]>
-        </example>
-    </rule>
--->
+    ]]>
+            </example>
+        </rule>
+    -->
     <rule name="UseAssertTrueInsteadOfAssertEquals"
           language="java"
           since="5.0"
@@ -1356,7 +1364,8 @@ public class FooTest extends TestCase {
           class="net.sourceforge.pmd.lang.rule.XPathRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#useasserttrueinsteadofassertequals">
         <description>
-            When asserting a value is the same as a literal or Boxed boolean, use assertTrue/assertFalse, instead of assertEquals.
+            When asserting a value is the same as a literal or Boxed boolean, use assertTrue/assertFalse, instead of
+            assertEquals.
         </description>
         <priority>3</priority>
         <properties>
@@ -1401,7 +1410,7 @@ public class MyTestCase extends TestCase {
           class="net.sourceforge.pmd.lang.java.rule.bestpractices.UseCollectionIsEmptyRule"
           externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#usecollectionisempty">
         <description>
-            The isEmpty() method on java.util.Collection is provided to determine if a collection has any elements.
+            The isEmpty() method on java.tool.util.Collection is provided to determine if a collection has any elements.
             Comparing the value of size() to 0 does not convey intent as well as the isEmpty() method.
         </description>
         <priority>3</priority>
@@ -1425,56 +1434,56 @@ public class Foo {
         </example>
     </rule>
 
-<!--
-    <rule name="UseVarargs"
-          language="java"
-          minimumLanguageVersion="1.5"
-          since="5.0"
-          message="Consider using varargs for methods or constructors which take an array the last parameter."
-          class="net.sourceforge.pmd.lang.rule.XPathRule"
-          externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#usevarargs">
-        <description>
-            Java 5 introduced the varargs parameter declaration for methods and constructors.  This syntactic
-            sugar provides flexibility for users of these methods and constructors, allowing them to avoid
-            having to deal with the creation of an array.
-        </description>
-        <priority>4</priority>
-        <properties>
-            <property name="xpath">
-                <value>
-                    <![CDATA[
-//FormalParameters/FormalParameter
-    [position()=last()]
-    [@Array='true']
-    [@Varargs='false']
-    [not (./Type/ReferenceType[@Array='true'][PrimitiveType[@Image='byte']])]
-    [not (./Type/ReferenceType[ClassOrInterfaceType[@Image='Byte']])]
-    [not (./Type/PrimitiveType[@Image='byte'])]
-    [not (ancestor::MethodDeclaration/preceding-sibling::Annotation/*/Name[@Image='Override'])]
-    [not(
-        ancestor::MethodDeclaration
-            [@Public='true' and @Static='true']
-            [child::ResultType[@Void='true']] and
-        ancestor::MethodDeclarator[@Image='main'] and
-        ..[@ParameterCount='1'] and
-        ./Type/ReferenceType[ClassOrInterfaceType[@Image='String']]
-    )]
-]]>
-                </value>
-            </property>
-        </properties>
-        <example>
-            <![CDATA[
-public class Foo {
-    public void foo(String s, Object[] args) {
-        // Do something here...
+    <!--
+        <rule name="UseVarargs"
+              language="java"
+              minimumLanguageVersion="1.5"
+              since="5.0"
+              message="Consider using varargs for methods or constructors which take an array the last parameter."
+              class="net.sourceforge.pmd.lang.rule.XPathRule"
+              externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#usevarargs">
+            <description>
+                Java 5 introduced the varargs parameter declaration for methods and constructors.  This syntactic
+                sugar provides flexibility for users of these methods and constructors, allowing them to avoid
+                having to deal with the creation of an array.
+            </description>
+            <priority>4</priority>
+            <properties>
+                <property name="xpath">
+                    <value>
+                        <![CDATA[
+    //FormalParameters/FormalParameter
+        [position()=last()]
+        [@Array='true']
+        [@Varargs='false']
+        [not (./Type/ReferenceType[@Array='true'][PrimitiveType[@Image='byte']])]
+        [not (./Type/ReferenceType[ClassOrInterfaceType[@Image='Byte']])]
+        [not (./Type/PrimitiveType[@Image='byte'])]
+        [not (ancestor::MethodDeclaration/preceding-sibling::Annotation/*/Name[@Image='Override'])]
+        [not(
+            ancestor::MethodDeclaration
+                [@Public='true' and @Static='true']
+                [child::ResultType[@Void='true']] and
+            ancestor::MethodDeclarator[@Image='main'] and
+            ..[@ParameterCount='1'] and
+            ./Type/ReferenceType[ClassOrInterfaceType[@Image='String']]
+        )]
+    ]]>
+                    </value>
+                </property>
+            </properties>
+            <example>
+                <![CDATA[
+    public class Foo {
+        public void foo(String s, Object[] args) {
+            // Do something here...
+        }
+        public void bar(String s, Object... args) {
+            // Ahh, varargs tastes much better...
+        }
     }
-    public void bar(String s, Object... args) {
-        // Ahh, varargs tastes much better...
-    }
-}
-]]>
-        </example>
-    </rule>
--->
+    ]]>
+            </example>
+        </rule>
+    -->
 </ruleset>

@@ -1,4 +1,4 @@
-# This is a guide on hwo to import this plugin in another project.
+# This is a guide on how to import this plugin in another project.
 
 ## If importing locally
 This part is for when you want to import this project from you local maven repository.
@@ -18,17 +18,17 @@ buildscript {
     }
 
     dependencies {
-        classpath group: 'com.github.viddem', name: 'viddeplugin', version: '2.3'
+        classpath group: 'com.github.gruppun', name: 'staticanalyser', version: '1.0'
     }
 }
 
-apply plugin: "ViddePlugin"
+apply plugin: "StaticAnalyser"
 ```
 ***Note: replace the version with the desired version, if unsure use the latest version.***
 
 To be able to import files such as our annotations or enums add the following line the projects dependencies block:
 ***NOTE, not the dependencies block in the buildscript such as the one described above!***
  ```groovy
-    implementation 'com.github.viddem:viddeplugin:2.3'
+    implementation 'com.github.gruppun:staticanalyser:1.1'
 ```
 ***Note: Once more, replace the version as described above***

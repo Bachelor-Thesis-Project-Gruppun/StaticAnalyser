@@ -1,4 +1,4 @@
-package base;
+package tool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-import base.designpatterns.Pattern;
+import tool.designpatterns.Pattern;
 
 /**
  * <p>A visitor that retrieves Java annotations and checks if a given annotation

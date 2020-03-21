@@ -1,4 +1,4 @@
-package base;
+package tool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,10 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.designpatterns.Pattern;
-import base.designpatterns.PatternGroup;
 import org.gradle.api.GradleException;
-import base.util.Feedback;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternGroup;
+import tool.util.Feedback;
 
 /**
  * The main entry point for the analysis.

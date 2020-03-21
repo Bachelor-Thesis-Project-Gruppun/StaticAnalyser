@@ -1,17 +1,17 @@
-package base.designpatterns.verifiers;
+package tool.designpatterns.verifiers;
 
 import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.designpatterns.Pattern;
-import base.util.Feedback;
+import tool.designpatterns.Pattern;
+import tool.util.Feedback;
 
 /**
  * Verifies a pattern group.
  */
-public interface IPatternGroupVerifier {
+public interface IPatternGrouper {
 
     /**
      * Verifies all patterns of a given PatternGroup in the project.

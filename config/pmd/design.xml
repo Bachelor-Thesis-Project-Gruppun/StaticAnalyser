@@ -208,7 +208,7 @@ However, there are better ways to handle this:
 but other exceptions are standardly used for certain kinds of illegal arguments and states.
 If a caller passes null in some parameter for which null values are prohibited, convention dictates that
 NullPointerException be thrown rather than IllegalArgumentException.
-To implement that, you are encouraged to use `java.util.Objects.requireNonNull()`
+To implement that, you are encouraged to use `java.tool.util.Objects.requireNonNull()`
 (introduced in Java 1.7). This method is designed primarily for doing parameter
 validation in methods and constructors with multiple parameters.
 Your parameter validation could thus look like the following:
@@ -930,7 +930,7 @@ the [NCSS metric](/pmd_java_metrics_index.html#non-commenting-source-statements-
         <priority>3</priority>
         <example>
 <![CDATA[
-import java.util.Collections;       // +0
+import java.tool.util.Collections;       // +0
 import java.io.IOException;         // +0
 class Foo {                         // +1, total Ncss = 12
   public void bigMethod()           // +1

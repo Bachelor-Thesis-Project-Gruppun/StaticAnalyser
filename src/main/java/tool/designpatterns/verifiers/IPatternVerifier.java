@@ -1,8 +1,8 @@
-package base.designpatterns.verifiers.singleclassverifiers;
+package tool.designpatterns.verifiers;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.util.Feedback;
+import tool.util.Feedback;
 
 /**
  * An interface that defines the obligatory behaviour that all pattern verifiers must implement.
