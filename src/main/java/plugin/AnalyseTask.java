@@ -1,17 +1,17 @@
-package gruppun.plugin;
+package plugin;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import base.MainProgram;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
+import tool.MainProgram;
 
 /**
  * A gradle task that will check verify classes against design patterns as described by certain

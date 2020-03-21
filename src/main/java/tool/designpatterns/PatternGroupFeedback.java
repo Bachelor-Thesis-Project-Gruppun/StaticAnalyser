@@ -1,8 +1,8 @@
-package patternverifiers;
+package tool.designpatterns;
 
 import java.util.List;
 
-import base.PatternGroup;
+import tool.util.Feedback;
 
 /**
  * The feedback for an entire patternGroup.
@@ -37,6 +37,6 @@ public class PatternGroupFeedback {
             baseMsg.append(message);
         }
 
-        return message;
+        return baseMsg.toString();
     }
 }

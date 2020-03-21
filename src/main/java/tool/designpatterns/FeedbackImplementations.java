@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;

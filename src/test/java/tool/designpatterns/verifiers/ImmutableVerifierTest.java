@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +9,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 
 import org.junit.jupiter.api.Test;
+import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;
 
 /**
  * Pattern verifier for the immutable pattern. The following predicates will be Every variable needs

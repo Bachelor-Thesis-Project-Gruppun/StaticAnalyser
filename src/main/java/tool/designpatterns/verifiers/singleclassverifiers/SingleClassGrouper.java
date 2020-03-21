@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.singleclassverifiers;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,12 +7,15 @@ import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.Pattern;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.IPatternVerifier;
+import tool.util.Feedback;
 
 /**
  * A class that will verify a PatternGroup that only has one pattern (i.e. single class patterns)
  */
-public class SingleClassVerifier implements IPatternGroupVerifier {
+public class SingleClassGrouper implements IPatternGrouper {
 
     private final IPatternVerifier verifier;
 
@@ -21,7 +24,7 @@ public class SingleClassVerifier implements IPatternGroupVerifier {
      *
      * @param verifier the verifier to use when verifying classes.
      */
-    public SingleClassVerifier(IPatternVerifier verifier) {
+    public SingleClassGrouper(IPatternVerifier verifier) {
         this.verifier = verifier;
     }
 

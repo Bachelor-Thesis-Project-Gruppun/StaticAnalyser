@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.singleclassverifiers.immutable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +18,9 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
+
+import tool.designpatterns.verifiers.IPatternVerifier;
+import tool.util.Feedback;
 
 /**
  * A verifier for the immutable pattern.

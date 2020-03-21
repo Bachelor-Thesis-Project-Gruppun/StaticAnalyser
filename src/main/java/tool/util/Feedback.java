@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.util;
 
 import java.util.ArrayList;
 import java.util.List;
