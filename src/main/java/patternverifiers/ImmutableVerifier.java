@@ -43,7 +43,7 @@ public class ImmutableVerifier implements IPatternVerifier {
         boolean verifySuccessful = true;
         StringBuilder message = new StringBuilder();
         for (Feedback feedback : classImmutableMap.values()) {
-            if (!feedback.getValue()) {
+            if (!feedback.getIsError()) {
                 verifySuccessful = false;
                 message.append('\n');
                 message.append(feedback.getMessage());
@@ -76,7 +76,7 @@ public class ImmutableVerifier implements IPatternVerifier {
         while (iterator.hasNext()) {
             Map.Entry<FieldDeclaration, Feedback> entry = iterator.next();
             Feedback feedback = entry.getValue();
-            if (!feedback.getValue()) {
+            if (!feedback.getIsError()) {
                 verifySuccessful = false;
                 message =
                     "Verification failed for class '" + classOrI.getNameAsString() + "' due to \n" +
@@ -122,7 +122,7 @@ public class ImmutableVerifier implements IPatternVerifier {
         while (iterator.hasNext()) {
             Map.Entry<MethodDeclaration, Feedback> entry = iterator.next();
             Feedback feedback = entry.getValue();
-            if (feedback.getValue()) {
+            if (feedback.getIsError()) {
                 verifySuccessful = false;
                 message = "Verification failed for field '" + field.toString() + "' due to \n" +
                           feedback.getMessage();
@@ -161,7 +161,7 @@ public class ImmutableVerifier implements IPatternVerifier {
                 }
 
                 Feedback feedback = isVariableAssignment(expr, variable, localVars);
-                if (feedback.getValue()) {
+                if (feedback.getIsError()) {
                     return new Feedback(
                         true, feedback.getMessage() + " in method '" + method.getNameAsString() +
                               "'\n");
@@ -209,8 +209,7 @@ public class ImmutableVerifier implements IPatternVerifier {
                 }
             }
         }
-        return new Feedback(
-            false, "Variable '" + variable.getNameAsString() + "' is not assigned in expression '" +
-                   expr.toString() + "'");
+
+        return new Feedback(false, "", null);
     }
 }

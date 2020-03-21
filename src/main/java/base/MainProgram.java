@@ -14,10 +14,10 @@ import patternverifiers.Feedback;
 /**
  * The main entry point for the analysis.
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class MainProgram {
 
     private MainProgram() {
-
     }
 
     /**
@@ -60,7 +60,7 @@ public final class MainProgram {
 
         List<String> failingFeedbacks = new ArrayList<>();
         feedbacks.forEach(feedback -> {
-            if (!feedback.getValue()) {
+            if (!feedback.getIsError()) {
                 failingFeedbacks.add(feedback.getMessage());
             }
         });

@@ -34,7 +34,7 @@ public class SingleClassVerifier implements IPatternGroupVerifier {
 
         Feedback validMapFeedback = validateMap(map, pattern, compUnits);
 
-        if (!validMapFeedback.getValue()) {
+        if (!validMapFeedback.getIsError()) {
             throw new IllegalArgumentException(validMapFeedback.getMessage());
         }
 
@@ -46,7 +46,7 @@ public class SingleClassVerifier implements IPatternGroupVerifier {
 
         for (CompilationUnit compUnit : compUnits) {
             Feedback feedback = verifier.verify(compUnit);
-            if (!feedback.getValue()) {
+            if (!feedback.getIsError()) {
                 verifySuccesful = false;
                 message.append('\n');
                 message.append(feedback.getMessage());
