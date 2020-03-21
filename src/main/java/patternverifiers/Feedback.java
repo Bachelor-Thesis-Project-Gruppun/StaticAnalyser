@@ -57,11 +57,11 @@ public class Feedback {
      */
     public static Feedback getFeedbackWithChildren(
         FeedbackImplementations stackTrace, List<Feedback> children) {
-        if (children != null || children.size() == 0) {
+        if (children == null || children.size() == 0) {
             throw new IllegalArgumentException("A non-leaf feedback must have children.");
         }
 
-        return new Feedback(true, "", stackTrace, children);
+        return new Feedback(false, "", stackTrace, children);
     }
 
     /**

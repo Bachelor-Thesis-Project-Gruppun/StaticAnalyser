@@ -1,11 +1,8 @@
 package patternverifiers;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
@@ -35,22 +32,14 @@ public class ImmutableVerifier implements IPatternVerifier {
      */
     @Override
     public Feedback verify(CompilationUnit compUnit) {
-        Map<ClassOrInterfaceDeclaration, Feedback> classImmutableMap = new ConcurrentHashMap<>();
+        List<Feedback> childFeedbacks = new ArrayList<>();
+
         compUnit.findAll(ClassOrInterfaceDeclaration.class).stream().forEach(c -> {
-            classImmutableMap.put(c, verifyClass(c));
+            childFeedbacks.add(verifyClass(c));
         });
 
-        boolean verifySuccessful = true;
-        StringBuilder message = new StringBuilder();
-        for (Feedback feedback : classImmutableMap.values()) {
-            if (!feedback.getIsError()) {
-                verifySuccessful = false;
-                message.append('\n');
-                message.append(feedback.getMessage());
-            }
-        }
-
-        return new Feedback(verifySuccessful, message.toString());
+        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(compUnit),
+                                                childFeedbacks);
     }
 
     /**
@@ -62,28 +51,16 @@ public class ImmutableVerifier implements IPatternVerifier {
      */
     private Feedback verifyClass(ClassOrInterfaceDeclaration classOrI) {
         List<FieldDeclaration> fields = classOrI.getFields();
-        Map<FieldDeclaration, Feedback> varImmutableMap = new ConcurrentHashMap<>();
-        fields.stream().forEach(field -> {
-            field.getVariables().stream().forEach(var -> {
-                varImmutableMap.put(field, verifyField(field, classOrI));
+        List<Feedback> childFeedbacks = new ArrayList<>();
+
+        fields.forEach(field -> {
+            field.getVariables().forEach(var -> {
+                childFeedbacks.add(verifyField(field, classOrI));
             });
         });
 
-        boolean verifySuccessful = true;
-        String message = "";
-        Iterator<Map.Entry<FieldDeclaration, Feedback>> iterator =
-            varImmutableMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<FieldDeclaration, Feedback> entry = iterator.next();
-            Feedback feedback = entry.getValue();
-            if (!feedback.getIsError()) {
-                verifySuccessful = false;
-                message =
-                    "Verification failed for class '" + classOrI.getNameAsString() + "' due to \n" +
-                    feedback.getMessage();
-            }
-        }
-        return new Feedback(verifySuccessful, message);
+        return Feedback.getFeedbackWithChildren(
+            new FeedbackImplementations(classOrI), childFeedbacks);
     }
 
     /**
@@ -97,38 +74,25 @@ public class ImmutableVerifier implements IPatternVerifier {
     private Feedback verifyField(FieldDeclaration field, ClassOrInterfaceDeclaration classOrI) {
         if (field.hasModifier(Modifier.Keyword.STATIC) || field.hasModifier(
             Modifier.Keyword.FINAL)) {
-            return new Feedback(true);
+            return Feedback.getNoErrorFeedback();
         }
 
         if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
-            return new Feedback(false, "Field " + field.toString() + " is public");
+            return Feedback.getNoChildFeedback("public field.", new FeedbackImplementations(field));
         }
 
-        Map<MethodDeclaration, Feedback> methodMutates = new ConcurrentHashMap();
+        List<Feedback> childFeedbacks = new ArrayList<>();
+
         if (field.hasModifier(Modifier.Keyword.PRIVATE)) {
             List<MethodDeclaration> methods = classOrI.getMethods();
-            field.getVariables().stream().forEach(var -> {
-                methods.stream().forEach(method -> {
-                    methodMutates.put(method, isAssignedIn(var, method));
+            field.getVariables().forEach(var -> {
+                methods.forEach(method -> {
+                    childFeedbacks.add(isAssignedIn(var, method));
                 });
             });
         }
 
-        boolean verifySuccessful = true;
-        String message = "";
-
-        Iterator<Map.Entry<MethodDeclaration, Feedback>> iterator =
-            methodMutates.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<MethodDeclaration, Feedback> entry = iterator.next();
-            Feedback feedback = entry.getValue();
-            if (feedback.getIsError()) {
-                verifySuccessful = false;
-                message = "Verification failed for field '" + field.toString() + "' due to \n" +
-                          feedback.getMessage();
-            }
-        }
-        return new Feedback(verifySuccessful, message);
+        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(field), childFeedbacks);
     }
 
     /**
@@ -141,11 +105,19 @@ public class ImmutableVerifier implements IPatternVerifier {
      */
     @SuppressWarnings("PMD.LinguisticNaming")
     private Feedback isAssignedIn(VariableDeclarator variable, MethodDeclaration method) {
-        BlockStmt methodBody = method.getBody().get();
+        BlockStmt methodBody;
+        if (method.getBody().isPresent()) {
+            methodBody = method.getBody().get();
+        } else {
+            // An empty method does not mutate the class...? 0.o
+            return Feedback.getNoErrorFeedback();
+        }
 
         NodeList<Statement> statements = methodBody.getStatements();
         // A list of variables that have been declared locally in the method this far.
         List<String> localVars = new ArrayList<>();
+
+        List<Feedback> childFeedbacks = new ArrayList<>();
 
         for (Statement statement : statements) {
             if (statement.isExpressionStmt()) {
@@ -154,24 +126,18 @@ public class ImmutableVerifier implements IPatternVerifier {
                 // Check if the expression is the declaration of a local variable.
                 if (expr.isVariableDeclarationExpr()) {
                     VariableDeclarationExpr varDecExpr = expr.asVariableDeclarationExpr();
-                    varDecExpr.getVariables().stream().forEach(var -> {
+                    varDecExpr.getVariables().forEach(var -> {
                         // Add the variable to the list of declared variables.
                         localVars.add(var.getNameAsString());
                     });
                 }
 
-                Feedback feedback = isVariableAssignment(expr, variable, localVars);
-                if (feedback.getIsError()) {
-                    return new Feedback(
-                        true, feedback.getMessage() + " in method '" + method.getNameAsString() +
-                              "'\n");
-                }
+                childFeedbacks.add(isVariableAssignment(expr, variable, localVars));
             }
         }
 
-        return new Feedback(false,
-                            "Variable " + variable.getNameAsString() + " is not assigned " + "in " +
-                            method.getNameAsString());
+        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(method),
+                                                childFeedbacks);
     }
 
     /**
@@ -203,13 +169,13 @@ public class ImmutableVerifier implements IPatternVerifier {
                         line = lines.get().toString();
                     }
 
-                    return new Feedback(true,
-                                        "Variable '" + name + "' is assigned on '" + line + "'\n");
+                    return Feedback.getNoChildFeedback("Variable '" + name + "' is assigned.",
+                                                       new FeedbackImplementations(assignExpr));
 
                 }
             }
         }
 
-        return new Feedback(false, "", null);
+        return Feedback.getNoErrorFeedback();
     }
 }
