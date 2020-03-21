@@ -19,5 +19,5 @@ public interface IPatternGroupVerifier {
      *
      * @return the feedback of the verification.
      */
-    Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map);
+    PatternGroupFeedback verifyGroup(Map<Pattern, List<CompilationUnit>> map);
 }

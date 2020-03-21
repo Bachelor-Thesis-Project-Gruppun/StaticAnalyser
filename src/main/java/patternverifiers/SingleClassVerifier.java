@@ -1,5 +1,6 @@
 package patternverifiers;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,41 +26,23 @@ public class SingleClassVerifier implements IPatternGroupVerifier {
     }
 
     @Override
-    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
+    public PatternGroupFeedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
         Iterator<Pattern> itr1 = map.keySet().iterator();
         Pattern pattern = itr1.hasNext() ? itr1.next() : null;
 
         Iterator<List<CompilationUnit>> itr2 = map.values().iterator();
         List<CompilationUnit> compUnits = itr2.hasNext() ? itr2.next() : null;
 
-        Feedback validMapFeedback = validateMap(map, pattern, compUnits);
-
-        if (!validMapFeedback.getIsError()) {
-            throw new IllegalArgumentException(validMapFeedback.getMessage());
+        if (!validateMap(map, pattern, compUnits)) {
+            throw new IllegalArgumentException("Validation of map failed");
         }
 
-        boolean verifySuccesful = true;
-
-        StringBuilder baseMsg = new StringBuilder("Verification of pattern ");
-        baseMsg.append(pattern.toString());
-        StringBuilder message = new StringBuilder();
-
+        List<Feedback> childFeedbacks = new ArrayList<>();
         for (CompilationUnit compUnit : compUnits) {
-            Feedback feedback = verifier.verify(compUnit);
-            if (!feedback.getIsError()) {
-                verifySuccesful = false;
-                message.append('\n');
-                message.append(feedback.getMessage());
-            }
+            childFeedbacks.add(verifier.verify(compUnit));
         }
 
-        if (verifySuccesful) {
-            baseMsg.append(" was successful");
-        } else {
-            baseMsg.append(" failed due to");
-            baseMsg.append(message);
-        }
-        return new Feedback(verifySuccesful, baseMsg.toString());
+        return new PatternGroupFeedback()
     }
 
     /**
@@ -69,20 +52,21 @@ public class SingleClassVerifier implements IPatternGroupVerifier {
      *
      * @return the result.
      */
-    private Feedback validateMap(
-        Map<Pattern, List<CompilationUnit>> map, Pattern pattern, List<CompilationUnit> compUnits) {
+    private boolean validateMap(
+        Map<Pattern, List<CompilationUnit>> map, Pattern pattern, List<CompilationUnit> compUnits)
+    throws IllegalArgumentException {
         // Assumes that map only has one entry.
         final int maxMapLength = 1;
 
         if (map.size() != maxMapLength) {
-            return new Feedback(false, "Only allows verification of PatternGroups containing " +
-                                       "exactly 1 pattern.");
+            throw new IllegalArgumentException(
+                "Only allows verification of PatternGroups containing exactly 1 pattern.");
         }
 
         if (compUnits == null && pattern == null) {
-            return new Feedback(false, "Invalid map provided");
+            throw new IllegalArgumentException("Invalid map provided");
         }
 
-        return new Feedback(true);
+        return true;
     }
 }
