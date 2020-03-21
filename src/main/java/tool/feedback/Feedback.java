@@ -1,4 +1,4 @@
-package tool.util;
+package tool.feedback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,11 +57,22 @@ public class Feedback {
      */
     public static Feedback getFeedbackWithChildren(
         FeedbackImplementations stackTrace, List<Feedback> children) {
-        if (children == null || children.size() == 0) {
-            throw new IllegalArgumentException("A non-leaf feedback must have children.");
+        if (children == null) {
+            throw new IllegalArgumentException("Child list must not be null.");
         }
 
         return new Feedback(false, "", stackTrace, children);
+    }
+
+    /**
+     * Get a feedback representing the entire verification of a Pattern.
+     *
+     * @param children the feedbacks of each of the verification classes. For single-class patterns
+     *                 this list will only contain 1 element. For multi-class patterns this will
+     *                 contain multiple.
+     */
+    public static Feedback getPatternInstanceFeedback(List<Feedback> children) {
+        return new Feedback(false, "", null, children);
     }
 
     /**
@@ -69,7 +80,7 @@ public class Feedback {
      *
      * @return a feedback that is not an error.
      */
-    public static Feedback getNoErrorFeedback() {
+    public static Feedback getSuccessfulFeedback() {
         return new Feedback(false, "", null, null);
     }
 
@@ -104,8 +115,10 @@ public class Feedback {
 
         StringBuilder message = new StringBuilder();
         message.append(linePrefix);
-        message.append(stackTrace.toString());
-        message.append(" : ");
+        if (stackTrace != null) {
+            message.append(stackTrace.toString());
+            message.append(" : ");
+        }
 
         if (children.size() == 0) {
             // We don't have any children, i.e. we're the 'leaf' node and therefore we print our

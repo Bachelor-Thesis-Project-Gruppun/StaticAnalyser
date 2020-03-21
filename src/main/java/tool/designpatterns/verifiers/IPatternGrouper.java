@@ -6,7 +6,7 @@ import java.util.Map;
 import com.github.javaparser.ast.CompilationUnit;
 
 import tool.designpatterns.Pattern;
-import tool.util.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * Verifies a pattern group.

@@ -8,9 +8,11 @@ import java.util.Map;
 import com.github.javaparser.ast.CompilationUnit;
 
 import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternUtils;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.designpatterns.verifiers.IPatternVerifier;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * A class that will verify a PatternGroup that only has one pattern (i.e. single class patterns)
@@ -45,7 +47,8 @@ public class SingleClassGrouper implements IPatternGrouper {
             childFeedbacks.add(verifier.verify(compUnit));
         }
 
-        return new PatternGroupFeedback()
+        return new PatternGroupFeedback(
+            PatternUtils.patternGroupFromPattern(pattern), childFeedbacks);
     }
 
     /**

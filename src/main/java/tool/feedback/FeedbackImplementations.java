@@ -1,4 +1,4 @@
-package tool.designpatterns;
+package tool.feedback;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;
@@ -26,24 +26,33 @@ public final class FeedbackImplementations {
     public FeedbackImplementations(VariableDeclarator variable) {
         String msg = getStringStart(variable);
         msg += " for variable " + variable.getNameAsString();
+        message = msg;
     }
 
     public FeedbackImplementations(CallableDeclaration callable) {
         String msg = getStringStart(callable);
         msg += " in method " + callable.getNameAsString();
+        message = msg;
     }
 
     public FeedbackImplementations(TypeDeclaration type) {
         String msg = getStringStart(type);
         msg += " in method " + type.getNameAsString();
+        message = msg;
     }
 
     public FeedbackImplementations(FieldDeclaration field) {
         StringBuilder msg = new StringBuilder(getStringStart(field));
-        msg.append(" in the field declerations for variables: \n");
+        msg.append(" in the field declerations for variables: ");
+        boolean comma = false;
         for (VariableDeclarator variable : field.getVariables()) {
-            msg.append(" - " + variable.getNameAsString() + "\n");
+            if (comma) {
+                msg.append(", ");
+            }
+            msg.append(variable.getNameAsString());
+            comma = true;
         }
+        message = msg.toString();
     }
 
     private String getStringStart(Node node) {

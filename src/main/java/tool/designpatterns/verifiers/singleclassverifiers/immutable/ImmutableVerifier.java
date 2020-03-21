@@ -20,7 +20,8 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
 import tool.designpatterns.verifiers.IPatternVerifier;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
+import tool.feedback.FeedbackImplementations;
 
 /**
  * A verifier for the immutable pattern.
@@ -41,8 +42,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             childFeedbacks.add(verifyClass(c));
         });
 
-        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(compUnit),
-                                                childFeedbacks);
+        return Feedback.getPatternInstanceFeedback(childFeedbacks);
     }
 
     /**
@@ -77,7 +77,7 @@ public class ImmutableVerifier implements IPatternVerifier {
     private Feedback verifyField(FieldDeclaration field, ClassOrInterfaceDeclaration classOrI) {
         if (field.hasModifier(Modifier.Keyword.STATIC) || field.hasModifier(
             Modifier.Keyword.FINAL)) {
-            return Feedback.getNoErrorFeedback();
+            return Feedback.getSuccessfulFeedback();
         }
 
         if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
@@ -113,7 +113,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             methodBody = method.getBody().get();
         } else {
             // An empty method does not mutate the class...? 0.o
-            return Feedback.getNoErrorFeedback();
+            return Feedback.getSuccessfulFeedback();
         }
 
         NodeList<Statement> statements = methodBody.getStatements();
@@ -139,8 +139,8 @@ public class ImmutableVerifier implements IPatternVerifier {
             }
         }
 
-        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(method),
-                                                childFeedbacks);
+        FeedbackImplementations fimpl = new FeedbackImplementations(method);
+        return Feedback.getFeedbackWithChildren(fimpl, childFeedbacks);
     }
 
     /**
@@ -179,6 +179,6 @@ public class ImmutableVerifier implements IPatternVerifier {
             }
         }
 
-        return Feedback.getNoErrorFeedback();
+        return Feedback.getSuccessfulFeedback();
     }
 }
