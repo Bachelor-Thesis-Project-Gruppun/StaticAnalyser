@@ -16,7 +16,7 @@ import tool.util.Feedback;
  */
 public class SingleClassGrouper implements IPatternGrouper {
 
-    private final transient IPatternVerifier verifier;
+    private final IPatternVerifier verifier;
 
     /**
      * The constructor for this PatternGroup verifier.

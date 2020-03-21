@@ -14,7 +14,7 @@ public enum Pattern {
         this.group = group;
     }
 
-    public PatternGroup getGroup() {
+    PatternGroup getGroup() {
         return this.group;
     }
 }
