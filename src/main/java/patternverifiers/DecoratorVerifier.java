@@ -30,6 +30,10 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
         List<PatternInstance> patternInstances = getPatternInstances(map);
+        List<Feedback> results = new ArrayList<>();
+        patternInstances.forEach(pi -> {
+            results.add(verify(pi));
+        });
         throw new UnsupportedOperationException("not implemented");
     }
 
@@ -42,7 +46,26 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      *     or not the instance of the pattern was valid
      */
     public Feedback verify(PatternInstance pi) {
-        throw new UnsupportedOperationException("not implemented");
+        Feedback result = hasAllElements(pi);
+        /*Steps in verifying the decorator pattern:
+
+        1) For a pattern to be valid it must consist of: (Done, hasAllElements)
+            Exactly one component interface
+            At least one concrete component
+            At least one abstract decorator
+            At least one concrete decorator
+
+        2) The component interface must contain at least one method
+
+        3) Every abstract decorator must fulfill the following:
+            It must house a component field. (Done, hasAComponent)
+            The component field needs to be initialized during construction (Done, componentInitializedInConstructor)
+
+        4) Every concreteDecorator must extend an abstract decorator in our list (Done, already done in getPatternInstances when constructing PIs)
+
+        */
+
+        return result;
     }
 
     //Maybe make a model-folder for all pattern instances instead of having any given PI inside
@@ -64,6 +87,8 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
         }
     }
 
+    //!!!! Must be able to identify leftovers, what if there are no interface components, but something
+    //has been marked with concreteComponent!!!
     /**
      * Checks that an interfaceComponent contains atleast one method.
      *
@@ -98,10 +123,11 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      * @return A list of all identified instances of the pattern
      */
     public List<PatternInstance> getPatternInstances(Map<Pattern, List<CompilationUnit>> map) {
-        List<CompilationUnit> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
-        List<CompilationUnit> concreteComponents = map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
-        List<CompilationUnit> abstractDecorators = map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
-        List<CompilationUnit> concreteDecorators = map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
+        var _map = Map.copyOf(map);
+        List<CompilationUnit> interfaceComponents = _map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
+        List<CompilationUnit> concreteComponents = _map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
+        List<CompilationUnit> abstractDecorators = _map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
+        List<CompilationUnit> concreteDecorators = _map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
         HashMap<CompilationUnit, PatternInstance> componentToPatternInstance = new HashMap();
 
         //Create incomplete PIs to be populated below, easier to use isDescendantOf below by
@@ -127,6 +153,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                             PatternInstance pi = componentToPatternInstance.get(
                                 interfaceComponentCU);
                             pi.concreteComponents.add(cc);
+                            concreteComponents.remove(cc);
                         }
                     });
                 });
@@ -139,6 +166,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                             PatternInstance pi = componentToPatternInstance.get(
                                 interfaceComponentCU);
                             pi.abstractDecorators.add(ad);
+                            abstractDecorators.remove(ad);
 
                             //Check which concreteComponents extend this abstractDecorator
                             //And update PI accordingly
@@ -149,6 +177,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                                     if (extendedClass.getNameAsString().equals(
                                         absDec.getName().asString())) {
                                         pi.concreteDecorators.add(cd);
+                                        concreteDecorators.remove(cd);
                                     }
                                 });
                             });
@@ -160,6 +189,18 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                     "Was not an interface or something wrong happened");
             }
         });
+
+        //If there are elements that do not relate to any of the previous interface components,
+        //since they are invalid, put them in an invalid pattern instance object for verify() to handle
+        if(!(concreteComponents.isEmpty() && abstractDecorators.isEmpty() && concreteDecorators.isEmpty())) {
+            var pi = new PatternInstance();
+            pi.interfaceComponent = null;
+            pi.concreteComponents = concreteComponents;
+            pi.abstractDecorators = abstractDecorators;
+            pi.concreteDecorators = concreteDecorators;
+            componentToPatternInstance.put(null, pi);
+        }
+        
         return new ArrayList<PatternInstance>(componentToPatternInstance.values());
     }
 
@@ -196,7 +237,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      * class.
      *
      * @param toTest The CompilationUnit (class) to check.
-     *
+     * @param interfaceCU todo.
      * @return True iff all constructors in a given class does initialize the class' Component
      */
     private Feedback componentInitializedInConstructor(
@@ -240,4 +281,40 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
         }
         return result;
     }
+
+    /**
+     * <p>Used to verify whether or not an instance of the decorator pattern has all required elements of said pattern</p>
+     * <p>For a pattern instance to be valid it has to contain the following:
+     *      <ul>
+     *          <li>Exactly one interface component</li>
+     *          <li>At least one concrete component</li>
+     *          <li>At least one abstract decorator</li>
+     *          <li>At least one concrete decorator</li>
+     *      </ul>
+     * </p>
+     * @param pi The pattern instance to verify
+     * @return A feedback object containing the boolean result
+     */
+    private Feedback hasAllElements(PatternInstance pi) {
+        String feedbackMessage = "";
+        boolean value = true;
+        if(pi.interfaceComponent == null) {
+            feedbackMessage += "\n Interface component is missing";
+            value = false;
+        }
+        if(pi.concreteComponents.size() < 1) {
+            feedbackMessage += "\n At least one concrete component is required";
+            value = false;
+        }
+        if(pi.abstractDecorators.size() < 1) {
+            feedbackMessage += "\n At least one abstract decorator is required";
+            value = false;
+        }
+        if(pi.concreteDecorators.size() < 1) {
+            feedbackMessage += "\n At least one concrete decorator is required";
+            value = false;
+        }
+        return new Feedback(value, feedbackMessage);
+    }
 }
+

@@ -54,9 +54,9 @@ public final class MainProgram {
                 case "Milk":
                     concreteDecorators.add(compUnit);
                     break;
-                //case "FailingCoffeeDecorator":
-                //    concreteDecorators.add(compUnit);
-                //    break;
+                case "FailingCoffeeDecorator":
+                    concreteDecorators.add(compUnit);
+                    break;
                 default:
                     break;
             }
@@ -67,7 +67,7 @@ public final class MainProgram {
         testMap.put(Pattern.DECORATOR_ABSTRACT_DECORATOR, abstractDecorators);
         testMap.put(Pattern.DECORATOR_CONCRETE_DECORATOR, concreteDecorators);
         var decoratorVerifier = new DecoratorVerifier();
-        decoratorVerifier.interfaceContainsMethod(interfaceComponents.get(0));
+        //decoratorVerifier.interfaceContainsMethod(interfaceComponents.get(0));
         decoratorVerifier.verifyGroup(testMap);
     }
 
