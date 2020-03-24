@@ -1,7 +1,7 @@
 package mocks.adapter.implementsAdapter;
 
-import base.DesignPattern;
-import base.Pattern;
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_ADAPTEE})
 interface LightningPhone {

@@ -1,4 +1,4 @@
-package base;
+package tool.designpatterns;
 
 /**
  * Instantiation can be done according to the following example. Using curly brackets to enter an

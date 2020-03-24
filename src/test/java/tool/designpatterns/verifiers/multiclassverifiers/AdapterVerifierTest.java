@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,11 +7,12 @@ import java.util.List;
 
 import com.github.javaparser.ast.CompilationUnit;
 
-import base.Pattern;
 import org.junit.jupiter.api.Test;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.verifiers.multiclassverifiers.AdapterVerifier;
 import utilities.TestHelper;
 
-public class adapterVerifierTest {
+public class AdapterVerifierTest {
 
     @Test
     public void testVerifyExtendsAdapter() throws IOException {

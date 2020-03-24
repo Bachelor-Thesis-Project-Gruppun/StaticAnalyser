@@ -1,11 +1,11 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static base.Pattern.ADAPTER_ADAPTEE;
-import static base.Pattern.ADAPTER_ADAPTER;
+import static tool.designpatterns.Pattern.ADAPTER_ADAPTEE;
+import static tool.designpatterns.Pattern.ADAPTER_ADAPTER;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -15,12 +15,14 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 
-import base.Pattern;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.util.Feedback;
 
 /**
  * A verifier for the adapter pattern.
  */
-public class AdapterVerifier implements IPatternGroupVerifier {
+public class AdapterVerifier implements IPatternGrouper {
 
     public AdapterVerifier() {
     }
@@ -35,13 +37,13 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
 
-        if(!patternParts.containsKey(ADAPTER_ADAPTER) ||
-           patternParts.get(ADAPTER_ADAPTER).isEmpty()){
+        if (!patternParts.containsKey(ADAPTER_ADAPTER) ||
+            patternParts.get(ADAPTER_ADAPTER).isEmpty()) {
             return new Feedback(false, "There is no annotated adapter");
         }
 
-        if(!patternParts.containsKey(ADAPTER_ADAPTEE) ||
-           patternParts.get(ADAPTER_ADAPTEE).isEmpty()){
+        if (!patternParts.containsKey(ADAPTER_ADAPTEE) ||
+            patternParts.get(ADAPTER_ADAPTEE).isEmpty()) {
             return new Feedback(false, "There is no annotated adaptee");
         }
 
