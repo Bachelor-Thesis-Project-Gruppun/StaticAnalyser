@@ -29,11 +29,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * A method for verifying one or more instances of the adapter pattern in a project.
      *
      * @param patternParts The classes that are marked with a adapter annotation
-     *                     <p>
-     *                     <<<<<<< HEAD
      *
      * @return a Feedback with true or false regarding if the pattern is implemented successfully.
-     *     >>>>>>> a6d98da399371e1789a036bae1f93026313074ba
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
@@ -63,8 +60,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * <<<<<<< HEAD A method to verify a the implementation of a single adapter pattern ======= A
-     * method. >>>>>>> a6d98da399371e1789a036bae1f93026313074ba
+     * A method to verify a the implementation of a single adapter pattern.
      *
      * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
      * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
@@ -153,7 +149,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         }
 
         /**
-         * A method that checks if a method is called from within another method, i.e. it if it is
+         * A method that checks if a method is called from within another method, i.e. if it is
          * wrapped.
          *
          * @param method  The MethodDeclaration fo the wrapping method.
