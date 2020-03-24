@@ -34,20 +34,23 @@ public class ImmutableVerifier implements IPatternVerifier {
      * Verifies if every class in the given compilationalUnit is immutable.
      */
     @Override
-    public boolean verify(CompilationUnit compUnit) {
+    public Feedback verify(CompilationUnit compUnit) {
         Map<ClassOrInterfaceDeclaration, Feedback> classImmutableMap = new ConcurrentHashMap<>();
         compUnit.findAll(ClassOrInterfaceDeclaration.class).stream().forEach(c -> {
             classImmutableMap.put(c, verifyClass(c));
         });
 
         boolean verifySuccessful = true;
+        StringBuilder message = new StringBuilder();
         for (Feedback feedback : classImmutableMap.values()) {
             if (!feedback.getValue()) {
                 verifySuccessful = false;
+                message.append('\n');
+                message.append(feedback.getMessage());
             }
         }
 
-        return verifySuccessful;
+        return new Feedback(verifySuccessful, message.toString());
     }
 
     /**
@@ -75,8 +78,9 @@ public class ImmutableVerifier implements IPatternVerifier {
             Feedback feedback = entry.getValue();
             if (!feedback.getValue()) {
                 verifySuccessful = false;
-                message = "Verification failed for class '" + classOrI.getNameAsString() +
-                          "' due to \n\n" + feedback.getMessage();
+                message =
+                    "Verification failed for class '" + classOrI.getNameAsString() + "' due to \n" +
+                    feedback.getMessage();
             }
         }
         return new Feedback(verifySuccessful, message);
@@ -120,7 +124,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             Feedback feedback = entry.getValue();
             if (feedback.getValue()) {
                 verifySuccessful = false;
-                message = "Verification failed for field '" + field.toString() + "' due to \n\n" +
+                message = "Verification failed for field '" + field.toString() + "' due to \n" +
                           feedback.getMessage();
             }
         }

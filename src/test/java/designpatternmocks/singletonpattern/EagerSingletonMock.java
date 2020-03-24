@@ -9,7 +9,6 @@ public class EagerSingletonMock {
 
     //  Private Static field of SingletonMock, should pass first predicate
     private static EagerSingletonMock instance = new EagerSingletonMock();
-    private static EagerSingletonMock i2 = instance;
 
     /**
      * Private constructor, should pass second predicate
