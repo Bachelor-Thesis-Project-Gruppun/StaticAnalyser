@@ -44,14 +44,10 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             interfaces.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
         }
         List<Feedback> feedbacks = new ArrayList<>();
-        for (Pattern p : patternParts.keySet()) {
-            System.out.println(p);
-        }
-        System.out.println(patternParts.get(ADAPTER_ADAPTER).size());
+
         for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
-            System.out.println("ADAPTER");
             feedbacks.add(
-                verifyadapter(adapter.findAll(ClassOrInterfaceDeclaration.class).get(0), adaptees));
+                verifyAdapter(adapter.findAll(ClassOrInterfaceDeclaration.class).get(0), adaptees));
         }
 
         boolean verifySuccessful = true;
@@ -72,11 +68,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      *
      * @return
      */
-    private Feedback verifyadapter(
+    private Feedback verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
 
-        // TODO if statement to get adaptee class instead of adaptee.getSecond() if extends case
-        List<Feedback> feedbackList = new ArrayList<>();
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
             for (Feedback f : adapter.accept(new Visitor(), adaptee)) {
                 if (f.getValue()) {
@@ -90,15 +84,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * @param adaptee
-     * @param adapter
+     * A method for verifying that the adaptor does not implement the interface of the adaptee or
+     * extend the adaptee.
      *
-     * @return
+     * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
+     * @param adapter The ClassOrInterfaceDeclaration for the adapter
+     *
+     * @return Feedback regarding if the implementation is correct or not.
      */
     private Feedback verifyInterfaces(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
 
-        System.out.println(adaptee.getNameAsString() + " " + adapter.getNameAsString());
         for (ClassOrInterfaceType coit : adapter.getImplementedTypes()) {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
@@ -115,28 +111,6 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         }
 
         return new Feedback(true);
-    }
-
-    private ClassOrInterfaceDeclaration getClassInterface(
-        ClassOrInterfaceDeclaration implementer, List<ClassOrInterfaceDeclaration> interfaces) {
-        for (ClassOrInterfaceDeclaration coi : interfaces) {
-            for (ClassOrInterfaceType coi2 : implementer.getImplementedTypes()) {
-                if (coi.getName().equals(coi2.getName())) {
-                    return coi; // Returns the interface of the adaptee
-                }
-            }
-        }
-        return null;
-    }
-
-    private boolean isClassSuperClassOf(
-        ClassOrInterfaceDeclaration subclass, ClassOrInterfaceDeclaration superclass) {
-        for (ClassOrInterfaceType coi : subclass.getExtendedTypes()) {
-            if (coi.getName().equals(superclass.getName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
