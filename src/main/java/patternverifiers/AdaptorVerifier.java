@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static base.Pattern.*;
+import static base.Pattern.ADAPTOR_ADAPTEE;
+import static base.Pattern.ADAPTOR_ADAPTOR;
+import static base.Pattern.ADAPTOR_INTERFACE;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -18,11 +19,11 @@ import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 import base.Pattern;
 
 /**
- * A verifier for the adapter pattern.
+ * A verifier for the adaptor pattern.
  */
-public class AdapterVerifier implements IPatternGroupVerifier {
+public class AdaptorVerifier implements IPatternGroupVerifier {
 
-    public AdapterVerifier() {
+    public AdaptorVerifier() {
     }
 
     /**
@@ -36,17 +37,18 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         /* MATCH PATTERN PARTS LATER */
 
         /* VERIFICATION */
-        CompilationUnit adaptorCompUnit = patternParts.get(ADAPTER_ADAPTER).get(0);
-        CompilationUnit adapteeCompUnit = patternParts.get(ADAPTER_ADAPTEE).get(0);
-        CompilationUnit clientCompUnit = patternParts.get(ADAPTER_CLIENT).get(0);
-        List<CompilationUnit> interfacesCu = patternParts.get(ADAPTER_INTERFACE);
+        CompilationUnit adaptorCompUnit = patternParts.get(ADAPTOR_ADAPTOR).get(0);
+        CompilationUnit adapteeCompUnit = patternParts.get(ADAPTOR_ADAPTEE).get(0);
+        List<CompilationUnit> interfacesCu = patternParts.get(ADAPTOR_INTERFACE);
         List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
         for (CompilationUnit cu : interfacesCu) {
             interfaces.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
         }
 
-        // Maybe we don't need this? Three variables, one for adapter, one for adaptee and one
+        // Maybe we don't need this? Three variables, one for adaptor, one for adaptee and one
         // for superclass/interface might be enough
+
+        /*
         Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adaptorInterface =
             new Tuple<>();
         Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adapteeInterface =
@@ -58,37 +60,35 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         adaptorInterface.setFirst(
             adaptorCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
 
-        if(isClassSuperClassOf(adaptorInterface.getFirst(), adapteeInterface.getFirst())){
+        if (isClassSuperClassOf(adaptorInterface.getFirst(), adapteeInterface.getFirst())) {
             adaptorInterface.setSecond(adapteeInterface.getFirst());
-        }else{
+        } else {
             adaptorInterface.setSecond(getClassInterface(adaptorInterface.getFirst(), interfaces));
         }
-
+        adapteeInterface.setSecond(getClassInterface(adapteeInterface.getFirst(), interfaces));
+         */
         //adapteeInterface.setSecond(
         //    getWrapee(adapteeInterface.getFirst(), adaptorInterface.getFirst(), interfaces));
-
-        System.out.println("Adapter:");
-        System.out.println(adaptorInterface.getFirst().getNameAsString());
-        System.out.println(adapteeInterface.getFirst().getNameAsString() + " " +
-                           adapteeInterface.getSecond().getNameAsString());
 
         // Verify if the parts are a coherent pattern
 
         // return verifyInterfaces(adaptorInterface, adapteeInterface);
-        return verifyAdaptor(adaptorInterface, adapteeInterface);
+        System.out.println(adapteeCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
+        return verifyAdaptor(
+            adaptorCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0),
+            adapteeCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
     }
 
     /**
-     * A method  
+     * A method
      *
      * @return
      */
     private Feedback verifyAdaptor(
-        Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adaptor,
-        Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adaptee) {
+        ClassOrInterfaceDeclaration adaptor, ClassOrInterfaceDeclaration adaptee) {
 
         // TODO if statement to get adaptee class instead of adaptee.getSecond() if extends case
-        List<Feedback> feedbackList = adaptor.getFirst().accept(new Visitor(), adaptee.getSecond());
+        List<Feedback> feedbackList = adaptor.accept(new Visitor(), adaptee);
         for (Feedback f : feedbackList) {
             if (f.getValue()) {
                 return new Feedback(true);
@@ -162,21 +162,19 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     private class Visitor extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
 
         /**
-         * HOW TO GET THIS TO GO THROUGH EVERYTHING?
-         *
          * @param method
-         * @param adapteeInterface
+         * @param adaptee
          *
          * @return
          */
         @Override
         public List<Feedback> visit(
-            MethodDeclaration method, ClassOrInterfaceDeclaration adapteeInterface) {
-            List<Feedback> feedbackList = super.visit(method, adapteeInterface);
+            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
+            List<Feedback> feedbackList = super.visit(method, adaptee);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    if (isWrapper(method, adapteeInterface)) {
+                    if (isWrapper(method, adaptee)) {
                         feedbackList.add(new Feedback(true));
                         return feedbackList;
                     }
@@ -215,18 +213,13 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         @Override
-        public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adapteeInterface) {
-            List<Boolean> boolList = super.visit(n, adapteeInterface);
+        public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adaptee) {
+            List<Boolean> boolList = super.visit(n, adaptee);
 
             //System.out.println(adapteeInterface.getNameAsString() + " ######################");
 
-            if (adapteeInterface.isInterface()) {
-                System.out.println("INTERFACE");
-                System.out.println(adapteeInterface.getNameAsString());
-                System.out.println(n.getScope());
-                System.out.println(adapteeInterface.getNameAsString());
-                if (n.getScope().get().toString().equalsIgnoreCase(
-                    adapteeInterface.getNameAsString())) {
+            if (adaptee.isInterface()) {
+                if (n.getScope().get().toString().equalsIgnoreCase(adaptee.getNameAsString())) {
                     boolList.add(Boolean.TRUE);
                     return boolList;
                 }
