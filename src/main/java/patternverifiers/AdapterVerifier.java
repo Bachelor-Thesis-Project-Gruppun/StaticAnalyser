@@ -34,9 +34,6 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
 
-        /* MATCH PATTERN PARTS LATER */
-
-        /* VERIFICATION */
         List<ClassOrInterfaceDeclaration> adaptees = new ArrayList<>();
         for (CompilationUnit cu : patternParts.get(ADAPTER_ADAPTEE)) {
             adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
@@ -88,38 +85,29 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * A method that verifieadapterInterfaces that the adapter and the adaptee implements the
-     * correct interfaces, the two interfaces should be specified by the annotations, and the
-     * interfaces should be different from each other.
+     * @param adaptee
+     * @param adapter
      *
-     * @param adaptee The tuple representing the adaptee and its interface
-     * @param adapter The tuple representing the adapter and its interface
-     *
-     * @return Feedback with the result and message
+     * @return
      */
-    private Feedback verifyInterfaces(
-        Tuple<CompilationUnit, CompilationUnit> adapter,
-        Tuple<CompilationUnit, CompilationUnit> adaptee) {
+    private Feedback verifyInterfaces(ClassOrInterfaceDeclaration adapter,
+                                      ClassOrInterfaceDeclaration adaptee) {
 
-        boolean adapterInterfaceExists = false;
-        boolean adapteeInterfaceExists = false;
-        boolean isNotSameInterface = false;
-
-        if (adapter.getSecond() != null) {
-            adapterInterfaceExists = true;
+        for (ClassOrInterfaceType coit : adapter.getImplementedTypes() ) {
+            if(adaptee.isInterface()){
+                if(coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())){
+                    return new Feedback(false);
+                }
+            } else {
+                for (ClassOrInterfaceType coi : adaptee.getImplementedTypes() ) {
+                    if(coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())){
+                        return new Feedback(false);
+                    }
+                }
+            }
         }
 
-        if (adaptee.getSecond() != null) {
-            adapteeInterfaceExists = true;
-        }
-
-        if (!adapter.getSecond().equals(adaptee.getSecond())) {
-            isNotSameInterface = true;
-        }
-
-        return new Feedback(adapterInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
-                            "adapter and" + " adaptee does not " +
-                            "implement the correct interfaces");
+        return new Feedback(true);
     }
 
     private ClassOrInterfaceDeclaration getClassInterface(
