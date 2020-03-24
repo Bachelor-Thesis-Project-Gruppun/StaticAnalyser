@@ -12,6 +12,7 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
+import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 
 /**
@@ -20,6 +21,7 @@ import tool.designpatterns.Pattern;
  * <p>If a pattern annotation is identified, then the visitor invokes the
  * corresponding pattern verifier.</p>
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 class AnnotationVisitor extends VoidVisitorAdapter<Void> {
 
     private final Map<Pattern, List<CompilationUnit>> patternCompMap;
