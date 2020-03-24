@@ -1,4 +1,4 @@
-package implementsAdapterTest;
+package mocks.adapter.implementsAdapterTest;
 
 import base.DesignPattern;
 import base.Pattern;

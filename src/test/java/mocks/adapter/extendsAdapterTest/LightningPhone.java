@@ -1,9 +1,9 @@
-package implementsAdapterTest;
+package mocks.adapter.extendsAdapterTest;
 
 import base.DesignPattern;
 import base.Pattern;
 
-@DesignPattern(pattern = {Pattern.ADAPTER_INTERFACE, Pattern.ADAPTER_ADAPTEE})
+@DesignPattern(pattern = {Pattern.ADAPTER_INTERFACE})
 interface LightningPhone {
 
     void recharge();
