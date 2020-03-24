@@ -6,7 +6,6 @@ import java.util.Map;
 
 import static base.Pattern.ADAPTER_ADAPTEE;
 import static base.Pattern.ADAPTER_ADAPTER;
-import static base.Pattern.ADAPTER_INTERFACE;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -40,11 +39,6 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
         }
 
-        List<CompilationUnit> interfacesCu = patternParts.get(ADAPTER_INTERFACE);
-        List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
-        for (CompilationUnit cu : interfacesCu) {
-            interfaces.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
-        }
         List<Feedback> feedbacks = new ArrayList<>();
 
         for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
@@ -120,7 +114,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit nodes in a AST created by JavaParser.
      */
-    private class MethodDeclarationVisitor
+    private static class MethodDeclarationVisitor
         extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
 
         public MethodDeclarationVisitor() {
@@ -183,7 +177,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit every method call expression node in a ClassOrInterfaceDeclaration.
      */
-    private class MethodCallVisitor
+    private static class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         public MethodCallVisitor() {
