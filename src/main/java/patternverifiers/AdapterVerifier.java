@@ -31,7 +31,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      *
      * @param patternParts The classes that are marked with a adapter annotation
      *
-     * @return a Feedback with true or false regarding if the pattern is implemented succedfully. 
+     * @return a Feedback with true or false regarding if the pattern is implemented succedfully.
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
@@ -66,25 +66,24 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * A method
+     * A method to verify a the implementation of a single adapter pattern
      *
-     * @return
+     * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
+     * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
+     *
+     * @return A feedback with the result of the verification
      */
     private Feedback verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
-
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
-            for (Feedback f : adapter.accept(visitor, adaptee)) {
-                if (f.getValue()) {
+            for (Boolean b : adapter.accept(visitor, adaptee)) {
+                if (b) {
                     return verifyInterfaces(adapter, adaptee);
                 }
             }
         }
-
-        return new Feedback(
-            false, "You are bad and should feel bad. \nGet your shit " +
-                   "together before you even try to run me again");
+        return new Feedback(false, "Adapter does not wrap the adaptee");
     }
 
     /**
@@ -94,7 +93,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * @param adapter The ClassOrInterfaceDeclaration for the adapter
      * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
      *
-     * @return Feedback regarding if the implementation is correct or not.
+     * @return Boolean regarding if the implementation is correct or not.
      */
     private Feedback verifyInterfaces(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
@@ -107,8 +106,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
                     if (coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())) {
-                        return new Feedback(
-                            false, "The adapter implements the same interface as " + "the adaptee");
+                        return new Feedback(false, "The adapter implements the same interface as " +
+                                                   "the adaptee");
                     }
                 }
             }
@@ -121,7 +120,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * A class used to visit nodes in a AST created by JavaParser.
      */
     private class MethodDeclarationVisitor
-        extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
+        extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         public MethodDeclarationVisitor() {
             super();
@@ -132,29 +131,26 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          * MethodDeclarations and checks if they are overridden. If they are a true feedback is
          * added to the list, otherwise a false is added.
          *
-         * @param method
-         * @param adaptee
+         * @param method  The method that is visited
+         * @param adaptee The adaptee that is checked
          *
-         * @return a list of feedback
+         * @return a list of booleans
          */
         @Override
         @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-        public List<Feedback> visit(
+        public List<Boolean> visit(
             MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
-            List<Feedback> feedbackList = super.visit(method, adaptee);
+            List<Boolean> resultList = super.visit(method, adaptee);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
-                if (annotation.getNameAsString().equalsIgnoreCase("override") && isWrapper(
-                    method, adaptee)) {
-                    feedbackList.add(new Feedback(true)); // This is the error that is
+                if (annotation.getNameAsString().equalsIgnoreCase("override")) {
+                    resultList.add(isWrapper(method, adaptee)); // This is the error that is
                     // suppressed, because we return right after.
-                    return feedbackList;
+                    return resultList;
                 }
             }
-            feedbackList.add(
-                new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
-                                    "together before you even try to run me again"));
-            return feedbackList;
+            resultList.add(Boolean.FALSE);
+            return resultList;
         }
 
         /**
@@ -166,16 +162,16 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          *
          * @return a boolean, true if it is wrapped, otherwise false.
          */
-        private boolean isWrapper(
+        private Boolean isWrapper(
             MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> list = method.accept(new MethodCallVisitor(), adaptee);
 
             for (Boolean bool : list) {
                 if (bool) {
-                    return true;
+                    return Boolean.TRUE;
                 }
             }
-            return false;
+            return Boolean.FALSE;
         }
     }
 
