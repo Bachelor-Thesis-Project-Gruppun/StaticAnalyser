@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.github.javaparser.ast.CompilationUnit;
 
 import org.gradle.api.GradleException;
-import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.PatternUtils;
@@ -18,16 +17,9 @@ import tool.feedback.PatternGroupFeedback;
 /**
  * The main entry point for the analysis.
  */
-@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class MainProgram {
 
-    private int LITTLEFUCK = 0;
-
     private MainProgram() {
-    }
-
-    public void FUCK_UPP_LITTLE_FUCK() {
-        LITTLEFUCK += 1;
     }
 
     /**

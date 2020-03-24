@@ -2,9 +2,7 @@ package tool.designpatterns.verifiers.singleclassverifiers.immutable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
@@ -19,13 +17,16 @@ import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternVerifier;
 import tool.feedback.Feedback;
-import tool.feedback.FeedbackImplementations;
+import tool.feedback.FeedbackTrace;
 
 /**
  * A verifier for the immutable pattern.
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public class ImmutableVerifier implements IPatternVerifier {
 
     public ImmutableVerifier() {
@@ -62,8 +63,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             });
         });
 
-        return Feedback.getFeedbackWithChildren(
-            new FeedbackImplementations(classOrI), childFeedbacks);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classOrI), childFeedbacks);
     }
 
     /**
@@ -81,7 +81,7 @@ public class ImmutableVerifier implements IPatternVerifier {
         }
 
         if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
-            return Feedback.getNoChildFeedback("public field.", new FeedbackImplementations(field));
+            return Feedback.getNoChildFeedback("public field.", new FeedbackTrace(field));
         }
 
         List<Feedback> childFeedbacks = new ArrayList<>();
@@ -95,7 +95,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             });
         }
 
-        return Feedback.getFeedbackWithChildren(new FeedbackImplementations(field), childFeedbacks);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(field), childFeedbacks);
     }
 
     /**
@@ -139,7 +139,7 @@ public class ImmutableVerifier implements IPatternVerifier {
             }
         }
 
-        FeedbackImplementations fimpl = new FeedbackImplementations(method);
+        FeedbackTrace fimpl = new FeedbackTrace(method);
         return Feedback.getFeedbackWithChildren(fimpl, childFeedbacks);
     }
 
@@ -166,14 +166,9 @@ public class ImmutableVerifier implements IPatternVerifier {
                 if (variable.getNameAsString().equals(name) && !localVars.contains(name)) {
                     // The variable being assigned has the same name as the variable
                     // we're checking for.
-                    String line = "";
-                    Optional<Range> lines = accessedVar.getRange();
-                    if (lines.isPresent()) {
-                        line = lines.get().toString();
-                    }
 
                     return Feedback.getNoChildFeedback("Variable '" + name + "' is assigned.",
-                                                       new FeedbackImplementations(assignExpr));
+                                                       new FeedbackTrace(assignExpr));
 
                 }
             }

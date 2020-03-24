@@ -3,21 +3,24 @@ package tool.feedback;
 import java.util.ArrayList;
 import java.util.List;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
 /**
  * Simple class to store and manage feedback to the user.
  */
-public class Feedback {
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
+public final class Feedback {
 
     private boolean isError;
     private final String message;
-    private List<Feedback> children;
-    private FeedbackImplementations stackTrace;
+    private final List<Feedback> children;
+    private final FeedbackTrace stackTrace;
 
     private static final String LINE_PREFIX = "  ";
 
     private Feedback(
-        boolean isError, String message, FeedbackImplementations stackTrace,
-        List<Feedback> children) {
+        boolean isError, String message, FeedbackTrace stackTrace, List<Feedback> children) {
         this.isError = isError;
         this.message = message;
         this.stackTrace = stackTrace;
@@ -43,12 +46,13 @@ public class Feedback {
      * @return the new feedback.
      */
     public static Feedback getNoChildFeedback(
-        String message, FeedbackImplementations stackTrace) {
+        String message, FeedbackTrace stackTrace) {
         return new Feedback(true, message, stackTrace, null);
     }
 
     /**
-     * Get a new feedback that is an error and has the
+     * Get a new feedback that has children, in case any of the children has any errors this will
+     * also be an error, otherwise be successful.
      *
      * @param stackTrace the element where the error occured.
      * @param children   the child feedback elements to this feedback.
@@ -56,7 +60,7 @@ public class Feedback {
      * @return a new feedback.
      */
     public static Feedback getFeedbackWithChildren(
-        FeedbackImplementations stackTrace, List<Feedback> children) {
+        FeedbackTrace stackTrace, List<Feedback> children) {
         if (children == null) {
             throw new IllegalArgumentException("Child list must not be null.");
         }
@@ -120,7 +124,7 @@ public class Feedback {
             message.append(" : ");
         }
 
-        if (children.size() == 0) {
+        if (children.isEmpty()) {
             // We don't have any children, i.e. we're the 'leaf' node and therefore we print our
             // message.
             message.append(getMessage());

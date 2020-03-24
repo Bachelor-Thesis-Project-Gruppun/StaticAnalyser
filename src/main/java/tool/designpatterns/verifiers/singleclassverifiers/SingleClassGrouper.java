@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.github.javaparser.ast.CompilationUnit;
 
+import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternUtils;
 import tool.designpatterns.verifiers.IPatternGrouper;
@@ -17,6 +18,7 @@ import tool.feedback.PatternGroupFeedback;
 /**
  * A class that will verify a PatternGroup that only has one pattern (i.e. single class patterns)
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public class SingleClassGrouper implements IPatternGrouper {
 
     private final IPatternVerifier verifier;
@@ -60,7 +62,7 @@ public class SingleClassGrouper implements IPatternGrouper {
      */
     private boolean validateMap(
         Map<Pattern, List<CompilationUnit>> map, Pattern pattern, List<CompilationUnit> compUnits)
-    throws IllegalArgumentException {
+        throws IllegalArgumentException {
         // Assumes that map only has one entry.
         final int maxMapLength = 1;
 

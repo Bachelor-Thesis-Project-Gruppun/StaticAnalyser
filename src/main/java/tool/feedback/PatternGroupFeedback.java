@@ -2,22 +2,37 @@ package tool.feedback;
 
 import java.util.List;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 
 /**
  * The feedback for an entire patternGroup.
  */
-public class PatternGroupFeedback {
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
+public final class PatternGroupFeedback {
 
-    private PatternGroup patternGroup;
-    private List<Feedback> feedbacks;
+    private final PatternGroup patternGroup;
+    private final List<Feedback> feedbacks;
 
+    /**
+     * Creates a new PatternGroupFeedback for the given patternGroup and with the given child
+     * feedbacks.
+     *
+     * @param patternGroup the patternGroup this represents the feedback for.
+     * @param feedbacks    the feedbacks that is this groups children.
+     */
     public PatternGroupFeedback(
         PatternGroup patternGroup, List<Feedback> feedbacks) {
         this.patternGroup = patternGroup;
         this.feedbacks = feedbacks;
     }
 
+    /**
+     * Get a full feedback message for this PatternGroup and it's children.
+     *
+     * @return the message.
+     */
     public String getFullMessage() {
 
         StringBuilder message = new StringBuilder("Verification of patternGroup ");
@@ -37,6 +52,11 @@ public class PatternGroupFeedback {
         return message.toString();
     }
 
+    /**
+     * Returns true if this feedback or any of its children is an error.
+     *
+     * @return if this is an error.
+     */
     public boolean hasError() {
         boolean hasError = false;
         for (Feedback feedback : feedbacks) {
