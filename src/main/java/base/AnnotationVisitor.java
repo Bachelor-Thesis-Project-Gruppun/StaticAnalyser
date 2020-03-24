@@ -42,6 +42,7 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
     public void visit(
         NormalAnnotationExpr annotationExpr, Void args) {
         super.visit(annotationExpr, args);
+
         Optional<CompilationUnit> optional = annotationExpr.findRootNode().findCompilationUnit();
         if (optional.isEmpty()) {
             return;
@@ -50,7 +51,6 @@ class AnnotationVisitor extends VoidVisitorAdapter<Void> {
         CompilationUnit compilationUnit = optional.get();
 
         for (Pattern pattern : getPatternsFromAnnotation(annotationExpr)) {
-            System.out.println("Visitor: " + pattern);
             if (patternCompMap.containsKey(pattern)) {
                 patternCompMap.get(pattern).add(compilationUnit);
             } else {
