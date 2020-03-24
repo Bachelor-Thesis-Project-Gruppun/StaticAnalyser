@@ -36,7 +36,7 @@ public final class PatternGroupFeedback {
     public String getFullMessage() {
 
         StringBuilder message = new StringBuilder(50);
-        message.append("Verification of patternGroup ").append(patternGroup.toString());
+        message.append("Verification of the design pattern ").append(patternGroup.toString());
 
         if (hasError()) {
             message.append(" failed due to:\n");

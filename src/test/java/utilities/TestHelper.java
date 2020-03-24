@@ -33,6 +33,20 @@ public class TestHelper {
     /**
      * returns the 'File' for the mock file given a path.
      *
+     * @param pattern the pattern folder name.
+     * @param className the name of the mock class to load.
+     * @return the file for the mockfile.
+     * @throws FileNotFoundException in case the file could not be found.
+     */
+    public static CompilationUnit getMockCompUnit(String pattern, String className) throws FileNotFoundException {
+        String path = getFullMockPath(pattern + "/" + className + ".java");
+        File file = new File(path);
+        return StaticJavaParser.parse(file);
+    }
+
+    /**
+     * returns the Class given a path to a file with the same name.
+     *
      * @param pattern   the pattern folder name.
      * @param className the name of the mock class to load.
      *
@@ -42,9 +56,8 @@ public class TestHelper {
      */
     public static ClassOrInterfaceDeclaration getMockClassOrI(String pattern, String className)
     throws FileNotFoundException {
-        String path = getFullMockPath(pattern + "/" + className + ".java");
-        File file = new File(path);
-        CompilationUnit compUnit = StaticJavaParser.parse(file);
+        CompilationUnit compUnit = getMockCompUnit(pattern, className);
+
         ClassOrInterfaceDeclaration classOrIToReturn = null;
         for (ClassOrInterfaceDeclaration classOrI : compUnit.findAll(
             ClassOrInterfaceDeclaration.class)) {
