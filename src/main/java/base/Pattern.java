@@ -6,7 +6,8 @@ package base;
  */
 public enum Pattern {
 
-    IMMUTABLE(PatternGroup.IMMUTABLE), SINGLETON(PatternGroup.SINGLETON),
+    IMMUTABLE(PatternGroup.IMMUTABLE),
+    SINGLETON(PatternGroup.SINGLETON),
 
     ADAPTER_ADAPTER(PatternGroup.ADAPTER),
     ADAPTER_ADAPTEE(PatternGroup.ADAPTER),

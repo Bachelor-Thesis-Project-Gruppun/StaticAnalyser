@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static base.Pattern.ADAPTER_ADAPTEE;
-import static base.Pattern.ADAPTER_ADAPTER;
-import static base.Pattern.ADAPTER_CLIENT;
-import static base.Pattern.ADAPTER_INTERFACE;
+import static base.Pattern.*;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
@@ -24,8 +21,6 @@ import base.Pattern;
  * A verifier for the adapter pattern.
  */
 public class AdapterVerifier implements IPatternGroupVerifier {
-
-    List<NodeList> coi = new ArrayList<>();
 
     public AdapterVerifier() {
     }
@@ -63,6 +58,12 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         adaptorInterface.setFirst(
             adaptorCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
 
+        if(isClassSuperClassOf(adaptorInterface.getFirst(), adapteeInterface.getFirst())){
+            adaptorInterface.setSecond(adapteeInterface.getFirst());
+        }else{
+            adaptorInterface.setSecond(getClassInterface(adaptorInterface.getFirst(), interfaces));
+        }
+
         //adapteeInterface.setSecond(
         //    getWrapee(adapteeInterface.getFirst(), adaptorInterface.getFirst(), interfaces));
 
@@ -78,6 +79,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
+     * A method  
+     *
      * @return
      */
     private Feedback verifyAdaptor(
