@@ -37,46 +37,33 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         /* MATCH PATTERN PARTS LATER */
 
         /* VERIFICATION */
-        CompilationUnit adapterCompUnit = patternParts.get(ADAPTER_ADAPTER).get(0);
-        CompilationUnit adapteeCompUnit = patternParts.get(ADAPTER_ADAPTEE).get(0);
+        List<ClassOrInterfaceDeclaration> adaptees = new ArrayList<>();
+        for (CompilationUnit cu : patternParts.get(ADAPTER_ADAPTEE)) {
+            adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
+        }
+
         List<CompilationUnit> interfacesCu = patternParts.get(ADAPTER_INTERFACE);
         List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
         for (CompilationUnit cu : interfacesCu) {
             interfaces.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
         }
-
-        // Maybe we don't need this? Three variables, one for adaptor, one for adaptee and one
-        // for superclass/interface might be enough
-
-        /*
-        Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adapterInterface =
-            new Tuple<>();
-        Tuple<ClassOrInterfaceDeclaration, ClassOrInterfaceDeclaration> adapteeInterface =
-            new Tuple<>();
-
-        adapteeInterface.setFirst(
-            adapteeCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
-
-        adapterInterface.setFirst(
-            adapterCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
-
-        if (isClassSuperClassOf(adapterInterface.getFirst(), adapteeInterface.getFirst())) {
-            adapterInterface.setSecond(adapteeInterface.getFirst());
-        } else {
-            adapterInterface.setSecond(getClassInterface(adapterInterface.getFirst(), interfaces));
+        List<Feedback> feedbacks = new ArrayList<>();
+        for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
+            feedbacks.add(
+                verifyadapter(adapter.findAll(ClassOrInterfaceDeclaration.class).get(0), adaptees));
         }
-        adapteeInterface.setSecond(getClassInterface(adapteeInterface.getFirst(), interfaces));
-         */
-        //adapteeInterface.setSecond(
-        //    getWrapee(adapteeInterface.getFirst(), adapterInterface.getFirst(), interfaces));
 
-        // Verify if the parts are a coherent pattern
+        boolean verifySuccessful = true;
+        StringBuilder message = new StringBuilder();
+        for (Feedback feedback : feedbacks) {
+            if (!feedback.getValue()) {
+                verifySuccessful = false;
+                message.append('\n');
+                message.append(feedback.getMessage());
+            }
+        }
 
-        // return verifyInterfaces(adapterInterface, adapteeInterface);
-
-        return verifyadapter(
-            adapterCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0),
-            adapteeCompUnit.findAll(ClassOrInterfaceDeclaration.class).get(0));
+        return new Feedback(verifySuccessful, message.toString());
     }
 
     /**
@@ -85,7 +72,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * @return
      */
     private Feedback verifyadapter(
-        ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
+        ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptee) {
 
         // TODO if statement to get adaptee class instead of adaptee.getSecond() if extends case
         List<Feedback> feedbackList = adapter.accept(new Visitor(), adaptee);
@@ -95,8 +82,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             }
         }
 
-        return new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
-                                   "together before you even try to run me again");
+        return new Feedback(
+            false, "You are bad and should feel bad. \nGet your shit " +
+                   "together before you even try to run me again");
     }
 
     /**
@@ -129,9 +117,9 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             isNotSameInterface = true;
         }
 
-        return new Feedback(
-            adapterInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
-            "adapter and" + " adaptee does not " + "implement the correct interfaces");
+        return new Feedback(adapterInterfaceExists && adapteeInterfaceExists && isNotSameInterface,
+                            "adapter and" + " adaptee does not " +
+                            "implement the correct interfaces");
     }
 
     private ClassOrInterfaceDeclaration getClassInterface(
@@ -159,30 +147,34 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      *
      */
-    private class Visitor extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
+    private class Visitor
+        extends GenericListVisitorAdapter<Feedback, List<ClassOrInterfaceDeclaration>> {
 
         /**
          * @param method
-         * @param adaptee
+         * @param adaptees
          *
          * @return
          */
         @Override
         public List<Feedback> visit(
-            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
-            List<Feedback> feedbackList = super.visit(method, adaptee);
+            MethodDeclaration method, List<ClassOrInterfaceDeclaration> adaptees) {
+            List<Feedback> feedbackList = super.visit(method, adaptees);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    if (isWrapper(method, adaptee)) {
-                        feedbackList.add(new Feedback(true));
-                        return feedbackList;
+                    for (ClassOrInterfaceDeclaration adaptee : adaptees) {
+                        if (isWrapper(method, adaptee)) {
+                            feedbackList.add(new Feedback(true));
+                            return feedbackList;
+                        }
                     }
+
                 }
             }
-            feedbackList.add(new Feedback(
-                false, "You are bad and should feel bad. \nGet your shit " +
-                       "together before you even try to run me again"));
+            feedbackList.add(new Feedback(false,
+                                          "You are bad and should feel bad. \nGet your shit " +
+                                          "together before you even try to run me again"));
             return feedbackList;
         }
 
@@ -207,7 +199,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
 
     /**
-     * HOW DO WE GET FALSE FOR THIS?
+     *
      */
     class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
@@ -215,8 +207,6 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         @Override
         public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(n, adaptee);
-
-            //System.out.println(adapteeInterface.getNameAsString() + " ######################");
 
             if (adaptee.isInterface()) {
                 if (n.getScope().get().toString().equalsIgnoreCase(adaptee.getNameAsString())) {

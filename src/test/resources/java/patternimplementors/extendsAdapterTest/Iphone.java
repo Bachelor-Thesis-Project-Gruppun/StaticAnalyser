@@ -1,9 +1,5 @@
 package adapterTests;
 
-import base.DesignPattern;
-import base.Pattern;
-
-@DesignPattern(pattern = {Pattern.ADAPTER_ADAPTEE})
 class Iphone implements LightningPhone {
 
     private boolean connector;

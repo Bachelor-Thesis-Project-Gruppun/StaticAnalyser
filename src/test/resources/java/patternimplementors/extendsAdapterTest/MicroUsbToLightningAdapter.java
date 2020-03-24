@@ -4,7 +4,7 @@ import base.DesignPattern;
 import base.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_ADAPTER})
-class MicroUsbToLightningAdapter extends Iphone implements MicroUsbPhone {
+class MicroUsbToLightningAdapter implements MicroUsbPhone {
 
     private final LightningPhone lightningPhone;
 
@@ -15,14 +15,14 @@ class MicroUsbToLightningAdapter extends Iphone implements MicroUsbPhone {
     @Override
     public void useMicroUsb() {
         System.out.println("MicroUsb connected");
-        //lightningPhone.useLightning();
-        super.useLightning();
+        lightningPhone.useLightning();
+        //super.useLightning();
     }
 
     @Override
     public void recharge() {
-        //lightningPhone.recharge();
-        super.recharge();
+        lightningPhone.recharge();
+        //super.recharge();
 
     }
 }

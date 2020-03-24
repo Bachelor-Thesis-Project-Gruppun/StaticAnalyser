@@ -3,7 +3,7 @@ package adapterTests;
 import base.DesignPattern;
 import base.Pattern;
 
-@DesignPattern(pattern = {Pattern.ADAPTER_INTERFACE})
+@DesignPattern(pattern = {Pattern.ADAPTER_INTERFACE, Pattern.ADAPTER_ADAPTEE})
 interface LightningPhone {
 
     void recharge();
