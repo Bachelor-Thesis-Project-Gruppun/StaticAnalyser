@@ -10,9 +10,7 @@ public enum Pattern {
     SINGLETON(PatternGroup.SINGLETON),
 
     ADAPTER_ADAPTER(PatternGroup.ADAPTER),
-    ADAPTER_ADAPTEE(PatternGroup.ADAPTER),
-    ADAPTER_CLIENT(PatternGroup.ADAPTER),
-    ADAPTER_INTERFACE(PatternGroup.ADAPTER);
+    ADAPTER_ADAPTEE(PatternGroup.ADAPTER);
 
     private PatternGroup group;
 

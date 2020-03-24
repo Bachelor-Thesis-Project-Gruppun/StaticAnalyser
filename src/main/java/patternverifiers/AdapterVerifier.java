@@ -34,6 +34,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
+
+        if(!patternParts.containsKey(ADAPTER_ADAPTER) ||
+           patternParts.get(ADAPTER_ADAPTER).isEmpty()){
+            return new Feedback(false, "There is no annotated adapter");
+        }
+
+        if(!patternParts.containsKey(ADAPTER_ADAPTEE) ||
+           patternParts.get(ADAPTER_ADAPTEE).isEmpty()){
+            return new Feedback(false, "There is no annotated adaptee");
+        }
+
         List<ClassOrInterfaceDeclaration> adaptees = new ArrayList<>();
         for (CompilationUnit cu : patternParts.get(ADAPTER_ADAPTEE)) {
             adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));

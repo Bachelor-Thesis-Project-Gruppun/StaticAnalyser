@@ -1,9 +1,5 @@
 package mocks.adapter.extendsAdapter;
 
-import base.DesignPattern;
-import base.Pattern;
-
-@DesignPattern(pattern = {Pattern.ADAPTER_CLIENT})
 public class Client {
 
     static void rechargeMicroUsbPhone(MicroUsbPhone phone) {
