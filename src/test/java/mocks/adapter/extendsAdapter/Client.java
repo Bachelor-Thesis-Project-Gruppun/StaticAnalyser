@@ -1,4 +1,4 @@
-package mocks.adapter.extendsAdapterTest;
+package mocks.adapter.extendsAdapter;
 
 import base.DesignPattern;
 import base.Pattern;

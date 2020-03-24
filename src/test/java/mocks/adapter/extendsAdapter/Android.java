@@ -1,4 +1,4 @@
-package mocks.adapter.extendsAdapterTest;
+package mocks.adapter.extendsAdapter;
 
 class Android implements MicroUsbPhone {
 

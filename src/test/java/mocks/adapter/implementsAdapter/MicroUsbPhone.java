@@ -1,12 +1,12 @@
-package mocks.adapter.extendsAdapterTest;
+package mocks.adapter.implementsAdapter;
 
 import base.DesignPattern;
 import base.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_INTERFACE})
-interface LightningPhone {
+interface MicroUsbPhone {
 
     void recharge();
 
-    void useLightning();
+    void useMicroUsb();
 }

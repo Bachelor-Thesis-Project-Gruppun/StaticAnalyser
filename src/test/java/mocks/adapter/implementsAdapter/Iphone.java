@@ -1,13 +1,13 @@
-package mocks.adapter.implementsAdapterTest;
+package mocks.adapter.implementsAdapter;
 
-class Android implements MicroUsbPhone {
+class Iphone implements LightningPhone {
 
     private boolean connector;
 
     @Override
-    public void useMicroUsb() {
+    public void useLightning() {
         connector = true;
-        System.out.println("MicroUsb connected");
+        System.out.println("Lightning connected");
     }
 
     @Override
@@ -16,8 +16,7 @@ class Android implements MicroUsbPhone {
             System.out.println("Recharge started");
             System.out.println("Recharge finished");
         } else {
-            System.out.println("Connect MicroUsb first");
+            System.out.println("Connect Lightning first");
         }
     }
 }
-
