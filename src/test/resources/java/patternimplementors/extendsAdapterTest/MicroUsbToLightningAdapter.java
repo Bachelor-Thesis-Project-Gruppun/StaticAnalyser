@@ -15,14 +15,14 @@ class MicroUsbToLightningAdapter extends Iphone implements MicroUsbPhone {
     @Override
     public void useMicroUsb() {
         System.out.println("MicroUsb connected");
-        lightningPhone.useLightning();
-//        super.useLightning();
+        //lightningPhone.useLightning();
+        super.useLightning();
     }
 
     @Override
     public void recharge() {
-        lightningPhone.recharge();
-//        super.recharge();
+        //lightningPhone.recharge();
+        super.recharge();
 
     }
 }

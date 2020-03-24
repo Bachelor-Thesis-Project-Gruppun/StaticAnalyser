@@ -1,14 +1,16 @@
 package patternverifiers;
 
-public class Tuple<T,S> {
+public class Tuple<T, S> {
+
     private T first;
     private S second;
 
-    public Tuple(){
-
+    public Tuple() {
+        first = null;
+        second = null;
     }
 
-    public Tuple(T first, S second){
+    public Tuple(T first, S second) {
         this.first = first;
         this.second = second;
     }
