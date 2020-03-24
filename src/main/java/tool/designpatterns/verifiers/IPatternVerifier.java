@@ -1,6 +1,6 @@
 package tool.designpatterns.verifiers;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.feedback.Feedback;
 
@@ -9,5 +9,5 @@ import tool.feedback.Feedback;
  */
 public interface IPatternVerifier {
 
-    Feedback verify(CompilationUnit compUnit);
+    Feedback verify(ClassOrInterfaceDeclaration compUnit);
 }

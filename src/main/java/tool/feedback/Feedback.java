@@ -127,7 +127,7 @@ public final class Feedback {
         if (children.isEmpty()) {
             // We don't have any children, i.e. we're the 'leaf' node and therefore we print our
             // message.
-            message.append(getMessage());
+            message.append(getMessage()).append('\n');
         } else {
             message.append('\n');
             String childPrefix = linePrefix + LINE_PREFIX;

@@ -35,18 +35,20 @@ public final class PatternGroupFeedback {
      */
     public String getFullMessage() {
 
-        StringBuilder message = new StringBuilder("Verification of patternGroup ");
-        message.append(patternGroup.toString());
+        StringBuilder message = new StringBuilder(50);
+        message.append("Verification of patternGroup ").append(patternGroup.toString());
 
         if (hasError()) {
-            message.append(" failed due to:");
+            message.append(" failed due to:\n");
         } else {
-            message.append(" was successful");
+            message.append(" was successful\n");
         }
 
         for (Feedback childFeedback : feedbacks) {
-            message.append(childFeedback.getFullMessage());
-            message.append('\n');
+            if (childFeedback.getIsError()) {
+                message.append(childFeedback.getFullMessage());
+                message.append('\n');
+            }
         }
 
         return message.toString();

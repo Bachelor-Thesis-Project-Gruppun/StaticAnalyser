@@ -3,7 +3,6 @@ package tool.designpatterns.verifiers.singleclassverifiers.immutable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -33,37 +32,24 @@ public class ImmutableVerifier implements IPatternVerifier {
     }
 
     /**
-     * Verifies if every class in the given compilationalUnit is immutable.
-     */
-    @Override
-    public Feedback verify(CompilationUnit compUnit) {
-        List<Feedback> childFeedbacks = new ArrayList<>();
-
-        compUnit.findAll(ClassOrInterfaceDeclaration.class).stream().forEach(c -> {
-            childFeedbacks.add(verifyClass(c));
-        });
-
-        return Feedback.getPatternInstanceFeedback(childFeedbacks);
-    }
-
-    /**
      * Verifies if the given class is immutable.
      *
-     * @param classOrI the class to verify.
+     * @param interClass the class to verify.
      *
      * @return whether or not the class is immutable.
      */
-    private Feedback verifyClass(ClassOrInterfaceDeclaration classOrI) {
-        List<FieldDeclaration> fields = classOrI.getFields();
+    @Override
+    public Feedback verify(ClassOrInterfaceDeclaration interClass) {
+        List<FieldDeclaration> fields = interClass.getFields();
         List<Feedback> childFeedbacks = new ArrayList<>();
 
         fields.forEach(field -> {
             field.getVariables().forEach(var -> {
-                childFeedbacks.add(verifyField(field, classOrI));
+                childFeedbacks.add(verifyField(field, interClass));
             });
         });
 
-        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classOrI), childFeedbacks);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(interClass), childFeedbacks);
     }
 
     /**

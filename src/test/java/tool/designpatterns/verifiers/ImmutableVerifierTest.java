@@ -7,6 +7,7 @@ import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
 import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import org.junit.jupiter.api.Test;
 import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;
@@ -23,9 +24,9 @@ class ImmutableVerifierTest {
      */
     @Test
     void testVerifyReassignment() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit(
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
             "immutable", "ImmutableClassFailReassignment");
-        assertTrue(new ImmutableVerifier().verify(compUnit).getIsError());
+        assertTrue(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
     /**
@@ -34,9 +35,9 @@ class ImmutableVerifierTest {
      */
     @Test
     void testVerifyLocalVariable() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit(
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
             "immutable", "ImmutableClassSuccessLocalVariable");
-        assertFalse(new ImmutableVerifier().verify(compUnit).getIsError());
+        assertFalse(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
     /**
@@ -44,8 +45,9 @@ class ImmutableVerifierTest {
      */
     @Test
     void testVerifyImmutableClass() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit("immutable", "ImmutableClass");
-        assertFalse(new ImmutableVerifier().verify(compUnit).getIsError());
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
+            "immutable", "ImmutableClass");
+        assertFalse(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
     /**
@@ -53,7 +55,8 @@ class ImmutableVerifierTest {
      */
     @Test
     void testVerifyImmutablePublic() throws FileNotFoundException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit("immutable", "ImmutableClassPublic");
-        assertTrue(new ImmutableVerifier().verify(compUnit).getIsError());
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
+            "immutable", "ImmutableClassPublic");
+        assertTrue(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 }

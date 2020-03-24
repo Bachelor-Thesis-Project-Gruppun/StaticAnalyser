@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
@@ -33,20 +33,20 @@ public class SingleClassGrouper implements IPatternGrouper {
     }
 
     @Override
-    public PatternGroupFeedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
+    public PatternGroupFeedback verifyGroup(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         Iterator<Pattern> itr1 = map.keySet().iterator();
         Pattern pattern = itr1.hasNext() ? itr1.next() : null;
 
-        Iterator<List<CompilationUnit>> itr2 = map.values().iterator();
-        List<CompilationUnit> compUnits = itr2.hasNext() ? itr2.next() : null;
+        Iterator<List<ClassOrInterfaceDeclaration>> itr2 = map.values().iterator();
+        List<ClassOrInterfaceDeclaration> classOrIs = itr2.hasNext() ? itr2.next() : null;
 
-        if (!validateMap(map, pattern, compUnits)) {
+        if (!validateMap(map, pattern, classOrIs)) {
             throw new IllegalArgumentException("Validation of map failed");
         }
 
         List<Feedback> childFeedbacks = new ArrayList<>();
-        for (CompilationUnit compUnit : compUnits) {
-            childFeedbacks.add(verifier.verify(compUnit));
+        for (ClassOrInterfaceDeclaration classOrI : classOrIs) {
+            childFeedbacks.add(verifier.verify(classOrI));
         }
 
         return new PatternGroupFeedback(
@@ -61,8 +61,8 @@ public class SingleClassGrouper implements IPatternGrouper {
      * @return the result.
      */
     private boolean validateMap(
-        Map<Pattern, List<CompilationUnit>> map, Pattern pattern, List<CompilationUnit> compUnits)
-        throws IllegalArgumentException {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> map, Pattern pattern,
+        List<ClassOrInterfaceDeclaration> classOrIs) throws IllegalArgumentException {
         // Assumes that map only has one entry.
         final int maxMapLength = 1;
 
@@ -71,7 +71,7 @@ public class SingleClassGrouper implements IPatternGrouper {
                 "Only allows verification of PatternGroups containing exactly 1 pattern.");
         }
 
-        if (compUnits == null && pattern == null) {
+        if (classOrIs == null && pattern == null) {
             throw new IllegalArgumentException("Invalid map provided");
         }
 
