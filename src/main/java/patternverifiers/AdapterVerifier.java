@@ -6,7 +6,6 @@ import java.util.Map;
 
 import static base.Pattern.ADAPTER_ADAPTEE;
 import static base.Pattern.ADAPTER_ADAPTER;
-import static base.Pattern.ADAPTER_INTERFACE;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -30,8 +29,11 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * A method for verifying one or more instances of the adapter pattern in a project.
      *
      * @param patternParts The classes that are marked with a adapter annotation
+     *                     <p>
+     *                     <<<<<<< HEAD
      *
-     * @return a Feedback with true or false regarding if the pattern is implemented succedfully.
+     * @return a Feedback with true or false regarding if the pattern is implemented successfully.
+     *     >>>>>>> a6d98da399371e1789a036bae1f93026313074ba
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
@@ -40,11 +42,6 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
         }
 
-        List<CompilationUnit> interfacesCu = patternParts.get(ADAPTER_INTERFACE);
-        List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
-        for (CompilationUnit cu : interfacesCu) {
-            interfaces.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
-        }
         List<Feedback> feedbacks = new ArrayList<>();
 
         for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
@@ -66,7 +63,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * A method to verify a the implementation of a single adapter pattern
+     * <<<<<<< HEAD A method to verify a the implementation of a single adapter pattern ======= A
+     * method. >>>>>>> a6d98da399371e1789a036bae1f93026313074ba
      *
      * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
      * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
@@ -119,7 +117,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit nodes in a AST created by JavaParser.
      */
-    private class MethodDeclarationVisitor
+
+    private static class MethodDeclarationVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         public MethodDeclarationVisitor() {
@@ -131,8 +130,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          * MethodDeclarations and checks if they are overridden. If they are a true feedback is
          * added to the list, otherwise a false is added.
          *
-         * @param method  The method that is visited
-         * @param adaptee The adaptee that is checked
+         * @param method  The MethodDeclaration of the method to be checked.
+         * @param adaptee The ClassOrInterfaceDeclaration of the adaptees method to be wrapped.
          *
          * @return a list of booleans
          */
@@ -179,7 +178,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit every method call expression node in a ClassOrInterfaceDeclaration.
      */
-    private class MethodCallVisitor
+    private static class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         public MethodCallVisitor() {

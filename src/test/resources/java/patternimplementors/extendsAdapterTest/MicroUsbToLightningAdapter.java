@@ -4,7 +4,7 @@ import base.DesignPattern;
 import base.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_ADAPTER})
-class MicroUsbToLightningAdapter extends Iphone implements LightningPhone {
+class MicroUsbToLightningAdapter extends Iphone implements MicroUsbPhone {
 
     private final LightningPhone lightningPhone;
 
