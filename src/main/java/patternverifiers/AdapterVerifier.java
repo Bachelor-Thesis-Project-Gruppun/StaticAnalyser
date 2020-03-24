@@ -71,16 +71,18 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     private Feedback verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
 
+        MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
-            for (Feedback f : adapter.accept(new Visitor(), adaptee)) {
+            for (Feedback f : adapter.accept(visitor, adaptee)) {
                 if (f.getValue()) {
                     return verifyInterfaces(adapter, adaptee);
                 }
             }
         }
 
-        return new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
-                                   "together before you even try to run me again");
+        return new Feedback(
+            false, "You are bad and should feel bad. \nGet your shit " +
+                   "together before you even try to run me again");
     }
 
     /**
@@ -103,8 +105,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
                     if (coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())) {
-                        return new Feedback(false, "The adapter implements the same interface as " +
-                                                   "the adaptee");
+                        return new Feedback(
+                            false, "The adapter implements the same interface as " + "the adaptee");
                     }
                 }
             }
@@ -116,7 +118,12 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit nodes in a AST created by JavaParser.
      */
-    private class Visitor extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
+    private class MethodDeclarationVisitor
+        extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
+
+        public MethodDeclarationVisitor() {
+            super();
+        }
 
         /**
          * A method for visiting MethodDeclarations in ClassOrInterfaceDeclarations. Visits the
@@ -129,29 +136,30 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          * @return a list of feedback
          */
         @Override
+        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         public List<Feedback> visit(
             MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
             List<Feedback> feedbackList = super.visit(method, adaptee);
 
             for (AnnotationExpr annotation : method.getAnnotations()) {
-                if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    if (isWrapper(method, adaptee)) {
-                        feedbackList.add(new Feedback(true));
-                        return feedbackList;
-                    }
+                if (annotation.getNameAsString().equalsIgnoreCase("override") && isWrapper(
+                    method, adaptee)) {
+                    feedbackList.add(new Feedback(true)); // This is the error that is
+                    // suppressed, because we return right after.
+                    return feedbackList;
                 }
             }
-            feedbackList.add(new Feedback(
-                false, "You are bad and should feel bad. \nGet your shit " +
-                       "together before you even try to run me again"));
+            feedbackList.add(
+                new Feedback(false, "You are bad and should feel bad. \nGet your shit " +
+                                    "together before you even try to run me again"));
             return feedbackList;
         }
 
         /**
-         * A method that checks if a method is called from within another method, i.e. it if it
-         * is wrapped.
+         * A method that checks if a method is called from within another method, i.e. it if it is
+         * wrapped.
          *
-         * @param method The MethodDeclaration fo the wrapping method.
+         * @param method  The MethodDeclaration fo the wrapping method.
          * @param adaptee The ClassOrInterfaceDeclaration to look for the wrapped method in.
          *
          * @return a boolean, true if it is wrapped, otherwise false.
@@ -173,29 +181,35 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     /**
      * A class used to visit every method call expression node in a ClassOrInterfaceDeclaration.
      */
-    class MethodCallVisitor
+    private class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
+        public MethodCallVisitor() {
+            super();
+        }
+
         /**
-         * Checks if the adaptee is an interface or a superclass, and checks whether the method
-         * call wraps a method call from the adaptee, if it does it adds true to the list
-         * otherwise it returns false.
+         * Checks if the adaptee is an interface or a superclass, and checks whether the method call
+         * wraps a method call from the adaptee, if it does it adds true to the list otherwise it
+         * returns false.
          *
-         * @param n the type of node to be visited
-         * @param adaptee the ClassOrInterfaceDeclaration nodes are being visited in.
+         * @param methodCallExpr the type of node to be visited
+         * @param adaptee        the ClassOrInterfaceDeclaration nodes are being visited in.
          *
          * @return a list of Booleans, true if wrapped method call otherwise false.
          */
         @Override
-        public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adaptee) {
-            List<Boolean> boolList = super.visit(n, adaptee);
+        public List<Boolean> visit(
+            MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
+            List<Boolean> boolList = super.visit(methodCallExpr, adaptee);
 
             if (adaptee.isInterface()) {
-                if (n.getScope().get().toString().equalsIgnoreCase(adaptee.getNameAsString())) {
+                if (methodCallExpr.getScope().get().toString().equalsIgnoreCase(
+                    adaptee.getNameAsString())) {
                     boolList.add(Boolean.TRUE);
                     return boolList;
                 }
-            } else if (n.getScope().get().toString().equalsIgnoreCase("super")) {
+            } else if (methodCallExpr.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
                 return boolList;
             }
