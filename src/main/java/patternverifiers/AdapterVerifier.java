@@ -31,7 +31,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      *
      * @param patternParts The classes that are marked with a adapter annotation
      *
-     * @return a Feedback with true or false regarding if the pattern is implemented succedfully. 
+     * @return a Feedback with true or false regarding if the pattern is implemented successfully.
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
@@ -66,7 +66,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * A method
+     * A method.
      *
      * @return
      */
@@ -132,10 +132,10 @@ public class AdapterVerifier implements IPatternGroupVerifier {
          * MethodDeclarations and checks if they are overridden. If they are a true feedback is
          * added to the list, otherwise a false is added.
          *
-         * @param method
-         * @param adaptee
+         * @param method The MethodDeclaration of the method to be checked.
+         * @param adaptee The ClassOrInterfaceDeclaration of the adaptees method to be wrapped.
          *
-         * @return a list of feedback
+         * @return a list of feedback.
          */
         @Override
         @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
