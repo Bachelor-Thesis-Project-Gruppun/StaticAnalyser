@@ -13,7 +13,7 @@ import base.Pattern;
  */
 public class SingleClassVerifier implements IPatternGroupVerifier {
 
-    private final transient IPatternVerifier verifier;
+    private final IPatternVerifier verifier;
 
     /**
      * The constructor for this PatternGroup verifier.
