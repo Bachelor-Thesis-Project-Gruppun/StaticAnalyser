@@ -79,10 +79,10 @@ public final class MainProgram {
      */
     private static void failBuild(List<String> failingFeedbacks) {
         StringBuilder msg = new StringBuilder(100);
-        msg.append("\n\nStaticAnalyser found the following errors: \n\n------------------\n\n");
+        msg.append("\n\nStaticAnalyser found the following errors: \n------------------\n");
         failingFeedbacks.forEach(feedback -> {
             msg.append(feedback);
-            msg.append("\n------------------\n");
+            msg.append("------------------\n");
         });
 
         throw new GradleException(msg.toString());
