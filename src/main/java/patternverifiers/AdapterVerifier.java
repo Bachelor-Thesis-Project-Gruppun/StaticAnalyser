@@ -140,15 +140,19 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     *
+     * A class used to visit nodes in a AST created by JavaParser.
      */
     private class Visitor extends GenericListVisitorAdapter<Feedback, ClassOrInterfaceDeclaration> {
 
         /**
+         * A method for visiting MethodDeclarations in ClassOrInterfaceDeclarations. Visits the
+         * MethodDeclarations and checks if they are overridden. If they are a true feedback is
+         * added to the list, otherwise a false is added.
+         *
          * @param method
          * @param adaptee
          *
-         * @return
+         * @return a list of feedback
          */
         @Override
         public List<Feedback> visit(
@@ -170,14 +174,17 @@ public class AdapterVerifier implements IPatternGroupVerifier {
         }
 
         /**
-         * @param method
-         * @param adapteeInterface
+         * A method that checks if a method is called from within another method, i.e. it if it
+         * is wrapped.
          *
-         * @return
+         * @param method The MethodDeclaration fo the wrapping method.
+         * @param adaptee The ClassOrInterfaceDeclaration to look for the wrapped method in.
+         *
+         * @return a boolean, true if it is wrapped, otherwise false.
          */
         private boolean isWrapper(
-            MethodDeclaration method, ClassOrInterfaceDeclaration adapteeInterface) {
-            List<Boolean> list = method.accept(new MethodCallVisitor(), adapteeInterface);
+            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
+            List<Boolean> list = method.accept(new MethodCallVisitor(), adaptee);
 
             for (Boolean bool : list) {
                 if (bool) {
@@ -190,11 +197,21 @@ public class AdapterVerifier implements IPatternGroupVerifier {
 
 
     /**
-     *
+     * A class used to visit every method call expression node in a ClassOrInterfaceDeclaration.
      */
     class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
+        /**
+         * Checks if the adaptee is an interface or a superclass, and checks whether the method
+         * call wraps a method call from the adaptee, if it does it adds true to the list
+         * otherwise it returns false.
+         *
+         * @param n the type of node to be visited
+         * @param adaptee the ClassOrInterfaceDeclaration nodes are being visited in.
+         *
+         * @return a list of Booleans, true if wrapped method call otherwise false.
+         */
         @Override
         public List<Boolean> visit(MethodCallExpr n, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(n, adaptee);
@@ -208,7 +225,7 @@ public class AdapterVerifier implements IPatternGroupVerifier {
                 boolList.add(Boolean.TRUE);
                 return boolList;
             }
-            System.out.println("HEJ");
+
             boolList.add(Boolean.FALSE);
             return boolList;
         }
