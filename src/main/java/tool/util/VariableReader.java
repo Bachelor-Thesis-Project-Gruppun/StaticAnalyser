@@ -1,4 +1,4 @@
-package base;
+package tool.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import com.github.javaparser.ast.body.VariableDeclarator;
  */
 public final class VariableReader {
 
-    private VariableReader(){
+    private VariableReader() {
 
     }
 

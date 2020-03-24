@@ -6,12 +6,12 @@ plugins {
 }
 
 group 'com.github.gruppun'
-version '1.0'
+version '1.1'
 
 sourceCompatibility = 11
 targetCompatibility = 11
 
-project.version = "1.0"
+project.version = "1.1"
 project.group = "com.github.gruppun"
 project.description = "A static design pattern analyser tool."
 
@@ -108,7 +108,7 @@ gradlePlugin {
     plugins {
         staticAnalyser {
             id = "StaticAnalyser"
-            implementationClass = "gruppun.plugin.AnalyserPlugin"
+            implementationClass = "plugin.AnalyserPlugin"
         }
     }
 }

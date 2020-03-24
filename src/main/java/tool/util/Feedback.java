@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.util;
 
 /**
  * Simple class to store and manage feedback to the user.

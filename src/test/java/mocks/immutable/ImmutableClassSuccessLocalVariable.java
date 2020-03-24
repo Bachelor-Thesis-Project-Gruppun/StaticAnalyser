@@ -5,6 +5,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressFBWarnings(justification = "Mock class")
 // Is immutable, a local variable named 'b' assigned but never the class variable 'b'.
 public class ImmutableClassSuccessLocalVariable {
+
     private int a = 0;
     private int b = 1;
 
