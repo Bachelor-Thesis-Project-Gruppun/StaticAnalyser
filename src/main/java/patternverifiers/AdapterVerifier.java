@@ -27,9 +27,11 @@ public class AdapterVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * @param patternParts
+     * A method for verifying one or more instances of the adapter pattern in a project.
      *
-     * @return
+     * @param patternParts The classes that are marked with a adapter annotation
+     *
+     * @return a Feedback with true or false regarding if the pattern is implemented succedfully. 
      */
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
@@ -87,8 +89,8 @@ public class AdapterVerifier implements IPatternGroupVerifier {
      * A method for verifying that the adaptor does not implement the interface of the adaptee or
      * extend the adaptee.
      *
-     * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
      * @param adapter The ClassOrInterfaceDeclaration for the adapter
+     * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
      *
      * @return Feedback regarding if the implementation is correct or not.
      */
