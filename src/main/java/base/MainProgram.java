@@ -28,7 +28,11 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        startAnalyse(new String[] {"src/test"});
+        //startAnalyse(
+        //  new String[] {"src/test/resources/java/patternimplementors/extendsAdapterTest"});
+        startAnalyse(
+            new String[] {"src/test/resources/java/patternimplementors/implementsAdapterTest"});
+
     }
 
     /**

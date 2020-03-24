@@ -1,4 +1,4 @@
-package extendsAdapterTest;
+package implementsAdapterTest;
 
 import base.DesignPattern;
 import base.Pattern;

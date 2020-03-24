@@ -1,4 +1,4 @@
-package extendsAdapterTest;
+package implementsAdapterTest;
 
 class Android implements MicroUsbPhone {
 
