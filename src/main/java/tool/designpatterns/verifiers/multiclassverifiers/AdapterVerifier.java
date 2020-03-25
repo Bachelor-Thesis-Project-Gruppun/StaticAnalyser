@@ -7,7 +7,6 @@ import java.util.Map;
 import static tool.designpatterns.Pattern.ADAPTER_ADAPTEE;
 import static tool.designpatterns.Pattern.ADAPTER_ADAPTER;
 
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -46,26 +45,22 @@ public class AdapterVerifier implements IPatternGrouper {
                                                                       .isEmpty()) {
             // Add to list results, and return that list in feedbackPatternGroup
             allParts = false;
-            feedbacks.add(Feedback.get...("There is no annotated adapter"))
+            feedbacks.add(Feedback.getFeedbackWithChildren("There is no annotated adapter"));
         }
 
         if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
                                                                       .isEmpty()) {
             allParts = false;
-            return new Feedback(false, "There is no annotated adaptee");
+            feedbacks.add(Feedback.getFeedbackWithChildren("There is no annotated adaptee");
         }
 
-        List<ClassOrInterfaceDeclaration> adaptees = new ArrayList<>();
-        for (CompilationUnit cu : patternParts.get(ADAPTER_ADAPTEE)) {
-            adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
+        List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
+
+        for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
+            feedbacks.add(verifyAdapter(adapter, adaptees));
         }
 
-        for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
-            feedbacks.add(
-                verifyAdapter(adapter.findAll(ClassOrInterfaceDeclaration.class).get(0), adaptees));
-        }
-
-        return new Feedback(verifySuccessful, message.toString());
+        return Feedback. (verifySuccessful, message.toString())
     }
 
     /**
