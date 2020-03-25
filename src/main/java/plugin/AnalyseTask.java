@@ -12,11 +12,14 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import tool.MainProgram;
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
 
 /**
  * A gradle task that will check verify classes against design patterns as described by certain
  * annotations.
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public class AnalyseTask extends DefaultTask {
 
     public AnalyseTask() {
@@ -46,8 +49,5 @@ public class AnalyseTask extends DefaultTask {
         });
 
         MainProgram.startAnalyse(pathStrings.toArray(new String[0]));
-
-        // Example on how we can fail a build.
-        // throw new GradleException("Class A does not fullfill pattern B!");
     }
 }

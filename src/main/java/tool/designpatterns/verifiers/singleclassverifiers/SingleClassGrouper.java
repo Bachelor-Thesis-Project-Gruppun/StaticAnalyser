@@ -1,19 +1,24 @@
 package tool.designpatterns.verifiers.singleclassverifiers;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
+import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternUtils;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.designpatterns.verifiers.IPatternVerifier;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * A class that will verify a PatternGroup that only has one pattern (i.e. single class patterns)
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public class SingleClassGrouper implements IPatternGrouper {
 
     private final IPatternVerifier verifier;
@@ -28,41 +33,24 @@ public class SingleClassGrouper implements IPatternGrouper {
     }
 
     @Override
-    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
+    public PatternGroupFeedback verifyGroup(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         Iterator<Pattern> itr1 = map.keySet().iterator();
         Pattern pattern = itr1.hasNext() ? itr1.next() : null;
 
-        Iterator<List<CompilationUnit>> itr2 = map.values().iterator();
-        List<CompilationUnit> compUnits = itr2.hasNext() ? itr2.next() : null;
+        Iterator<List<ClassOrInterfaceDeclaration>> itr2 = map.values().iterator();
+        List<ClassOrInterfaceDeclaration> classOrIs = itr2.hasNext() ? itr2.next() : null;
 
-        Feedback validMapFeedback = validateMap(map, pattern, compUnits);
-
-        if (!validMapFeedback.getValue()) {
-            throw new IllegalArgumentException(validMapFeedback.getMessage());
+        if (!validateMap(map, pattern, classOrIs)) {
+            throw new IllegalArgumentException("Validation of map failed");
         }
 
-        boolean verifySuccesful = true;
-
-        StringBuilder baseMsg = new StringBuilder("Verification of pattern ");
-        baseMsg.append(pattern.toString());
-        StringBuilder message = new StringBuilder();
-
-        for (CompilationUnit compUnit : compUnits) {
-            Feedback feedback = verifier.verify(compUnit);
-            if (!feedback.getValue()) {
-                verifySuccesful = false;
-                message.append('\n');
-                message.append(feedback.getMessage());
-            }
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        for (ClassOrInterfaceDeclaration classOrI : classOrIs) {
+            childFeedbacks.add(verifier.verify(classOrI));
         }
 
-        if (verifySuccesful) {
-            baseMsg.append(" was successful");
-        } else {
-            baseMsg.append(" failed due to");
-            baseMsg.append(message);
-        }
-        return new Feedback(verifySuccesful, baseMsg.toString());
+        return new PatternGroupFeedback(
+            PatternUtils.patternGroupFromPattern(pattern), childFeedbacks);
     }
 
     /**
@@ -72,20 +60,21 @@ public class SingleClassGrouper implements IPatternGrouper {
      *
      * @return the result.
      */
-    private Feedback validateMap(
-        Map<Pattern, List<CompilationUnit>> map, Pattern pattern, List<CompilationUnit> compUnits) {
+    private boolean validateMap(
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> map, Pattern pattern,
+        List<ClassOrInterfaceDeclaration> classOrIs) throws IllegalArgumentException {
         // Assumes that map only has one entry.
         final int maxMapLength = 1;
 
         if (map.size() != maxMapLength) {
-            return new Feedback(false, "Only allows verification of PatternGroups containing " +
-                                       "exactly 1 pattern.");
+            throw new IllegalArgumentException(
+                "Only allows verification of PatternGroups containing exactly 1 pattern.");
         }
 
-        if (compUnits == null && pattern == null) {
-            return new Feedback(false, "Invalid map provided");
+        if (classOrIs == null && pattern == null) {
+            throw new IllegalArgumentException("Invalid map provided");
         }
 
-        return new Feedback(true);
+        return true;
     }
 }

@@ -1,9 +1,9 @@
 package tool.designpatterns.verifiers.singleclassverifiers.singleton;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.verifiers.IPatternVerifier;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
 
 /**
  * A verifier for the singleton pattern.
@@ -14,7 +14,7 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     @Override
-    public Feedback verify(CompilationUnit compUnit) {
+    public Feedback verify(ClassOrInterfaceDeclaration compUnit) {
         throw new UnsupportedOperationException();
     }
 }
