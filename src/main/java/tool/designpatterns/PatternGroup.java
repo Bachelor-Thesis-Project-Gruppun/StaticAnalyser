@@ -9,8 +9,8 @@ import tool.designpatterns.verifiers.singleclassverifiers.singleton.SingletonVer
  * A design pattern covering all parts of that pattern..
  */
 public enum PatternGroup {
-    SINGLETON(new SingleClassGrouper(new SingletonVerifier())),
-    IMMUTABLE(new SingleClassGrouper(new ImmutableVerifier()));
+    SINGLETON(new SingleClassGrouper(new SingletonVerifier())), IMMUTABLE(
+        new SingleClassGrouper(new ImmutableVerifier()));
 
     private IPatternGrouper verifier;
 

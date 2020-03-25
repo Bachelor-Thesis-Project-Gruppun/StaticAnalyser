@@ -49,8 +49,5 @@ public class AnalyseTask extends DefaultTask {
         });
 
         MainProgram.startAnalyse(pathStrings.toArray(new String[0]));
-
-        // Example on how we can fail a build.
-        // throw new GradleException("Class A does not fullfill pattern B!");
     }
 }
