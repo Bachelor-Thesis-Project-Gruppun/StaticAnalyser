@@ -38,34 +38,51 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
     }
 
     /**
-     * Verifies that a correct implementation of the decorator interface has been found.
+     * <p>Verifies that a correct implementation of the decorator interface has been found.</p>
+     * <p>Any valid implementation must fulfill the following requirements:
+     *      <ol>
+     *          <li>Any given pattern instance must contain:
+     *              <ul>
+     *             <li>Exactly one component interface</li>
+     *             <li>At least one concrete component</li>
+     *             <li>At least one abstract decorator</li>
+     *             <li>At least one concrete decorator</li>
+     *              </ul>
+     *          </li>
+     *          <li>The component interface must contain at least one method</li>
+     *
+     *         <li>Every abstract decorator must fulfill the following:
+     *              <ul>
+     *             <li>It must house a component field</li>
+     *             <li>The component field needs to be initialized during construction</li>
+     *             </ul>
+     *         </li>
+     *         <li>Every concrete decorator must extend an existing abstract decorator in the current the pattern instance</li>
+     *      </ol>
+     * </p>
      *
      * @param pi An instance of the decorator pattern to be verified
-     *
      * @return A {@link Feedback} object that contains the result and information regarding whether
-     *     or not the instance of the pattern was valid
+     * or not the instance of the pattern was valid
      */
     public Feedback verify(PatternInstance pi) {
+        if (hasAllElements(pi).getValue()) {
+            if (!interfaceContainsMethod(pi.interfaceComponent).getValue()) {
+
+            }
+            pi.abstractDecorators.forEach(ad -> {
+                if(hasAComponent(ad, pi.interfaceComponent)) {
+
+                }
+            });
+        } else {
+            return new Feedback(false, "Could not find an interface component for the following classes:");
+        }
         Feedback result = hasAllElements(pi);
-        /*Steps in verifying the decorator pattern:
-
-        1) For a pattern to be valid it must consist of: (Done, hasAllElements)
-            Exactly one component interface
-            At least one concrete component
-            At least one abstract decorator
-            At least one concrete decorator
-
-        2) The component interface must contain at least one method
-
-        3) Every abstract decorator must fulfill the following:
-            It must house a component field. (Done, hasAComponent)
-            The component field needs to be initialized during construction (Done, componentInitializedInConstructor)
-
-        4) Every concreteDecorator must extend an abstract decorator in our list (Done, already done in getPatternInstances when constructing PIs)
-
-        */
-
-        return result;
+        //do rest }
+        //else { skip and return feedback from hasAllElements()}
+        throw new UnsupportedOperationException("TODO");
+        //return result;
     }
 
     //Maybe make a model-folder for all pattern instances instead of having any given PI inside
@@ -74,10 +91,9 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
 
     /**
      * Used to group parts of the same pattern instance (an implementation of the pattern) in one
-     * place.
+     * place
      */
     private class PatternInstance {
-
         CompilationUnit interfaceComponent;
         List<CompilationUnit> concreteComponents = new ArrayList<>();
         List<CompilationUnit> abstractDecorators = new ArrayList<>();
@@ -87,14 +103,11 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
         }
     }
 
-    //!!!! Must be able to identify leftovers, what if there are no interface components, but something
-    //has been marked with concreteComponent!!!
     /**
-     * Checks that an interfaceComponent contains atleast one method.
+     * Checks that an interfaceComponent contains at least one public method
      *
-     * @param interfaceComponent
-     *
-     * @return
+     * @param interfaceComponent The compilationUnit of the interfaceComponent
+     * @return A {@link Feedback} object containing true iff it contains at least one public method
      */
     public Feedback interfaceContainsMethod(CompilationUnit interfaceComponent) {
         Feedback result;
@@ -105,7 +118,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
             }
         });
         if (resultBool.get()) {
-            result = new Feedback(true, "Interface contains atleast one method.");
+            result = new Feedback(true, "Interface contains at least one method.");
         } else {
             result = new Feedback(false, "Interface does not contain any methods!");
         }
@@ -119,15 +132,13 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      *
      * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
      *            mapped to all the compilation units of said element type
-     *
      * @return A list of all identified instances of the pattern
      */
     public List<PatternInstance> getPatternInstances(Map<Pattern, List<CompilationUnit>> map) {
-        var _map = Map.copyOf(map);
-        List<CompilationUnit> interfaceComponents = _map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
-        List<CompilationUnit> concreteComponents = _map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
-        List<CompilationUnit> abstractDecorators = _map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
-        List<CompilationUnit> concreteDecorators = _map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
+        List<CompilationUnit> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
+        List<CompilationUnit> concreteComponents = map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
+        List<CompilationUnit> abstractDecorators = map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
+        List<CompilationUnit> concreteDecorators = map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
         HashMap<CompilationUnit, PatternInstance> componentToPatternInstance = new HashMap();
 
         //Create incomplete PIs to be populated below, easier to use isDescendantOf below by
@@ -137,6 +148,9 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
             pi.interfaceComponent = interfaceComponent;
             componentToPatternInstance.putIfAbsent(interfaceComponent, pi);
         });
+
+        //Used at the bottom for detecting leftovers/invalid patterns
+        ArrayList<CompilationUnit> identifiedElements = new ArrayList<>();
 
         //Found no better way to populate PIs than looping through everything multiple times
         interfaceComponents.forEach((interfaceComponentCU) -> {
@@ -153,7 +167,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                             PatternInstance pi = componentToPatternInstance.get(
                                 interfaceComponentCU);
                             pi.concreteComponents.add(cc);
-                            concreteComponents.remove(cc);
+                            identifiedElements.add(cc);
                         }
                     });
                 });
@@ -166,7 +180,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                             PatternInstance pi = componentToPatternInstance.get(
                                 interfaceComponentCU);
                             pi.abstractDecorators.add(ad);
-                            abstractDecorators.remove(ad);
+                            identifiedElements.add(ad);
 
                             //Check which concreteComponents extend this abstractDecorator
                             //And update PI accordingly
@@ -177,13 +191,18 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
                                     if (extendedClass.getNameAsString().equals(
                                         absDec.getName().asString())) {
                                         pi.concreteDecorators.add(cd);
-                                        concreteDecorators.remove(cd);
+                                        identifiedElements.add(cd);
                                     }
                                 });
                             });
                         }
                     });
                 });
+                //If there are any elements left (that we have not discovered) in any of the following, then they are
+                //part of an invalid instance of the pattern and will be handled below
+                concreteComponents.removeAll(identifiedElements);
+                abstractDecorators.removeAll(identifiedElements);
+                concreteDecorators.removeAll(identifiedElements);
             } else {
                 throw new UnsupportedOperationException(
                     "Was not an interface or something wrong happened");
@@ -192,7 +211,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
 
         //If there are elements that do not relate to any of the previous interface components,
         //since they are invalid, put them in an invalid pattern instance object for verify() to handle
-        if(!(concreteComponents.isEmpty() && abstractDecorators.isEmpty() && concreteDecorators.isEmpty())) {
+        if (!(concreteComponents.isEmpty() && abstractDecorators.isEmpty() && concreteDecorators.isEmpty())) {
             var pi = new PatternInstance();
             pi.interfaceComponent = null;
             pi.concreteComponents = concreteComponents;
@@ -200,7 +219,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
             pi.concreteDecorators = concreteDecorators;
             componentToPatternInstance.put(null, pi);
         }
-        
+
         return new ArrayList<PatternInstance>(componentToPatternInstance.values());
     }
 
@@ -210,7 +229,6 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      *
      * @param toTest      The CompilationUnit (class) to check
      * @param interfaceCU The (CompilationUnit of the) interface to search for in toTest
-     *
      * @return true iff toTest has a variable of the same type as the interface in interfaceCU
      */
     private Feedback hasAComponent(CompilationUnit toTest, CompilationUnit interfaceCU) {
@@ -224,10 +242,10 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
         });
         if (hasAComponent.get()) {
             result = new Feedback(true, "Component was found for class " +
-                                        toTest.getPrimaryTypeName().get());
+                toTest.getPrimaryTypeName().get());
         } else {
             result = new Feedback(false, "There was no Component field found for class " +
-                                         toTest.getPrimaryTypeName().get());
+                toTest.getPrimaryTypeName().get());
         }
         return result;
     }
@@ -236,7 +254,7 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      * Method to check if all constructors in a given class initialize the Component field in the
      * class.
      *
-     * @param toTest The CompilationUnit (class) to check.
+     * @param toTest      The CompilationUnit (class) to check.
      * @param interfaceCU todo.
      * @return True iff all constructors in a given class does initialize the class' Component
      */
@@ -292,25 +310,26 @@ public class DecoratorVerifier implements IPatternGroupVerifier {
      *          <li>At least one concrete decorator</li>
      *      </ul>
      * </p>
+     *
      * @param pi The pattern instance to verify
      * @return A feedback object containing the boolean result
      */
     private Feedback hasAllElements(PatternInstance pi) {
         String feedbackMessage = "";
         boolean value = true;
-        if(pi.interfaceComponent == null) {
+        if (pi.interfaceComponent == null) {
             feedbackMessage += "\n Interface component is missing";
             value = false;
         }
-        if(pi.concreteComponents.size() < 1) {
+        if (pi.concreteComponents.size() < 1) {
             feedbackMessage += "\n At least one concrete component is required";
             value = false;
         }
-        if(pi.abstractDecorators.size() < 1) {
+        if (pi.abstractDecorators.size() < 1) {
             feedbackMessage += "\n At least one abstract decorator is required";
             value = false;
         }
-        if(pi.concreteDecorators.size() < 1) {
+        if (pi.concreteDecorators.size() < 1) {
             feedbackMessage += "\n At least one concrete decorator is required";
             value = false;
         }
