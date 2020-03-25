@@ -12,7 +12,7 @@ import org.gradle.api.GradleException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.PatternUtils;
-import tool.util.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * The main entry point for the analysis.
@@ -20,7 +20,6 @@ import tool.util.Feedback;
 public final class MainProgram {
 
     private MainProgram() {
-
     }
 
     /**
@@ -52,19 +51,19 @@ public final class MainProgram {
         Map<PatternGroup, Map<Pattern, List<CompilationUnit>>> patternGroupMap = mapToMap(
             patCompUnitMap);
 
-        List<Feedback> feedbacks = new ArrayList<>();
+        List<PatternGroupFeedback> feedbacks = new ArrayList<>();
         for (Map.Entry<PatternGroup, Map<Pattern, List<CompilationUnit>>> entry : patternGroupMap
             .entrySet()) {
             PatternGroup group = entry.getKey();
             Map<Pattern, List<CompilationUnit>> patternMap = entry.getValue();
-            Feedback verFeedback = group.getVerifier().verifyGroup(patternMap);
+            PatternGroupFeedback verFeedback = group.getVerifier().verifyGroup(patternMap);
             feedbacks.add(verFeedback);
         }
 
         List<String> failingFeedbacks = new ArrayList<>();
         feedbacks.forEach(feedback -> {
-            if (!feedback.getValue()) {
-                failingFeedbacks.add(feedback.getMessage());
+            if (feedback.hasError()) {
+                failingFeedbacks.add(feedback.getFullMessage());
             }
         });
 
@@ -80,10 +79,10 @@ public final class MainProgram {
      */
     private static void failBuild(List<String> failingFeedbacks) {
         StringBuilder msg = new StringBuilder(100);
-        msg.append("\n\nStaticAnalyser found the following errors: \n\n------------------\n");
+        msg.append("\n\nStaticAnalyser found the following errors: \n------------------\n");
         failingFeedbacks.forEach(feedback -> {
             msg.append(feedback);
-            msg.append("\n------------------\n");
+            msg.append("------------------\n");
         });
 
         throw new GradleException(msg.toString());

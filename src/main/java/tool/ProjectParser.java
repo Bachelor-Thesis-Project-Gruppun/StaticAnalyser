@@ -8,9 +8,13 @@ import java.util.List;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.SourceRoot;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
 /**
  * The class responsible for parsing a project, currently only converting to AST.
  */
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class ProjectParser {
 
     private ProjectParser() {

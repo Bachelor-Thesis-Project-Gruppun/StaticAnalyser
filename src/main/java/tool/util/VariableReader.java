@@ -9,9 +9,14 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
 /**
  * Class for reading variables from a given java class (CompilationUnit).
  */
+
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class VariableReader {
 
     private VariableReader() {
