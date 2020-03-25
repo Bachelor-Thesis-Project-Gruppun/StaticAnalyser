@@ -15,8 +15,10 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 
 import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * A verifier for the decorator pattern.
@@ -30,13 +32,13 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     @Override
-    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map) {
+    public PatternGroupFeedback verifyGroup(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         List<PatternInstance> patternInstances = getPatternInstances(map);
         List<Feedback> results = new ArrayList<>();
         patternInstances.forEach(pi -> {
             results.add(verify(pi));
         });
-        throw new UnsupportedOperationException("not implemented");
+        return new PatternGroupFeedback(PatternGroup.DECORATOR, results);
     }
 
     /**
@@ -68,7 +70,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      * or not the instance of the pattern was valid
      */
     public Feedback verify(PatternInstance pi) {
-        if (hasAllElements(pi).getValue()) {
+        if (!hasAllElements(pi).getIsError()) {
             if (!interfaceContainsMethod(pi.interfaceComponent).getValue()) {
 
             }
@@ -96,10 +98,10 @@ public class DecoratorVerifier implements IPatternGrouper {
      * place
      */
     private class PatternInstance {
-        CompilationUnit interfaceComponent;
-        List<CompilationUnit> concreteComponents = new ArrayList<>();
-        List<CompilationUnit> abstractDecorators = new ArrayList<>();
-        List<CompilationUnit> concreteDecorators = new ArrayList<>();
+        ClassOrInterfaceDeclaration interfaceComponent;
+        List<ClassOrInterfaceDeclaration> concreteComponents = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> abstractDecorators = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> concreteDecorators = new ArrayList<>();
 
         public PatternInstance() {
         }
@@ -108,10 +110,10 @@ public class DecoratorVerifier implements IPatternGrouper {
     /**
      * Checks that an interfaceComponent contains at least one public method
      *
-     * @param interfaceComponent The compilationUnit of the interfaceComponent
+     * @param interfaceComponent The interface of the interfaceComponent
      * @return A {@link Feedback} object containing true iff it contains at least one public method
      */
-    public Feedback interfaceContainsMethod(CompilationUnit interfaceComponent) {
+    public Feedback interfaceContainsMethod(ClassOrInterfaceDeclaration interfaceComponent) {
         Feedback result;
         AtomicBoolean resultBool = new AtomicBoolean(false);
         interfaceComponent.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {
@@ -136,12 +138,12 @@ public class DecoratorVerifier implements IPatternGrouper {
      *            mapped to all the compilation units of said element type
      * @return A list of all identified instances of the pattern
      */
-    public List<PatternInstance> getPatternInstances(Map<Pattern, List<CompilationUnit>> map) {
-        List<CompilationUnit> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
-        List<CompilationUnit> concreteComponents = map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
-        List<CompilationUnit> abstractDecorators = map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
-        List<CompilationUnit> concreteDecorators = map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
-        HashMap<CompilationUnit, PatternInstance> componentToPatternInstance = new HashMap();
+    public List<PatternInstance> getPatternInstances(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
+        List<ClassOrInterfaceDeclaration> interfaceComponents = map.get(Pattern.DECORATOR_INTERFACE_COMPONENT);
+        List<ClassOrInterfaceDeclaration> concreteComponents = map.get(Pattern.DECORATOR_CONCRETE_COMPONENT);
+        List<ClassOrInterfaceDeclaration> abstractDecorators = map.get(Pattern.DECORATOR_ABSTRACT_DECORATOR);
+        List<ClassOrInterfaceDeclaration> concreteDecorators = map.get(Pattern.DECORATOR_CONCRETE_DECORATOR);
+        HashMap<ClassOrInterfaceDeclaration, PatternInstance> componentToPatternInstance = new HashMap();
 
         //Create incomplete PIs to be populated below, easier to use isDescendantOf below by
         // doing this
@@ -152,13 +154,11 @@ public class DecoratorVerifier implements IPatternGrouper {
         });
 
         //Used at the bottom for detecting leftovers/invalid patterns
-        ArrayList<CompilationUnit> identifiedElements = new ArrayList<>();
+        ArrayList<ClassOrInterfaceDeclaration> identifiedElements = new ArrayList<>();
 
         //Found no better way to populate PIs than looping through everything multiple times
-        interfaceComponents.forEach((interfaceComponentCU) -> {
-            var componentInterface = interfaceComponentCU.findFirst(
-                ClassOrInterfaceDeclaration.class);
-            if (componentInterface.isPresent() && componentInterface.get().isInterface()) {
+        interfaceComponents.forEach((interfaceComponent) -> {
+            if (interfaceComponent.isInterface() && interfaceComponent != null) {
                 String interfaceName = componentInterface.get().getNameAsString();
 
                 concreteComponents.forEach(cc -> {
@@ -318,7 +318,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      */
     private Feedback hasAllElements(PatternInstance pi) {
         String feedbackMessage = "";
-        boolean value = true;
+        boolean errorOccurred = false;
         if (pi.interfaceComponent == null) {
             feedbackMessage += "\n Interface component is missing";
             value = false;
@@ -335,7 +335,10 @@ public class DecoratorVerifier implements IPatternGrouper {
             feedbackMessage += "\n At least one concrete decorator is required";
             value = false;
         }
-        return new Feedback(value, feedbackMessage);
+
+        if(errorOccurred) {
+            return Feedback.getNoChildFeedback(feedbackMessage, );
+        }
     }
 }
 

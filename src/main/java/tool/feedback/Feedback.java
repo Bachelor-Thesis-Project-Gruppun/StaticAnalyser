@@ -69,7 +69,7 @@ public final class Feedback {
 
     /**
      * Returns a new feedback that is an error and that has no children and no stacktrace (as it is
-     * an error with higher-order elements than classes such as relationships between classes).
+     * an error with higher-order elements than classes such as relationships between classes)
      *
      * @param message the error message.
      *
