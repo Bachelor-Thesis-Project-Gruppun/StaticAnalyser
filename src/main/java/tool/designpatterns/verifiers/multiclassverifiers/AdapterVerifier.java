@@ -17,7 +17,9 @@ import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.util.Feedback;
+import tool.feedback.Feedback;
+import tool.feedback.FeedbackTrace;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * A verifier for the adapter pattern.
@@ -35,15 +37,21 @@ public class AdapterVerifier implements IPatternGrouper {
      * @return a Feedback with true or false regarding if the pattern is implemented successfully.
      */
     @Override
-    public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
+    public PatternGroupFeedback verifyGroup(
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternParts) {
 
+        boolean allParts = true;
+        List<Feedback> feedbacks = new ArrayList<>();
         if (!patternParts.containsKey(ADAPTER_ADAPTER) || patternParts.get(ADAPTER_ADAPTER)
                                                                       .isEmpty()) {
-            return new Feedback(false, "There is no annotated adapter");
+            // Add to list results, and return that list in feedbackPatternGroup
+            allParts = false;
+            feedbacks.add(Feedback.get...("There is no annotated adapter"))
         }
 
         if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
                                                                       .isEmpty()) {
+            allParts = false;
             return new Feedback(false, "There is no annotated adaptee");
         }
 
@@ -52,21 +60,9 @@ public class AdapterVerifier implements IPatternGrouper {
             adaptees.add(cu.findAll(ClassOrInterfaceDeclaration.class).get(0));
         }
 
-        List<Feedback> feedbacks = new ArrayList<>();
-
         for (CompilationUnit adapter : patternParts.get(ADAPTER_ADAPTER)) {
             feedbacks.add(
                 verifyAdapter(adapter.findAll(ClassOrInterfaceDeclaration.class).get(0), adaptees));
-        }
-
-        boolean verifySuccessful = true;
-        StringBuilder message = new StringBuilder();
-        for (Feedback feedback : feedbacks) {
-            if (!feedback.getValue()) {
-                verifySuccessful = false;
-                message.append('\n');
-                message.append(feedback.getMessage());
-            }
         }
 
         return new Feedback(verifySuccessful, message.toString());
@@ -90,7 +86,8 @@ public class AdapterVerifier implements IPatternGrouper {
                 }
             }
         }
-        return new Feedback(false, "Adapter does not wrap the adaptee");
+        return Feedback.getNoChildFeedback(
+            "Adapter does not wrap the adaptee", new FeedbackTrace(adapter));
     }
 
     /**
@@ -104,7 +101,6 @@ public class AdapterVerifier implements IPatternGrouper {
      */
     private Feedback verifyInterfaces(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
-
         for (ClassOrInterfaceType coit : adapter.getImplementedTypes()) {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
@@ -113,8 +109,8 @@ public class AdapterVerifier implements IPatternGrouper {
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
                     if (coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())) {
-                        return new Feedback(false, "The adapter implements the same interface as " +
-                                                   "the adaptee");
+                        return new Feedback(
+                            false, "The adapter implements the same interface as " + "the adaptee");
                     }
                 }
             }
@@ -208,7 +204,7 @@ public class AdapterVerifier implements IPatternGrouper {
         public List<Boolean> visit(
             MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(methodCallExpr, adaptee);
-            
+
             if (adaptee.isInterface()) {
                 if (methodCallExpr.getScope().get().toString().equalsIgnoreCase(
                     adaptee.getNameAsString())) {

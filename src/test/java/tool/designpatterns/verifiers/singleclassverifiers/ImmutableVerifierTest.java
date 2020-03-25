@@ -3,10 +3,10 @@ package tool.designpatterns.verifiers.singleclassverifiers;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static org.gradle.internal.impldep.junit.framework.TestCase.assertTrue;
 import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
+import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import org.junit.jupiter.api.Test;
 import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;
@@ -18,34 +18,44 @@ import utilities.TestHelper;
  */
 class ImmutableVerifierTest {
 
+    /**
+     * Test when a variable is reassigned.
+     */
     @Test
-        // Test when a variable is reassigned.
     void testVerifyReassignment() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit(
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
             "immutable", "ImmutableClassFailReassignment");
-        assertFalse(new ImmutableVerifier().verify(compUnit).getValue());
+        assertTrue(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
+    /**
+     * Test when no variables are reassigned but a local variable with the same name as a class
+     * variable is assigned.
+     */
     @Test
-        // Test when no variables are reassigned but a local variable with the same name as a
-        // class variable is assigned.
     void testVerifyLocalVariable() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit(
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
             "immutable", "ImmutableClassSuccessLocalVariable");
-        assertTrue(new ImmutableVerifier().verify(compUnit).getValue());
+        assertFalse(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
+    /**
+     * Normal immutable class.
+     */
     @Test
-        // Normal immutable class.
     void testVerifyImmutableClass() throws IOException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit("immutable", "ImmutableClass");
-        assertTrue(new ImmutableVerifier().verify(compUnit).getValue());
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
+            "immutable", "ImmutableClass");
+        assertFalse(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 
+    /**
+     * Public variable.
+     */
     @Test
-        // Public variable.
     void testVerifyImmutablePublic() throws FileNotFoundException {
-        CompilationUnit compUnit = TestHelper.getMockCompUnit("immutable", "ImmutableClassPublic");
-        assertFalse(new ImmutableVerifier().verify(compUnit).getValue());
+        ClassOrInterfaceDeclaration classOrI = TestHelper.getMockClassOrI(
+            "immutable", "ImmutableClassPublic");
+        assertTrue(new ImmutableVerifier().verify(classOrI).getIsError());
     }
 }

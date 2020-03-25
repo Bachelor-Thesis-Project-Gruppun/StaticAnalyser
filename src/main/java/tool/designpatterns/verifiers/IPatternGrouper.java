@@ -3,10 +3,10 @@ package tool.designpatterns.verifiers;
 import java.util.List;
 import java.util.Map;
 
-import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.Pattern;
-import tool.util.Feedback;
+import tool.feedback.PatternGroupFeedback;
 
 /**
  * Verifies a pattern group.
@@ -20,5 +20,5 @@ public interface IPatternGrouper {
      *
      * @return the feedback of the verification.
      */
-    Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> map);
+    PatternGroupFeedback verifyGroup(Map<Pattern, List<ClassOrInterfaceDeclaration>> map);
 }

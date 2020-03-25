@@ -3,6 +3,8 @@ package tool.designpatterns;
 /**
  * Class to provide utilities for pattern enum outside of this package.
  */
+
+@DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class PatternUtils {
 
     private PatternUtils() {
