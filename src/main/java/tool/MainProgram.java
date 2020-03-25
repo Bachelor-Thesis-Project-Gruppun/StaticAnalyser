@@ -1,4 +1,4 @@
-package base;
+package tool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,8 +10,10 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import org.gradle.api.GradleException;
-import patternverifiers.DecoratorVerifier;
-import patternverifiers.Feedback;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternGroup;
+import tool.designpatterns.PatternUtils;
+import tool.util.Feedback;
 
 /**
  * The main entry point for the analysis.
@@ -139,7 +141,7 @@ public final class MainProgram {
         Map<Pattern, List<CompilationUnit>> map) {
         Map<PatternGroup, Map<Pattern, List<CompilationUnit>>> newMap = new ConcurrentHashMap<>();
         map.forEach((pattern, list) -> {
-            PatternGroup group = pattern.getGroup();
+            PatternGroup group = PatternUtils.patternGroupFromPattern(pattern);
             if (!newMap.containsKey(group)) {
                 // The group does not exist and we therefore want to create a new map.
                 newMap.put(group, new HashMap<>());
