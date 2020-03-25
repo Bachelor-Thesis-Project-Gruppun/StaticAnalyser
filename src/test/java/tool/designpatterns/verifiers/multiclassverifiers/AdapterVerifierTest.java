@@ -8,7 +8,6 @@ import java.util.List;
 import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
 import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
 
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -27,9 +26,10 @@ public class AdapterVerifierTest {
         ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit(
             "adapter/implementsAdapter", "LightningPhone").findAll(
             ClassOrInterfaceDeclaration.class).get(0);
-        HashMap<Pattern, List<CompilationUnit>> patternGroup = createPatternGroup(adapter, adaptee);
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
+            adapter, adaptee);
 
-        assertTrue(new AdapterVerifier().verifyGroup(patternGroup).getValue());
+        assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
@@ -41,9 +41,10 @@ public class AdapterVerifierTest {
         ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit("adapter/extendsAdapter",
                                                                          "Iphone").findAll(
             ClassOrInterfaceDeclaration.class).get(0);
-        HashMap<Pattern, List<CompilationUnit>> patternGroup = createPatternGroup(adapter, adaptee);
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
+            adapter, adaptee);
 
-        assertTrue(new AdapterVerifier().verifyGroup(patternGroup).getValue());
+        assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
@@ -59,12 +60,13 @@ public class AdapterVerifierTest {
             "adapter" + "/implementsAdapter", "MicroUsbToLightningAdapter").findAll(
             ClassOrInterfaceDeclaration.class).get(0);
 
-        HashMap<Pattern, List<CompilationUnit>> patternGroup = createPatternGroup(adapter, adaptee);
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
+            adapter, adaptee);
         NodeList<ClassOrInterfaceType> adapteeImplements = concreteAdaptee.getImplementedTypes();
 
-        assertTrue(new AdapterVerifier().verifyGroup(patternGroup).getValue());
+        assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
         adapter.setImplementedTypes(adapteeImplements);
-        assertFalse(new AdapterVerifier().verifyGroup(patternGroup).getValue());
+        assertTrue(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
@@ -76,19 +78,19 @@ public class AdapterVerifierTest {
             "adapter" + "/implementsAdapter", "LightningPhone").findAll(
             ClassOrInterfaceDeclaration.class).get(0);
 
-        HashMap<Pattern, List<CompilationUnit>> patternGroup = createPatternGroup(adapter, adaptee);
-        assertFalse(new AdapterVerifier().verifyGroup(patternGroup).getValue());
-
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
+            adapter, adaptee);
+        assertTrue(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
-    private HashMap<Pattern, List<CompilationUnit>> createPatternGroup(
+    private HashMap<Pattern, List<ClassOrInterfaceDeclaration>> createPatternGroup(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
-        HashMap<Pattern, List<CompilationUnit>> patternGroup = new HashMap<>();
-        List<CompilationUnit> a = new ArrayList<>();
-        List<CompilationUnit> b = new ArrayList<>();
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = new HashMap<>();
+        List<ClassOrInterfaceDeclaration> a = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> b = new ArrayList<>();
 
-        a.add(adapter.findCompilationUnit().get());
-        b.add(adaptee.findCompilationUnit().get());
+        a.add(adapter);
+        b.add(adaptee);
 
         patternGroup.put(Pattern.ADAPTER_ADAPTER, a);
         patternGroup.put(Pattern.ADAPTER_ADAPTEE, b);

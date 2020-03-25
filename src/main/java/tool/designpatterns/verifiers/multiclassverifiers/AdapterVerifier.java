@@ -15,6 +15,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 
 import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
@@ -43,15 +44,20 @@ public class AdapterVerifier implements IPatternGrouper {
         List<Feedback> feedbacks = new ArrayList<>();
         if (!patternParts.containsKey(ADAPTER_ADAPTER) || patternParts.get(ADAPTER_ADAPTER)
                                                                       .isEmpty()) {
-            // Add to list results, and return that list in feedbackPatternGroup
             allParts = false;
-            feedbacks.add(Feedback.getFeedbackWithChildren("There is no annotated adapter"));
+            feedbacks.add(
+                Feedback.getPatternInstanceNoChildFeedback("There is no annotated adapter"));
         }
 
         if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
                                                                       .isEmpty()) {
             allParts = false;
-            feedbacks.add(Feedback.getFeedbackWithChildren("There is no annotated adaptee");
+            feedbacks.add(
+                Feedback.getPatternInstanceNoChildFeedback("There is no annotated " + "adaptee"));
+        }
+
+        if (!allParts) {
+            return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
         }
 
         List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
@@ -60,7 +66,7 @@ public class AdapterVerifier implements IPatternGrouper {
             feedbacks.add(verifyAdapter(adapter, adaptees));
         }
 
-        return Feedback. (verifySuccessful, message.toString())
+        return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
     }
 
     /**
@@ -99,19 +105,21 @@ public class AdapterVerifier implements IPatternGrouper {
         for (ClassOrInterfaceType coit : adapter.getImplementedTypes()) {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
-                    return new Feedback(false, "The adapter implements the adaptee");
+                    return Feedback.getNoChildFeedback("The adapter implements the adaptee",
+                                                       new FeedbackTrace(adapter));
                 }
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
                     if (coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())) {
-                        return new Feedback(
-                            false, "The adapter implements the same interface as " + "the adaptee");
+                        return Feedback.getNoChildFeedback(
+                            "The adapter implements the same interface as the adaptee",
+                            new FeedbackTrace(adapter));
                     }
                 }
             }
         }
 
-        return new Feedback(true);
+        return Feedback.getSuccessfulFeedback();
     }
 
     /**

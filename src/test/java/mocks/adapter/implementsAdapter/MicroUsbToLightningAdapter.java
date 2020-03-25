@@ -4,7 +4,7 @@ import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 
 @DesignPattern(pattern = {Pattern.ADAPTER_ADAPTER})
-class MicroUsbToLightningAdapter implements MicroUsbPhone {
+class MicroUsbToLightningAdapter implements LightningPhone {
 
     private final LightningPhone lightningPhone;
 
@@ -13,7 +13,7 @@ class MicroUsbToLightningAdapter implements MicroUsbPhone {
     }
 
     @Override
-    public void useMicroUsb() {
+    public void useLightning() {
         System.out.println("MicroUsb connected");
         lightningPhone.useLightning();
     }

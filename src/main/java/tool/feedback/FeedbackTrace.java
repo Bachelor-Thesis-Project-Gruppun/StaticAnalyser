@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.DesignPattern;
@@ -89,6 +90,10 @@ public final class FeedbackTrace {
             comma = true;
         }
         message = msg.toString();
+    }
+
+    public FeedbackTrace(ClassOrInterfaceType type) {
+        message = getStringStart(type);
     }
 
     private String getStringStart(Node node) {
