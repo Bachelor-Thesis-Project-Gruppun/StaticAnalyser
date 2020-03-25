@@ -75,7 +75,7 @@ public final class Feedback {
      *
      * @return the new feedback.
      */
-    public static Feedback getFeedbackWithChildren(String message) {
+    public static Feedback getPatternInstanceNoChildFeedback(String message) {
         return new Feedback(true, message, null, null);
     }
 
