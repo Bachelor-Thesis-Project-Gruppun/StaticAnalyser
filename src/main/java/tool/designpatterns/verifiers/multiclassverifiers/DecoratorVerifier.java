@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,12 +14,14 @@ import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 
-import base.Pattern;
+import tool.designpatterns.Pattern;
+import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.util.Feedback;
 
 /**
  * A verifier for the decorator pattern.
  */
-public class DecoratorVerifier implements IPatternGroupVerifier {
+public class DecoratorVerifier implements IPatternGrouper {
 
     /**
      * Constructor.
