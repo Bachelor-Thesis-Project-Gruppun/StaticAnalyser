@@ -37,13 +37,13 @@ public class AdapterVerifier implements IPatternGrouper {
     @Override
     public Feedback verifyGroup(Map<Pattern, List<CompilationUnit>> patternParts) {
 
-        if (!patternParts.containsKey(ADAPTER_ADAPTER) ||
-            patternParts.get(ADAPTER_ADAPTER).isEmpty()) {
+        if (!patternParts.containsKey(ADAPTER_ADAPTER) || patternParts.get(ADAPTER_ADAPTER)
+                                                                      .isEmpty()) {
             return new Feedback(false, "There is no annotated adapter");
         }
 
-        if (!patternParts.containsKey(ADAPTER_ADAPTEE) ||
-            patternParts.get(ADAPTER_ADAPTEE).isEmpty()) {
+        if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
+                                                                      .isEmpty()) {
             return new Feedback(false, "There is no annotated adaptee");
         }
 
@@ -208,7 +208,7 @@ public class AdapterVerifier implements IPatternGrouper {
         public List<Boolean> visit(
             MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(methodCallExpr, adaptee);
-
+            
             if (adaptee.isInterface()) {
                 if (methodCallExpr.getScope().get().toString().equalsIgnoreCase(
                     adaptee.getNameAsString())) {
