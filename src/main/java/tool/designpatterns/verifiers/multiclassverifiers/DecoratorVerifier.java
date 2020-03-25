@@ -158,16 +158,13 @@ public class DecoratorVerifier implements IPatternGrouper {
 
         //Found no better way to populate PIs than looping through everything multiple times
         interfaceComponents.forEach((interfaceComponent) -> {
-            if (interfaceComponent.isInterface() && interfaceComponent != null) {
-                String interfaceName = componentInterface.get().getNameAsString();
+            if (interfaceComponent.isInterface()) {
+                String interfaceName = interfaceComponent.getNameAsString();
 
                 concreteComponents.forEach(cc -> {
-                    ClassOrInterfaceDeclaration concComp = cc.findFirst(
-                        ClassOrInterfaceDeclaration.class).get();
-                    concComp.getImplementedTypes().forEach(implementedInterface -> {
+                    cc.getImplementedTypes().forEach(implementedInterface -> {
                         if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            PatternInstance pi = componentToPatternInstance.get(
-                                interfaceComponentCU);
+                            PatternInstance pi = componentToPatternInstance.get(cc);
                             pi.concreteComponents.add(cc);
                             identifiedElements.add(cc);
                         }
