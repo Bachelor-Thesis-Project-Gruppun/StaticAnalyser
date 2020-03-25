@@ -68,6 +68,18 @@ public final class Feedback {
     }
 
     /**
+     * Returns a new feedback that is an error and that has no children and no stacktrace (as it is
+     * an error with higher-order elements than classes such as relationships between classes).
+     *
+     * @param message the error message.
+     *
+     * @return the new feedback.
+     */
+    public static Feedback getFeedbackWithChildren(String message) {
+        return new Feedback(true, message, null, null);
+    }
+
+    /**
      * Get a feedback representing the entire verification of a Pattern.
      *
      * @param children the feedbacks of each of the verification classes. For single-class patterns
