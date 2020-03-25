@@ -70,8 +70,8 @@ public class DecoratorVerifier implements IPatternGrouper {
      * or not the instance of the pattern was valid
      */
     public Feedback verify(PatternInstance pi) {
-        if (!hasAllElements(pi).getIsError()) {
-            if (!interfaceContainsMethod(pi.interfaceComponent).getValue()) {
+        /*if (!hasAllElements(pi).getIsError()) {
+        //    if (!interfaceContainsMethod(pi.interfaceComponent).getValue()) {
 
             }
             pi.abstractDecorators.forEach(ad -> {
@@ -85,13 +85,9 @@ public class DecoratorVerifier implements IPatternGrouper {
         Feedback result = hasAllElements(pi);
         //do rest }
         //else { skip and return feedback from hasAllElements()}
+        //return result;*/
         throw new UnsupportedOperationException("TODO");
-        //return result;
     }
-
-    //Maybe make a model-folder for all pattern instances instead of having any given PI inside
-    // of its own verifier class?
-
 
     /**
      * Used to group parts of the same pattern instance (an implementation of the pattern) in one
@@ -131,11 +127,10 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * Method for identifying which {@link CompilationUnit}s are part of the same decorator pattern
-     * instance. The identified instances will be returned as a list of {@link PatternInstance}
-     *
+     * Method for identifying which classes are part of the same decorator pattern
+     * instance
      * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
-     *            mapped to all the compilation units of said element type
+     *            mapped to all the classes of said element type
      * @return A list of all identified instances of the pattern
      */
     public List<PatternInstance> getPatternInstances(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
@@ -164,7 +159,8 @@ public class DecoratorVerifier implements IPatternGrouper {
                 concreteComponents.forEach(cc -> {
                     cc.getImplementedTypes().forEach(implementedInterface -> {
                         if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            PatternInstance pi = componentToPatternInstance.get(cc);
+                            PatternInstance pi = componentToPatternInstance.get(
+                                interfaceComponent);
                             pi.concreteComponents.add(cc);
                             identifiedElements.add(cc);
                         }
@@ -172,23 +168,19 @@ public class DecoratorVerifier implements IPatternGrouper {
                 });
 
                 abstractDecorators.forEach(ad -> {
-                    ClassOrInterfaceDeclaration absDec = ad.findFirst(
-                        ClassOrInterfaceDeclaration.class).get();
-                    absDec.getImplementedTypes().forEach(implementedInterface -> {
+                    ad.getImplementedTypes().forEach(implementedInterface -> {
                         if (implementedInterface.getNameAsString().equals(interfaceName)) {
                             PatternInstance pi = componentToPatternInstance.get(
-                                interfaceComponentCU);
+                                interfaceComponent);
                             pi.abstractDecorators.add(ad);
                             identifiedElements.add(ad);
 
                             //Check which concreteComponents extend this abstractDecorator
                             //And update PI accordingly
                             concreteDecorators.forEach(cd -> {
-                                ClassOrInterfaceDeclaration concDec = cd.findFirst(
-                                    ClassOrInterfaceDeclaration.class).get();
-                                concDec.getExtendedTypes().forEach(extendedClass -> {
+                                cd.getExtendedTypes().forEach(extendedClass -> {
                                     if (extendedClass.getNameAsString().equals(
-                                        absDec.getName().asString())) {
+                                        ad.getName().asString())) {
                                         pi.concreteDecorators.add(cd);
                                         identifiedElements.add(cd);
                                     }
@@ -223,19 +215,17 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * Method for checking that the CompilationUnit toTest (class) contains a field of a certain
-     * type.
+     * Method for checking that a class contains a field of a certain type
      *
-     * @param toTest      The CompilationUnit (class) to check
-     * @param interfaceCU The (CompilationUnit of the) interface to search for in toTest
-     * @return true iff toTest has a variable of the same type as the interface in interfaceCU
+     * @param toTest The class to check
+     * @param type The class or interface that toTest should contain
+     * @return A feedback object containing the result
      */
-    private Feedback hasAComponent(CompilationUnit toTest, CompilationUnit interfaceCU) {
+    private Feedback hasFieldOfType(ClassOrInterfaceDeclaration toTest, ClassOrInterfaceDeclaration type) {
         Feedback result;
         AtomicBoolean hasAComponent = new AtomicBoolean(false);
         toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {
-            if (fieldDeclaration.getTypeAsString().contains(
-                interfaceCU.getPrimaryTypeName().get())) {
+            if (fieldDeclaration.getTypeAsString().contains(type.getNameAsString())) { //Check that this works
                 hasAComponent.set(true);
             }
         });
@@ -249,23 +239,23 @@ public class DecoratorVerifier implements IPatternGrouper {
         return result;
     }
 
-    /**
+    /** TODO MUST BE UPDATED WITH ClassOrInterfaceDeclaration
      * Method to check if all constructors in a given class initialize the Component field in the
      * class.
      *
-     * @param toTest      The CompilationUnit (class) to check.
-     * @param interfaceCU todo.
+     * @param toTest The class to check.
+     * @param interfaceName
      * @return True iff all constructors in a given class does initialize the class' Component
      */
     private Feedback componentInitializedInConstructor(
-        CompilationUnit toTest, CompilationUnit interfaceCU) {
+        CompilationUnit toTest, CompilationUnit interfaceName) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
-        String nameOfInterface = interfaceCU.getPrimaryTypeName().get();
+        String nameOfInterface = interfaceName.getPrimaryTypeName().get();
         for (FieldDeclaration currentField : fieldsInClass) {
             if (currentField.getCommonType().toString().equals(nameOfInterface)) {
                 List<String> constructorParams = new ArrayList<>();
