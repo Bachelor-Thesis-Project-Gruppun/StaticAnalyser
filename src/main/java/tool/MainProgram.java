@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import org.gradle.api.GradleException;
@@ -32,7 +33,46 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        startAnalyse(new String[] {"src"});
+        List<CompilationUnit> compUnits = ProjectParser.projectToAst(
+            "src/test/java" + "/patternimplementors" + "/decorator");
+        List<CompilationUnit> testUnits = new ArrayList<>();
+        HashMap<Pattern, List<CompilationUnit>> testMap = new HashMap();
+        ArrayList<CompilationUnit> interfaceComponents = new ArrayList<CompilationUnit>();
+        ArrayList<CompilationUnit> concreteComponents = new ArrayList<CompilationUnit>();
+        ArrayList<CompilationUnit> abstractDecorators = new ArrayList<CompilationUnit>();
+        ArrayList<CompilationUnit> concreteDecorators = new ArrayList<CompilationUnit>();
+
+        for (CompilationUnit compUnit : compUnits) {
+            ClassOrInterfaceDeclaration element = compUnit.findFirst(
+                ClassOrInterfaceDeclaration.class).get();
+            switch (element.getName().asString()) {
+                case "Coffee":
+                    concreteComponents.add(compUnit);
+                    break;
+                case "CoffeeDecorator":
+                    abstractDecorators.add(compUnit);
+                    break;
+                case "IBeverageComponent":
+                    interfaceComponents.add(compUnit);
+                    break;
+                case "Milk":
+                    concreteDecorators.add(compUnit);
+                    break;
+                case "FailingCoffeeDecorator":
+                    concreteDecorators.add(compUnit);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        testMap.put(Pattern.DECORATOR_INTERFACE_COMPONENT, interfaceComponents);
+        testMap.put(Pattern.DECORATOR_CONCRETE_COMPONENT, concreteComponents);
+        testMap.put(Pattern.DECORATOR_ABSTRACT_DECORATOR, abstractDecorators);
+        testMap.put(Pattern.DECORATOR_CONCRETE_DECORATOR, concreteDecorators);
+        var decoratorVerifier = new DecoratorVerifier();
+        //decoratorVerifier.interfaceContainsMethod(interfaceComponents.get(0));
+        decoratorVerifier.verifyGroup(testMap);
     }
 
     /**
