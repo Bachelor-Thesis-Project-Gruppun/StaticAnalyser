@@ -12,12 +12,11 @@ import tool.designpatterns.Pattern;
 @DesignPattern(pattern = {Pattern.IMMUTABLE})
 public final class Feedback {
 
-    private boolean isError;
+    private static final String LINE_PREFIX = "  ";
     private final String message;
     private final List<Feedback> children;
     private final FeedbackTrace stackTrace;
-
-    private static final String LINE_PREFIX = "  ";
+    private boolean isError;
 
     private Feedback(
         boolean isError, String message, FeedbackTrace stackTrace, List<Feedback> children) {
@@ -51,8 +50,8 @@ public final class Feedback {
     }
 
     /**
-     * Get a new feedback that has children, in case any of the children has any errors this will
-     * also be an error, otherwise be successful.
+     * Get a new feedback that has children. Calls the constructor which will in term determine
+     * wether this is an error or not by looking at if the children are errors or not.
      *
      * @param stackTrace the element where the error occured.
      * @param children   the child feedback elements to this feedback.
@@ -90,7 +89,7 @@ public final class Feedback {
 
     @SuppressWarnings("PMD.BooleanGetMethodName") // If anyone
     public boolean getIsError() {
-        return isError;
+        return this.isError;
     }
 
     /**
@@ -99,7 +98,7 @@ public final class Feedback {
      * @return the message.
      */
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     /**
@@ -113,18 +112,18 @@ public final class Feedback {
 
     private String getFullMessage(String linePrefix) {
         // We only want a message if it was an error.
-        if (!isError) {
+        if (!this.isError) {
             return "";
         }
 
         StringBuilder message = new StringBuilder();
         message.append(linePrefix);
-        if (stackTrace != null) {
-            message.append(stackTrace.toString());
+        if (this.stackTrace != null) {
+            message.append(this.stackTrace.toString());
             message.append(" : ");
         }
 
-        if (children.isEmpty()) {
+        if (this.children.isEmpty()) {
             // We don't have any children, i.e. we're the 'leaf' node and therefore we print our
             // message.
             message.append(getMessage()).append('\n');
@@ -132,7 +131,7 @@ public final class Feedback {
             message.append('\n');
             String childPrefix = linePrefix + LINE_PREFIX;
             // We want to print all of our children in a nice way.
-            for (Feedback child : children) {
+            for (Feedback child : this.children) {
                 message.append(child.getFullMessage(childPrefix));
             }
         }
