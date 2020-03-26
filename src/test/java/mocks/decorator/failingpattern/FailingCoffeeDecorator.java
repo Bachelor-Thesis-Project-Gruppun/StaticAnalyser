@@ -1,8 +1,7 @@
 package mocks.decorator.failingpattern;
 
 /**
- * Should fail since class does not take an IFailingBeverageComponent in its constructor to set its
- * component variable to.
+ * Should fail since class does not have an IFailingBeverageComponent field.
  */
 public abstract class FailingCoffeeDecorator implements IFailingBeverageComponent {
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -35,8 +36,8 @@ public class DecoratorVerifier implements IPatternGrouper {
     public PatternGroupFeedback verifyGroup(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         List<PatternInstance> patternInstances = getPatternInstances(map);
         List<Feedback> results = new ArrayList<>();
-        patternInstances.forEach(pi -> {
-            results.add(verify(pi));
+        patternInstances.forEach(patternInstance -> {
+            results.add(verify(patternInstance));
         });
 
         return new PatternGroupFeedback(PatternGroup.DECORATOR, results);
@@ -67,22 +68,26 @@ public class DecoratorVerifier implements IPatternGrouper {
      *      </ol>
      * </p>
      *
-     * @param pi An instance of the decorator pattern to be verified
+     * @param instance An instance of the decorator pattern to be verified
      *
      * @return A {@link Feedback} object that contains the result and information regarding whether
      *     or not the instance of the pattern was valid
      */
-    public Feedback verify(PatternInstance pi) {
-        Feedback allElementsChild = hasAllElements(pi);
+    public Feedback verify(PatternInstance instance) {
+        Feedback allElementsChild = hasAllElements(instance);
         List<Feedback> childFeedbacks = new ArrayList<>();
         childFeedbacks.add(allElementsChild);
         if (!allElementsChild.getIsError()) {
             // Do shit here.
-            childFeedbacks.add(interfaceContainsMethod(pi.interfaceComponent));
-            pi.abstractDecorators.forEach(decorator -> {
-                childFeedbacks.add(hasFieldOfType(decorator, pi.interfaceComponent));
+            childFeedbacks.add(interfaceContainsMethod(instance.interfaceComponent));
+            instance.abstractDecorators.forEach(decorator -> {
+                childFeedbacks.add(hasFieldOfType(decorator, instance.interfaceComponent));
                 childFeedbacks.add(
-                    componentInitializedInConstructor(decorator, pi.interfaceComponent));
+                    componentInitializedInConstructor(decorator, instance.interfaceComponent));
+            });
+            instance.concreteDecorators.forEach(decorator -> {
+                childFeedbacks.add(
+                    componentInitializedInConstructor(decorator, instance.interfaceComponent));
             });
         }
 
@@ -91,21 +96,21 @@ public class DecoratorVerifier implements IPatternGrouper {
 
     /**
      * Used to group parts of the same pattern instance (an implementation of the pattern) in one
-     * place
+     * place.
      */
     private class PatternInstance {
 
-        ClassOrInterfaceDeclaration interfaceComponent;
-        List<ClassOrInterfaceDeclaration> concreteComponents = new ArrayList<>();
-        List<ClassOrInterfaceDeclaration> abstractDecorators = new ArrayList<>();
-        List<ClassOrInterfaceDeclaration> concreteDecorators = new ArrayList<>();
+        public ClassOrInterfaceDeclaration interfaceComponent;
+        public List<ClassOrInterfaceDeclaration> concreteComponents = new ArrayList<>();
+        public List<ClassOrInterfaceDeclaration> abstractDecorators = new ArrayList<>();
+        public List<ClassOrInterfaceDeclaration> concreteDecorators = new ArrayList<>();
 
         public PatternInstance() {
         }
     }
 
     /**
-     * Checks that an interfaceComponent contains at least one public method
+     * Checks that an interfaceComponent contains at least one public method.
      *
      * @param interfaceComponent The interface of the interfaceComponent
      *
@@ -128,10 +133,10 @@ public class DecoratorVerifier implements IPatternGrouper {
             result = Feedback.getSuccessfulFeedback();
         } else {
             String msg = "Interface does not contain any methods!";
-            if (erroringMethod != null) {
-                result = Feedback.getNoChildFeedback(msg, new FeedbackTrace(erroringMethod));
-            } else {
+            if (erroringMethod == null) {
                 result = Feedback.getPatternInstanceNoChildFeedback(msg);
+            } else {
+                result = Feedback.getNoChildFeedback(msg, new FeedbackTrace(erroringMethod));
             }
         }
 
@@ -139,7 +144,7 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * Method for identifying which classes are part of the same decorator pattern instance
+     * Method for identifying which classes are part of the same decorator pattern instance.
      *
      * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
      *            mapped to all the classes of said element type
@@ -156,21 +161,22 @@ public class DecoratorVerifier implements IPatternGrouper {
             Pattern.DECORATOR_ABSTRACT_DECORATOR);
         List<ClassOrInterfaceDeclaration> concreteDecorators = map.get(
             Pattern.DECORATOR_CONCRETE_DECORATOR);
-        HashMap<ClassOrInterfaceDeclaration, PatternInstance> componentToPatternInstance =
-            new HashMap();
+        HashMap<ClassOrInterfaceDeclaration, PatternInstance> patternInstances = new HashMap();
 
-        //Create incomplete PIs to be populated below, easier to use isDescendantOf below by
+        //Create incomplete PatternInstances to be populated below, easier to use isDescendantOf
+        // below by
         // doing this
         interfaceComponents.forEach((interfaceComponent) -> {
-            PatternInstance pi = new PatternInstance();
-            pi.interfaceComponent = interfaceComponent;
-            componentToPatternInstance.putIfAbsent(interfaceComponent, pi);
+            PatternInstance patternInstance = new PatternInstance();
+            patternInstance.interfaceComponent = interfaceComponent;
+            patternInstances.putIfAbsent(interfaceComponent, patternInstance);
         });
 
         //Used at the bottom for detecting leftovers/invalid patterns
         ArrayList<ClassOrInterfaceDeclaration> identifiedElements = new ArrayList<>();
 
-        //Found no better way to populate PIs than looping through everything multiple times
+        //Found no better way to populate PatternInstances than looping through everything multiple
+        // times
         interfaceComponents.forEach((interfaceComponent) -> {
             if (interfaceComponent.isInterface()) {
                 String interfaceName = interfaceComponent.getNameAsString();
@@ -178,8 +184,9 @@ public class DecoratorVerifier implements IPatternGrouper {
                 concreteComponents.forEach(cc -> {
                     cc.getImplementedTypes().forEach(implementedInterface -> {
                         if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            PatternInstance pi = componentToPatternInstance.get(interfaceComponent);
-                            pi.concreteComponents.add(cc);
+                            PatternInstance patternInstance = patternInstances.get(
+                                interfaceComponent);
+                            patternInstance.concreteComponents.add(cc);
                             identifiedElements.add(cc);
                         }
                     });
@@ -188,17 +195,18 @@ public class DecoratorVerifier implements IPatternGrouper {
                 abstractDecorators.forEach(ad -> {
                     ad.getImplementedTypes().forEach(implementedInterface -> {
                         if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            PatternInstance pi = componentToPatternInstance.get(interfaceComponent);
-                            pi.abstractDecorators.add(ad);
+                            PatternInstance patternInstance = patternInstances.get(
+                                interfaceComponent);
+                            patternInstance.abstractDecorators.add(ad);
                             identifiedElements.add(ad);
 
                             //Check which concreteComponents extend this abstractDecorator
-                            //And update PI accordingly
+                            //And update PatternInstance accordingly
                             concreteDecorators.forEach(cd -> {
                                 cd.getExtendedTypes().forEach(extendedClass -> {
                                     if (extendedClass.getNameAsString().equals(
                                         ad.getName().asString())) {
-                                        pi.concreteDecorators.add(cd);
+                                        patternInstance.concreteDecorators.add(cd);
                                         identifiedElements.add(cd);
                                     }
                                 });
@@ -224,19 +232,18 @@ public class DecoratorVerifier implements IPatternGrouper {
         if (!(
             concreteComponents.isEmpty() && abstractDecorators.isEmpty() &&
             concreteDecorators.isEmpty())) {
-            var pi = new PatternInstance();
-            pi.interfaceComponent = null;
-            pi.concreteComponents = concreteComponents;
-            pi.abstractDecorators = abstractDecorators;
-            pi.concreteDecorators = concreteDecorators;
-            componentToPatternInstance.put(null, pi);
+            var patternInstance = new PatternInstance();
+            patternInstance.concreteComponents = concreteComponents;
+            patternInstance.abstractDecorators = abstractDecorators;
+            patternInstance.concreteDecorators = concreteDecorators;
+            patternInstances.put(null, patternInstance);
         }
 
-        return new ArrayList<PatternInstance>(componentToPatternInstance.values());
+        return new ArrayList<PatternInstance>(patternInstances.values());
     }
 
     /**
-     * Method for checking that a class contains a field of a certain type
+     * Method for checking that a class contains a field of a certain type.
      *
      * @param toTest The class to check
      * @param type   The class or interface that toTest should contain
@@ -280,31 +287,37 @@ public class DecoratorVerifier implements IPatternGrouper {
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
-        String nameOfInterface = interfaceName.getFullyQualifiedName().get();
+        String nameOfInterface = interfaceName.getNameAsString();
+        List<String> constructorParams = new ArrayList<>();
         for (FieldDeclaration currentField : fieldsInClass) {
             if (currentField.getCommonType().toString().equals(nameOfInterface)) {
-                List<String> constructorParams = new ArrayList<>();
                 isInitialized.compareAndSet(true, !currentField.isPublic());
-                if (!isInitialized.get()) {
+                if (isInitialized.get()) {
                     currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
                         isInitialized.set(false);
                     });
-                    toTest.findAll(ConstructorDeclaration.class).forEach(constructorDeclaration -> {
-                        constructorParams.add(constructorDeclaration.getParameterByType(
-                            nameOfInterface).get().getNameAsString());
+                    toTest.findAll(ConstructorDeclaration.class).forEach(declaration -> {
+                        try {
+                            constructorParams.add(declaration.getParameterByType(nameOfInterface)
+                                                             .get().getNameAsString());
+                        } catch (NoSuchElementException e) {
+                            isInitialized.set(false);
+                            e.printStackTrace();
+                        }
                     });
                     toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
                         if (variableDeclarator.getNameAsString().equals(
-                            currentField.getVariable(0).getNameAsString())) {
-                            if (!variableDeclarator.getInitializer().isEmpty() &&
-                                !constructorParams.contains(
-                                    variableDeclarator.getInitializer().get().toString())) {
-                                isInitialized.set(false);
-                            }
+                            currentField.getVariable(0).getNameAsString()) &&
+                            !variableDeclarator.getInitializer().isEmpty() &&
+                            !constructorParams.contains(
+                                variableDeclarator.getInitializer().get().toString())) {
+                            isInitialized.set(false);
+
                         }
                     });
                 }
             }
+            constructorParams.clear();
         }
         if (isInitialized.get()) {
             result = Feedback.getSuccessfulFeedback();
@@ -317,45 +330,41 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * <p>Used to verify whether or not an instance of the decorator pattern has all required
-     * elements of said pattern</p>
-     * <p>For a pattern instance to be valid it has to contain the following:
-     *      <ul>
-     *          <li>Exactly one interface component</li>
-     *          <li>At least one concrete component</li>
-     *          <li>At least one abstract decorator</li>
-     *          <li>At least one concrete decorator</li>
-     *      </ul>
-     * </p>
+     * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
+     * <p>For a pattern instance to be valid it has to contain the following:<ul><li>Exactly one
+     * interface component</li><li>At least one of each of the following concrete component,
+     * abstract decorator and concrete decorator</li></ul></p>
      *
-     * @param pi The pattern instance to verify
+     * @param patternInstance The pattern instance to verify
      *
      * @return A feedback object containing the boolean result
      */
-    private Feedback hasAllElements(PatternInstance pi) {
-        String feedbackMessage = "The following elements are missing: ";
+    private Feedback hasAllElements(PatternInstance patternInstance) {
+        StringBuilder feedbackMessage = new StringBuilder(126);
+        feedbackMessage.append("The following elements are missing: ");
         boolean errorOccurred = false;
-        if (pi.interfaceComponent == null) {
-            feedbackMessage += "Interface component, ";
+        if (patternInstance.interfaceComponent == null) {
+            feedbackMessage.append("Interface component, ");
             errorOccurred = false;
         }
-        if (pi.concreteComponents.size() < 1) {
-            feedbackMessage += "Concrete component(s), ";
+        if (patternInstance.concreteComponents.isEmpty()) {
+            feedbackMessage.append("Concrete component(s), ");
             errorOccurred = false;
         }
-        if (pi.abstractDecorators.size() < 1) {
-            feedbackMessage += "Abstract component(s), ";
+        if (patternInstance.abstractDecorators.isEmpty()) {
+            feedbackMessage.append("Abstract component(s), ");
             errorOccurred = false;
         }
-        if (pi.concreteDecorators.size() < 1) {
-            feedbackMessage += "Concrete decorator(s), ";
+        if (patternInstance.concreteDecorators.isEmpty()) {
+            feedbackMessage.append("Concrete decorator(s), ");
             errorOccurred = false;
         }
 
         if (errorOccurred) {
             // We know that the last two characters are ", " and we want to remove those.
-            feedbackMessage = feedbackMessage.substring(0, feedbackMessage.length() - 2);
-            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage);
+            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
+            feedbackMessage.deleteCharAt(feedbackMessage.length() - 2);
+            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
         }
 
         return Feedback.getSuccessfulFeedback();
