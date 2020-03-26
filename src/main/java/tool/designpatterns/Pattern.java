@@ -6,7 +6,10 @@ package tool.designpatterns;
  */
 public enum Pattern {
     IMMUTABLE(PatternGroup.IMMUTABLE),
-    SINGLETON(PatternGroup.SINGLETON);
+    SINGLETON(PatternGroup.SINGLETON),
+    PROXY_INTERFACE(PatternGroup.PROXY),
+    PROXY_SUBJECT(PatternGroup.PROXY),
+    PROXY_PROXY(PatternGroup.PROXY);
 
     private PatternGroup group;
 
