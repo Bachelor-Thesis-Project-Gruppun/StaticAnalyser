@@ -77,7 +77,7 @@ public class DecoratorVerifierTest {
                 TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffee"));
             abstractDecorators.add(
                 TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffeeDecorator"));
-            interfaceComponents.add(TestHelper.getMockClassOrI("Decorator/failingpattern",
+            interfaceComponents.add(TestHelper.getMockClassOrI("decorator/failingpattern",
                                                                "IFailingBeverageComponent"));
             concreteDecorators.add(
                 TestHelper.getMockClassOrI("decorator/failingpattern", "FailingMilk"));
