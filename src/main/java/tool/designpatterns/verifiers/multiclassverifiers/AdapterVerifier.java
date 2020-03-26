@@ -1,5 +1,6 @@
 package tool.designpatterns.verifiers.multiclassverifiers;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import static tool.designpatterns.Pattern.ADAPTER_ADAPTEE;
 import static tool.designpatterns.Pattern.ADAPTER_ADAPTER;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -20,6 +22,7 @@ import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.PatternGroupFeedback;
+import tool.util.VariableReader;
 
 /**
  * A verifier for the adapter pattern.
@@ -79,13 +82,15 @@ public class AdapterVerifier implements IPatternGrouper {
      */
     private Feedback verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
-        MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+        MethodDeclarationVisitor methodDeclarationVisitor = new MethodDeclarationVisitor(adapter);
+
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
-            for (Boolean b : adapter.accept(visitor, adaptee)) {
+            for (Boolean b : adapter.accept(methodDeclarationVisitor, adaptee)) {
                 if (b) {
                     return verifyInterfaces(adapter, adaptee);
                 }
             }
+
         }
         return Feedback.getNoChildFeedback(
             "Adapter does not wrap the adaptee", new FeedbackTrace(adapter));
@@ -129,8 +134,11 @@ public class AdapterVerifier implements IPatternGrouper {
     private static class MethodDeclarationVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
-        public MethodDeclarationVisitor() {
+        private final ClassOrInterfaceDeclaration currentClass;
+
+        public MethodDeclarationVisitor(ClassOrInterfaceDeclaration currentClass) {
             super();
+            this.currentClass = currentClass;
         }
 
         /**
@@ -146,12 +154,11 @@ public class AdapterVerifier implements IPatternGrouper {
         @Override
         @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         public List<Boolean> visit(
-            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
+                MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> resultList = super.visit(method, adaptee);
-
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    resultList.add(isWrapper(method, adaptee)); // This is the error that is
+                    resultList.add(isWrapper(method,currentClass, adaptee)); // This is the error that is
                     // suppressed, because we return right after.
                     return resultList;
                 }
@@ -170,8 +177,8 @@ public class AdapterVerifier implements IPatternGrouper {
          * @return a boolean, true if it is wrapped, otherwise false.
          */
         private Boolean isWrapper(
-            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
-            List<Boolean> list = method.accept(new MethodCallVisitor(), adaptee);
+                MethodDeclaration method, ClassOrInterfaceDeclaration currentClass, ClassOrInterfaceDeclaration adaptee) {
+            List<Boolean> list = method.accept(new MethodCallVisitor(currentClass), adaptee);
 
             for (Boolean bool : list) {
                 if (bool) {
@@ -189,8 +196,10 @@ public class AdapterVerifier implements IPatternGrouper {
     private static class MethodCallVisitor
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
-        public MethodCallVisitor() {
+        private final ClassOrInterfaceDeclaration currentClass;
+        public MethodCallVisitor(ClassOrInterfaceDeclaration currentClass) {
             super();
+            this.currentClass = currentClass;
         }
 
         /**
@@ -205,14 +214,15 @@ public class AdapterVerifier implements IPatternGrouper {
          */
         @Override
         public List<Boolean> visit(
-            MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
+                MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(methodCallExpr, adaptee);
 
             if (adaptee.isInterface()) {
-                if (methodCallExpr.getScope().get().toString().equalsIgnoreCase(
-                    adaptee.getNameAsString())) {
-                    boolList.add(Boolean.TRUE);
-                    return boolList;
+                for(FieldDeclaration field : currentClass.getFields()) {
+                    if(field.getCommonType().toString().equals(adaptee.getNameAsString())) {
+                        boolList.add(Boolean.TRUE);
+                        return boolList;
+                    }
                 }
             } else if (methodCallExpr.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
@@ -223,6 +233,7 @@ public class AdapterVerifier implements IPatternGrouper {
             return boolList;
         }
     }
+
 
 }
 

@@ -29,13 +29,14 @@ public class AdapterVerifierTest {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
 
+        System.out.println(new AdapterVerifier().verifyGroup(patternGroup).getFullMessage());
         assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
     public void testVerifyExtendsAdapter() throws IOException {
         ClassOrInterfaceDeclaration adapter = TestHelper.getMockCompUnit(
-            "adapter" + "/extendsAdapter", "MicroUsbToLightningAdapter").findAll(
+            "adapter/extendsAdapter", "MicroUsbToLightningAdapter").findAll(
             ClassOrInterfaceDeclaration.class).get(0);
 
         ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit("adapter/extendsAdapter",
@@ -63,6 +64,8 @@ public class AdapterVerifierTest {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
         NodeList<ClassOrInterfaceType> adapteeImplements = concreteAdaptee.getImplementedTypes();
+        NodeList<ClassOrInterfaceType> adapterImplements = adapter.getImplementedTypes();
+
 
         assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
         adapter.setImplementedTypes(adapteeImplements);
