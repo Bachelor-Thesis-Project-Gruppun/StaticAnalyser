@@ -1,4 +1,4 @@
-package patternimplementors.decorator.failingpattern;
+package mocks.decorator.failingpattern;
 
 /**
  * Should fail since class does not take an IFailingBeverageComponent in its constructor to set its

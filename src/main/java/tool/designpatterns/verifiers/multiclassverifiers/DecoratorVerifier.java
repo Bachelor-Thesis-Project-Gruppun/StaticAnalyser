@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -274,14 +273,14 @@ public class DecoratorVerifier implements IPatternGrouper {
      * @return True iff all constructors in a given class does initialize the class' Component
      */
     private Feedback componentInitializedInConstructor(
-        CompilationUnit toTest, CompilationUnit interfaceName) {
+        ClassOrInterfaceDeclaration toTest, ClassOrInterfaceDeclaration interfaceName) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
         toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             fieldsInClass.add(fieldDeclaration);
         });
-        String nameOfInterface = interfaceName.getPrimaryTypeName().get();
+        String nameOfInterface = interfaceName.getFullyQualifiedName().get();
         for (FieldDeclaration currentField : fieldsInClass) {
             if (currentField.getCommonType().toString().equals(nameOfInterface)) {
                 List<String> constructorParams = new ArrayList<>();

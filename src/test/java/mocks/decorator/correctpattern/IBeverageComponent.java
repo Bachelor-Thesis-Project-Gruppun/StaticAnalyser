@@ -1,4 +1,4 @@
-package patternimplementors.decorator.correctpattern;
+package mocks.decorator.correctpattern;
 
 public interface IBeverageComponent {
 

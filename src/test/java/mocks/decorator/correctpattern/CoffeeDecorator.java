@@ -1,4 +1,4 @@
-package patternimplementors.decorator.correctpattern;
+package mocks.decorator.correctpattern;
 
 public abstract class CoffeeDecorator implements IBeverageComponent {
 

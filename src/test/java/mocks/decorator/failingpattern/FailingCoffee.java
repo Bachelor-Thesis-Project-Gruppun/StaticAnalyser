@@ -1,4 +1,4 @@
-package patternimplementors.decorator.failingpattern;
+package mocks.decorator.failingpattern;
 
 public class FailingCoffee implements IFailingBeverageComponent {
 

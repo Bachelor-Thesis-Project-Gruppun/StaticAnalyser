@@ -1,4 +1,4 @@
-package patternimplementors.decorator.failingpattern;
+package mocks.decorator.failingpattern;
 
 /**
  * Should fail since the class does not set its component in the constructor.

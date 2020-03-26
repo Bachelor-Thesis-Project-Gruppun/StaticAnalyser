@@ -1,4 +1,4 @@
-package patternimplementors.decorator.failingpattern;
+package mocks.decorator.failingpattern;
 
 /**
  * Should fail predicate because the class does not set it's component at any point

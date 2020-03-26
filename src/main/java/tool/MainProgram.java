@@ -14,6 +14,7 @@ import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.PatternUtils;
+import tool.designpatterns.verifiers.multiclassverifiers.DecoratorVerifier;
 import tool.feedback.PatternGroupFeedback;
 
 /**
@@ -33,16 +34,20 @@ public final class MainProgram {
     public static void main(String[] args) {
         //Just use this project for now (src), will have to change
         //to the target project with the gradle stuff
-        List<CompilationUnit> compUnits = ProjectParser.projectToAst(
+        List<ClassOrInterfaceDeclaration> compUnits = ProjectParser.findAllClassesAndInterfaces(
             "src/test/java" + "/patternimplementors" + "/decorator");
         List<CompilationUnit> testUnits = new ArrayList<>();
-        HashMap<Pattern, List<CompilationUnit>> testMap = new HashMap();
-        ArrayList<CompilationUnit> interfaceComponents = new ArrayList<CompilationUnit>();
-        ArrayList<CompilationUnit> concreteComponents = new ArrayList<CompilationUnit>();
-        ArrayList<CompilationUnit> abstractDecorators = new ArrayList<CompilationUnit>();
-        ArrayList<CompilationUnit> concreteDecorators = new ArrayList<CompilationUnit>();
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> testMap = new HashMap();
+        ArrayList<ClassOrInterfaceDeclaration> interfaceComponents =
+            new ArrayList<ClassOrInterfaceDeclaration>();
+        ArrayList<ClassOrInterfaceDeclaration> concreteComponents =
+            new ArrayList<ClassOrInterfaceDeclaration>();
+        ArrayList<ClassOrInterfaceDeclaration> abstractDecorators =
+            new ArrayList<ClassOrInterfaceDeclaration>();
+        ArrayList<ClassOrInterfaceDeclaration> concreteDecorators =
+            new ArrayList<ClassOrInterfaceDeclaration>();
 
-        for (CompilationUnit compUnit : compUnits) {
+        for (ClassOrInterfaceDeclaration compUnit : compUnits) {
             ClassOrInterfaceDeclaration element = compUnit.findFirst(
                 ClassOrInterfaceDeclaration.class).get();
             switch (element.getName().asString()) {
