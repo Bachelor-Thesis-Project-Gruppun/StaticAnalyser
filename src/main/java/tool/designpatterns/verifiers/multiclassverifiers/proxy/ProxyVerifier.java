@@ -12,7 +12,7 @@ import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.PatternGroupFeedback;
 
-public class ProxyGrouper implements IPatternGrouper {
+public class ProxyVerifier implements IPatternGrouper {
 
     @Override
     public PatternGroupFeedback verifyGroup(

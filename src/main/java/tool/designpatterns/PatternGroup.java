@@ -1,7 +1,7 @@
 package tool.designpatterns;
 
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyGrouper;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyVerifier;
 import tool.designpatterns.verifiers.singleclassverifiers.SingleClassGrouper;
 import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;
 import tool.designpatterns.verifiers.singleclassverifiers.singleton.SingletonVerifier;
@@ -12,7 +12,7 @@ import tool.designpatterns.verifiers.singleclassverifiers.singleton.SingletonVer
 public enum PatternGroup {
     SINGLETON(new SingleClassGrouper(new SingletonVerifier())),
     IMMUTABLE(new SingleClassGrouper(new ImmutableVerifier())),
-    PROXY(new ProxyGrouper());
+    PROXY(new ProxyVerifier());
 
     private IPatternGrouper verifier;
 
