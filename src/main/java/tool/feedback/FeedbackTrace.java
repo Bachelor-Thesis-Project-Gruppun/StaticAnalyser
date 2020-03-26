@@ -91,11 +91,7 @@ public final class FeedbackTrace {
         }
         message = msg.toString();
     }
-
-    public FeedbackTrace(ClassOrInterfaceType type) {
-        message = getStringStart(type);
-    }
-
+    
     private String getStringStart(Node node) {
         if (!node.getRange().isPresent()) {
             return "";
