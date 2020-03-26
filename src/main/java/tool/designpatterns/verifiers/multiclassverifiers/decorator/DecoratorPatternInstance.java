@@ -125,12 +125,10 @@ final class DecoratorPatternInstance {
     }
 
     /**
-     * <p>Verifies whether or not an instance of the pattern has all required
-     * elements.</p>
-     * <p>For a pattern instance to be valid it has to contain the following:
-     * <ul><li>Exactly one interface component</li><li>At least one of each of
-     * following concrete component, abstract decorator and concrete
-     * decorator</li></ul></p>
+     * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
+     * <p>For a pattern instance to be valid it has to contain the following: <ul><li>Exactly
+     * one interface component</li><li>At least one of each of following:
+     * concrete component, abstract decorator and concrete decorator</li></ul></p>
      *
      * @param patternInstance The pattern instance to verify
      *
