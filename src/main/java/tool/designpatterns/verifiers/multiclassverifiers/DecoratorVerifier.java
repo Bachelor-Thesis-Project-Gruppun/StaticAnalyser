@@ -24,6 +24,7 @@ import tool.feedback.PatternGroupFeedback;
 /**
  * A verifier for the decorator pattern.
  */
+@SuppressWarnings("PMD.CommentSize")
 public class DecoratorVerifier implements IPatternGrouper {
 
     /**
