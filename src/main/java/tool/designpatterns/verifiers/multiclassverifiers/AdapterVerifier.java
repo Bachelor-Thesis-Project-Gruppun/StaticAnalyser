@@ -1,6 +1,5 @@
 package tool.designpatterns.verifiers.multiclassverifiers;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,6 @@ import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.PatternGroupFeedback;
-import tool.util.VariableReader;
 
 /**
  * A verifier for the adapter pattern.
@@ -36,40 +34,47 @@ public class AdapterVerifier implements IPatternGrouper {
      * A method for verifying one or more instances of the adapter pattern in a project.
      *
      * @param patternParts The classes that are marked with a adapter annotation
-     *
      * @return a Feedback with true or false regarding if the pattern is implemented successfully.
      */
     @Override
     public PatternGroupFeedback verifyGroup(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> patternParts) {
-
-        boolean allParts = true;
         List<Feedback> feedbacks = new ArrayList<>();
+
+        Feedback partsFeedback = verifyParts(patternParts);
+        if (partsFeedback.getIsError()) {
+            feedbacks.add(partsFeedback);
+        } else {
+            List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
+
+            for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
+                feedbacks.add(verifyAdapter(adapter, adaptees));
+            }
+        }
+        return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
+    }
+
+    private Feedback verifyParts(Map<Pattern,List<ClassOrInterfaceDeclaration>> patternParts) {
+        StringBuilder stringBuilder = new StringBuilder(62);
+        boolean allParts = true;
         if (!patternParts.containsKey(ADAPTER_ADAPTER) || patternParts.get(ADAPTER_ADAPTER)
-                                                                      .isEmpty()) {
+            .isEmpty()) {
             allParts = false;
-            feedbacks.add(
-                Feedback.getPatternInstanceNoChildFeedback("There is no annotated adapter"));
+            stringBuilder.append("There is no annotated adapter, ");
         }
 
         if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
-                                                                      .isEmpty()) {
+            .isEmpty()) {
             allParts = false;
-            feedbacks.add(
-                Feedback.getPatternInstanceNoChildFeedback("There is no annotated " + "adaptee"));
+            stringBuilder.append("There is no annotated adaptee, ");
         }
 
-        if (!allParts) {
-            return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
+        if (allParts) {
+            return Feedback.getSuccessfulFeedback();
+        } else {
+            return Feedback.getPatternInstanceNoChildFeedback(stringBuilder.delete(
+                stringBuilder.length() - 2, stringBuilder.length()).toString());
         }
-
-        List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
-
-        for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
-            feedbacks.add(verifyAdapter(adapter, adaptees));
-        }
-
-        return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
     }
 
     /**
@@ -77,15 +82,14 @@ public class AdapterVerifier implements IPatternGrouper {
      *
      * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
      * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
-     *
      * @return A feedback with the result of the verification
      */
     private Feedback verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
-        MethodDeclarationVisitor methodDeclarationVisitor = new MethodDeclarationVisitor(adapter);
+        MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor(adapter);
 
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
-            for (Boolean b : adapter.accept(methodDeclarationVisitor, adaptee)) {
+            for (Boolean b : adapter.accept(methodVisitor, adaptee)) {
                 if (b) {
                     return verifyInterfaces(adapter, adaptee);
                 }
@@ -102,16 +106,17 @@ public class AdapterVerifier implements IPatternGrouper {
      *
      * @param adapter The ClassOrInterfaceDeclaration for the adapter
      * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
-     *
      * @return Boolean regarding if the implementation is correct or not.
      */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops") // The only instantiated objects in
+    // loops are in return statements
     private Feedback verifyInterfaces(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
         for (ClassOrInterfaceType coit : adapter.getImplementedTypes()) {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
                     return Feedback.getNoChildFeedback("The adapter implements the adaptee",
-                                                       new FeedbackTrace(adapter));
+                        new FeedbackTrace(adapter));
                 }
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
@@ -148,18 +153,15 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param method  The MethodDeclaration of the method to be checked.
          * @param adaptee The ClassOrInterfaceDeclaration of the adaptees method to be wrapped.
-         *
          * @return a list of booleans
          */
         @Override
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         public List<Boolean> visit(
-                MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
+            MethodDeclaration method, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> resultList = super.visit(method, adaptee);
             for (AnnotationExpr annotation : method.getAnnotations()) {
                 if (annotation.getNameAsString().equalsIgnoreCase("override")) {
-                    resultList.add(isWrapper(method,currentClass, adaptee)); // This is the error that is
-                    // suppressed, because we return right after.
+                    resultList.add(isWrapper(method, currentClass, adaptee));
                     return resultList;
                 }
             }
@@ -173,11 +175,11 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param method  The MethodDeclaration fo the wrapping method.
          * @param adaptee The ClassOrInterfaceDeclaration to look for the wrapped method in.
-         *
          * @return a boolean, true if it is wrapped, otherwise false.
          */
         private Boolean isWrapper(
-                MethodDeclaration method, ClassOrInterfaceDeclaration currentClass, ClassOrInterfaceDeclaration adaptee) {
+            MethodDeclaration method, ClassOrInterfaceDeclaration currentClass,
+            ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> list = method.accept(new MethodCallVisitor(currentClass), adaptee);
 
             for (Boolean bool : list) {
@@ -197,6 +199,7 @@ public class AdapterVerifier implements IPatternGrouper {
         extends GenericListVisitorAdapter<Boolean, ClassOrInterfaceDeclaration> {
 
         private final ClassOrInterfaceDeclaration currentClass;
+
         public MethodCallVisitor(ClassOrInterfaceDeclaration currentClass) {
             super();
             this.currentClass = currentClass;
@@ -209,17 +212,16 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param methodCallExpr the type of node to be visited
          * @param adaptee        the ClassOrInterfaceDeclaration nodes are being visited in.
-         *
          * @return a list of Booleans, true if wrapped method call otherwise false.
          */
         @Override
         public List<Boolean> visit(
-                MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
+            MethodCallExpr methodCallExpr, ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> boolList = super.visit(methodCallExpr, adaptee);
 
             if (adaptee.isInterface()) {
-                for(FieldDeclaration field : currentClass.getFields()) {
-                    if(field.getCommonType().toString().equals(adaptee.getNameAsString())) {
+                for (FieldDeclaration field : currentClass.getFields()) {
+                    if (field.getCommonType().toString().equals(adaptee.getNameAsString())) {
                         boolList.add(Boolean.TRUE);
                         return boolList;
                     }

@@ -64,8 +64,6 @@ public class AdapterVerifierTest {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
         NodeList<ClassOrInterfaceType> adapteeImplements = concreteAdaptee.getImplementedTypes();
-        NodeList<ClassOrInterfaceType> adapterImplements = adapter.getImplementedTypes();
-
 
         assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
         adapter.setImplementedTypes(adapteeImplements);
