@@ -38,12 +38,12 @@ public class DecoratorVerifierTest {
 
         try {
             concreteComponents.add(
-                TestHelper.getMockClassOrI("Decorator/correctpattern", "Coffee"));
+                TestHelper.getMockClassOrI("decorator/correctpattern", "Coffee"));
             abstractDecorators.add(
-                TestHelper.getMockClassOrI("Decorator/correctpattern", "CoffeeDecorator"));
+                TestHelper.getMockClassOrI("decorator/correctpattern", "CoffeeDecorator"));
             interfaceComponents.add(
-                TestHelper.getMockClassOrI("Decorator/correctpattern", "IBeverageComponent"));
-            concreteDecorators.add(TestHelper.getMockClassOrI("Decorator/correctpattern", "Milk"));
+                TestHelper.getMockClassOrI("decorator/correctpattern", "IBeverageComponent"));
+            concreteDecorators.add(TestHelper.getMockClassOrI("decorator/correctpattern", "Milk"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -74,15 +74,15 @@ public class DecoratorVerifierTest {
 
         try {
             concreteComponents.add(
-                TestHelper.getMockClassOrI("Decorator/failingpattern", "FailingCoffee"));
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffee"));
             abstractDecorators.add(
-                TestHelper.getMockClassOrI("Decorator/failingpattern", "FailingCoffeeDecorator"));
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffeeDecorator"));
             interfaceComponents.add(TestHelper.getMockClassOrI("Decorator/failingpattern",
                                                                "IFailingBeverageComponent"));
             concreteDecorators.add(
-                TestHelper.getMockClassOrI("Decorator/failingpattern", "FailingMilk"));
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingMilk"));
             concreteDecorators.add(
-                TestHelper.getMockClassOrI("Decorator/failingpattern", "FailingCream"));
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCream"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
