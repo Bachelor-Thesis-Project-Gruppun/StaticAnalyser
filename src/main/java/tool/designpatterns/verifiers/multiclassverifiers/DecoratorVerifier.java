@@ -74,7 +74,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      *     or not the instance of the pattern was valid
      */
     public Feedback verify(PatternInstance instance) {
-        Feedback allElementsChild = hasAllElements(instance);
+        Feedback allElementsChild = instance.hasAllElements(instance);
         List<Feedback> childFeedbacks = new ArrayList<>();
         childFeedbacks.add(allElementsChild);
         if (!allElementsChild.getIsError()) {
@@ -106,6 +106,48 @@ public class DecoratorVerifier implements IPatternGrouper {
         public List<ClassOrInterfaceDeclaration> concreteDecorators = new ArrayList<>();
 
         public PatternInstance() {
+        }
+
+        /**
+         * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
+         * <p>For a pattern instance to be valid it has to contain the following:<ul><li>Exactly
+         * one interface component</li><li>At least one of each of the following concrete component,
+         * abstract decorator and concrete decorator</li></ul></p>
+         *
+         * @param patternInstance The pattern instance to verify
+         *
+         * @return A feedback object containing the boolean result
+         */
+        @SuppressWarnings("PMD.LinguisticNaming")
+        public Feedback hasAllElements(PatternInstance patternInstance) {
+            StringBuilder feedbackMessage = new StringBuilder(126);
+            feedbackMessage.append("The following elements are missing: ");
+            boolean errorOccurred = false;
+            if (patternInstance.interfaceComponent == null) {
+                feedbackMessage.append("Interface component, ");
+                errorOccurred = false;
+            }
+            if (patternInstance.concreteComponents.isEmpty()) {
+                feedbackMessage.append("Concrete component(s), ");
+                errorOccurred = false;
+            }
+            if (patternInstance.abstractDecorators.isEmpty()) {
+                feedbackMessage.append("Abstract component(s), ");
+                errorOccurred = false;
+            }
+            if (patternInstance.concreteDecorators.isEmpty()) {
+                feedbackMessage.append("Concrete decorator(s), ");
+                errorOccurred = false;
+            }
+
+            if (errorOccurred) {
+                // We know that the last two characters are ", " and we want to remove those.
+                feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
+                feedbackMessage.deleteCharAt(feedbackMessage.length() - 2);
+                return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
+            }
+
+            return Feedback.getSuccessfulFeedback();
         }
     }
 
@@ -250,6 +292,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      *
      * @return A feedback object containing the result
      */
+    @SuppressWarnings("PMD.LinguisticNaming")
     private Feedback hasFieldOfType(
         ClassOrInterfaceDeclaration toTest, ClassOrInterfaceDeclaration type) {
         Feedback result;
@@ -329,45 +372,5 @@ public class DecoratorVerifier implements IPatternGrouper {
         return result;
     }
 
-    /**
-     * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
-     * <p>For a pattern instance to be valid it has to contain the following:<ul><li>Exactly one
-     * interface component</li><li>At least one of each of the following concrete component,
-     * abstract decorator and concrete decorator</li></ul></p>
-     *
-     * @param patternInstance The pattern instance to verify
-     *
-     * @return A feedback object containing the boolean result
-     */
-    private Feedback hasAllElements(PatternInstance patternInstance) {
-        StringBuilder feedbackMessage = new StringBuilder(126);
-        feedbackMessage.append("The following elements are missing: ");
-        boolean errorOccurred = false;
-        if (patternInstance.interfaceComponent == null) {
-            feedbackMessage.append("Interface component, ");
-            errorOccurred = false;
-        }
-        if (patternInstance.concreteComponents.isEmpty()) {
-            feedbackMessage.append("Concrete component(s), ");
-            errorOccurred = false;
-        }
-        if (patternInstance.abstractDecorators.isEmpty()) {
-            feedbackMessage.append("Abstract component(s), ");
-            errorOccurred = false;
-        }
-        if (patternInstance.concreteDecorators.isEmpty()) {
-            feedbackMessage.append("Concrete decorator(s), ");
-            errorOccurred = false;
-        }
-
-        if (errorOccurred) {
-            // We know that the last two characters are ", " and we want to remove those.
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 2);
-            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
-        }
-
-        return Feedback.getSuccessfulFeedback();
-    }
 }
 
