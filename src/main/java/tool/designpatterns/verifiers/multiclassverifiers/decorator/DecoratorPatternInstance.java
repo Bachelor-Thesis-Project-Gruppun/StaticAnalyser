@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Used to group parts of the same pattern instance (an implementation of the
- * pattern) in one place.
+ * Used to group parts of the same instance of the decorator pattern (an
+ * implementation of the pattern) in one place.
  */
 final class DecoratorPatternInstance {
 
@@ -50,7 +50,6 @@ final class DecoratorPatternInstance {
         HashMap<ClassOrInterfaceDeclaration, DecoratorPatternInstance>
             patternInstances = new HashMap();
 
-        //Create incomplete PatternInstances to be populated below
         interfaceComponents.forEach((interfaceComponent) -> {
             DecoratorPatternInstance patternInstance =
                 new DecoratorPatternInstance();
@@ -58,13 +57,11 @@ final class DecoratorPatternInstance {
             patternInstances.putIfAbsent(interfaceComponent, patternInstance);
         });
 
-        //Used at the bottom for detecting leftovers/invalid patterns
         ArrayList<ClassOrInterfaceDeclaration> identifiedElements =
             new ArrayList<>();
 
-        //Found no better way to populate PatternInstances than looping
-        // through everything multiple
-        // times
+        // Found no better way to populate PatternInstances than looping
+        // through everything multiple times
         interfaceComponents.forEach((interfaceComponent) -> {
             if (interfaceComponent.isInterface()) {
                 String interfaceName = interfaceComponent.getNameAsString();
@@ -89,9 +86,6 @@ final class DecoratorPatternInstance {
                             patternInstance.abstractDecorators.add(ad);
                             identifiedElements.add(ad);
 
-                            //Check which concreteComponents extend this
-                            // abstractDecorator
-                            //And update PatternInstance accordingly
                             concreteDecorators.forEach(cd -> {
                                 cd.getExtendedTypes().forEach(extendedClass -> {
                                     if (extendedClass.getNameAsString().equals(
@@ -105,24 +99,17 @@ final class DecoratorPatternInstance {
                         }
                     });
                 });
-                //If there are any elements left (that we have not
-                // discovered) in any of the
-                // following, then they are
-                //part of an invalid instance of the pattern and will be
-                // handled below
+                // If any elements are left then they are invalid instances
                 concreteComponents.removeAll(identifiedElements);
                 abstractDecorators.removeAll(identifiedElements);
                 concreteDecorators.removeAll(identifiedElements);
             } else {
-                throw new UnsupportedOperationException(
-                    "Was not an interface or something wrong happened");
+                throw new UnsupportedOperationException("Was not an interface");
             }
         });
-        //If there are elements that do not relate to any of the previous
-        // interface components,
-        //since they are invalid, put them in an invalid pattern instance
-        // object for verify() to
-        // handle
+        // If there are elements that do not relate to any of the previous
+        // interface components, since they are invalid, put them in an
+        // invalid pattern instance object for verify() to handle
         if (!(
             concreteComponents.isEmpty() && abstractDecorators.isEmpty() &&
             concreteDecorators.isEmpty())) {
@@ -138,10 +125,12 @@ final class DecoratorPatternInstance {
     }
 
     /**
-     * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
+     * <p>Verifies whether or not an instance of the pattern has all required
+     * elements.</p>
      * <p>For a pattern instance to be valid it has to contain the following:
      * <ul><li>Exactly one interface component</li><li>At least one of each of
-     * following concrete component, abstract decorator and concrete decorator</li></ul></p>
+     * following concrete component, abstract decorator and concrete
+     * decorator</li></ul></p>
      *
      * @param patternInstance The pattern instance to verify
      *
@@ -170,8 +159,7 @@ final class DecoratorPatternInstance {
         }
 
         if (errorOccurred) {
-            // We know that the last two characters are ", " and we want to
-            // remove those.
+            // We know that the last two characters are ", " and we want to remove those.
             feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
             feedbackMessage.deleteCharAt(feedbackMessage.length() - 2);
             feedbackMessage.append('.');

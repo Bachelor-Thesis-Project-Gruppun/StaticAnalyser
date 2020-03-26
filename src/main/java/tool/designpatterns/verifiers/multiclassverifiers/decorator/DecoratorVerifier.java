@@ -105,7 +105,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      *
      * @param interfaceComponent The interface of the interfaceComponent
      *
-     * @return A {@link Feedback} object containing true iff it contains at least one public method
+     * @return A {@link Feedback} object containing the result
      */
     public Feedback interfaceContainsMethod(
         ClassOrInterfaceDeclaration interfaceComponent) {
