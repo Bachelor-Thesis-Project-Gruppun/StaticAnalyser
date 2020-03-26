@@ -12,7 +12,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import org.junit.jupiter.api.Test;
 import tool.designpatterns.Pattern;
-import tool.designpatterns.verifiers.multiclassverifiers.DecoratorVerifier;
+import tool.designpatterns.verifiers.multiclassverifiers.decorator.DecoratorVerifier;
 import utilities.TestHelper;
 
 /**
