@@ -20,6 +20,10 @@ import utilities.TestHelper;
  */
 public class DecoratorVerifierTest {
 
+    /**
+     * Tests that a correctly implemented instance of the decorator pattern does not result in an
+     * errored Feedback.
+     */
     @Test
     public void testCorrectImplementation() {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> testMap = new HashMap();
@@ -52,6 +56,10 @@ public class DecoratorVerifierTest {
         assertFalse(decoratorVerifier.verifyGroup(testMap).hasError());
     }
 
+    /**
+     * Tests that an incorrect implementation of the Decorator design pattern results in an errored
+     * Feedback.
+     */
     @Test
     public void testIncorrectImplementation() {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> testMap = new HashMap();
