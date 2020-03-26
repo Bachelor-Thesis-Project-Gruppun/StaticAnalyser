@@ -75,30 +75,25 @@ public class DecoratorVerifier implements IPatternGrouper {
      *      </ol>
      * </p>
      *
-     * @param patternInstance An instance of the decorator pattern to be
-     *                        verified
+     * @param patternInstance An instance of the decorator pattern to be verified
      *
-     * @return A {@link Feedback} object that contains the result and
-     *     information regarding whether or not the instance of the pattern was
-     *     valid
+     * @return A {@link Feedback} object that contains the result and information regarding whether
+     *     ther or not the instance of the pattern was valid
      */
     public Feedback verify(DecoratorPatternInstance patternInstance) {
-        Feedback allElementsChild = patternInstance.hasAllElements(
-            patternInstance);
+        Feedback allElementsChild = patternInstance.hasAllElements(patternInstance);
         List<Feedback> childFeedbacks = new ArrayList<>();
         childFeedbacks.add(allElementsChild);
         if (!allElementsChild.getIsError()) {
-            childFeedbacks.add(
-                interfaceContainsMethod(patternInstance.interfaceComponent));
+            childFeedbacks.add(interfaceContainsMethod(patternInstance.interfaceComponent));
             patternInstance.abstractDecorators.forEach(decorator -> {
-                childFeedbacks.add(hasFieldOfType(decorator,
-                                                  patternInstance.interfaceComponent));
-                childFeedbacks.add(fieldInitializedInConstr(decorator,
-                                                            patternInstance.interfaceComponent));
+                childFeedbacks.add(hasFieldOfType(decorator, patternInstance.interfaceComponent));
+                childFeedbacks.add(
+                    fieldInitializedInConstr(decorator, patternInstance.interfaceComponent));
             });
             patternInstance.concreteDecorators.forEach(decorator -> {
-                childFeedbacks.add(fieldInitializedInConstr(decorator,
-                                                            patternInstance.interfaceComponent));
+                childFeedbacks.add(
+                    fieldInitializedInConstr(decorator, patternInstance.interfaceComponent));
             });
         }
 
@@ -110,8 +105,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      *
      * @param interfaceComponent The interface of the interfaceComponent
      *
-     * @return A {@link Feedback} object containing true iff it contains at
-     *     least one public method
+     * @return A {@link Feedback} object containing true iff it contains at least one public method
      */
     public Feedback interfaceContainsMethod(
         ClassOrInterfaceDeclaration interfaceComponent) {
@@ -134,8 +128,7 @@ public class DecoratorVerifier implements IPatternGrouper {
             if (erroringMethod == null) {
                 result = Feedback.getPatternInstanceNoChildFeedback(msg);
             } else {
-                result = Feedback.getNoChildFeedback(
-                    msg, new FeedbackTrace(erroringMethod));
+                result = Feedback.getNoChildFeedback(msg, new FeedbackTrace(erroringMethod));
             }
         }
 
@@ -148,7 +141,7 @@ public class DecoratorVerifier implements IPatternGrouper {
      * @param toTest The class to check
      * @param type   The class or interface that toTest should contain
      *
-     * @return A feedback object containing the result
+     * @return A {@link Feedback} object containing the result
      */
     @SuppressWarnings("PMD.LinguisticNaming")
     private Feedback hasFieldOfType(
@@ -172,19 +165,15 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * TODO MUST BE UPDATED WITH ClassOrInterfaceDeclaration Method to check if
-     * all constructors in a given class initialize the Component field in the
-     * class.
+     * Checks if all constructors in a given class initialize the Component field in the class.
      *
      * @param toTest        The class to check.
      * @param interfaceName
      *
-     * @return True iff all constructors in a given class does initialize the
-     *     class' Component
+     * @return A {@link Feedback} object containing the result
      */
     private Feedback fieldInitializedInConstr(
-        ClassOrInterfaceDeclaration toTest,
-        ClassOrInterfaceDeclaration interfaceName) {
+        ClassOrInterfaceDeclaration toTest, ClassOrInterfaceDeclaration interfaceName) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
         List<FieldDeclaration> fieldsInClass = new ArrayList<>();
@@ -194,39 +183,31 @@ public class DecoratorVerifier implements IPatternGrouper {
         String nameOfInterface = interfaceName.getNameAsString();
         List<String> constructorParams = new ArrayList<>();
         for (FieldDeclaration currentField : fieldsInClass) {
-            if (currentField.getCommonType().toString().equals(
-                nameOfInterface)) {
+            if (currentField.getCommonType().toString().equals(nameOfInterface)) {
                 isInitialized.compareAndSet(true, !currentField.isPublic());
                 if (isInitialized.get()) {
-                    currentField.findAll(InitializerDeclaration.class).forEach(
-                        fieldInitializer -> {
+                    currentField.findAll(InitializerDeclaration.class).forEach(fieldInitializer -> {
+                        isInitialized.set(false);
+                    });
+                    toTest.findAll(ConstructorDeclaration.class).forEach(declaration -> {
+                        Optional<Parameter> parameter = declaration.getParameterByType(
+                            nameOfInterface);
+                        if (parameter.isPresent()) {
+                            constructorParams.add(parameter.get().getNameAsString());
+                        } else {
                             isInitialized.set(false);
-                        });
-                    toTest.findAll(ConstructorDeclaration.class).forEach(
-                        declaration -> {
-                            Optional<Parameter> parameter =
-                                declaration.getParameterByType(nameOfInterface);
-                            if (parameter.isPresent()) {
-                                constructorParams.add(
-                                    parameter.get().getNameAsString());
-                            } else {
-                                isInitialized.set(false);
-                            }
-                        });
-                    toTest.findAll(VariableDeclarator.class).forEach(
-                        variableDeclarator -> {
-                            if (variableDeclarator.getNameAsString().equals(
-                                currentField.getVariable(0)
-                                            .getNameAsString()) &&
-                                !variableDeclarator.getInitializer()
-                                                   .isEmpty() &&
-                                !constructorParams.contains(
-                                    variableDeclarator.getInitializer().get()
-                                                      .toString())) {
-                                isInitialized.set(false);
+                        }
+                    });
+                    toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
+                        if (variableDeclarator.getNameAsString().equals(
+                            currentField.getVariable(0).getNameAsString()) &&
+                            !variableDeclarator.getInitializer().isEmpty() &&
+                            !constructorParams.contains(
+                                variableDeclarator.getInitializer().get().toString())) {
+                            isInitialized.set(false);
 
-                            }
-                        });
+                        }
+                    });
                 }
             }
             constructorParams.clear();
