@@ -8,7 +8,6 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.DesignPattern;
@@ -91,7 +90,7 @@ public final class FeedbackTrace {
         }
         message = msg.toString();
     }
-    
+
     private String getStringStart(Node node) {
         if (!node.getRange().isPresent()) {
             return "";
@@ -115,7 +114,7 @@ public final class FeedbackTrace {
         // a constructor for it / one of its super classes.
         throw new NotImplementedException(
             "The given type is not yet supported, here follows the entire node: \n\n" +
-            node.toString());
+                node.toString());
     }
 
     @Override
