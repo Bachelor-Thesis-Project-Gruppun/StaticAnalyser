@@ -182,7 +182,7 @@ public class AdapterVerifier implements IPatternGrouper {
             ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> list = method.accept(new MethodCallVisitor(currentClass), adaptee);
 
-            return list.stream().anyMatch(e-> e);
+            return list.stream().anyMatch(e -> e);
         }
     }
 
