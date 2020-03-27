@@ -11,29 +11,40 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Used to group parts of the same instance of the decorator pattern (an
- * implementation of the pattern) in one place.
+ * Used to group parts of the same instance of the decorator pattern (an implementation of the
+ * pattern) in one place.
  */
 final class DecoratorPatternInstance {
 
-    public ClassOrInterfaceDeclaration interfaceComponent;
-    public List<ClassOrInterfaceDeclaration> concreteComponents =
-        new ArrayList<>();
-    public List<ClassOrInterfaceDeclaration> abstractDecorators =
-        new ArrayList<>();
-    public List<ClassOrInterfaceDeclaration> concreteDecorators =
-        new ArrayList<>();
+    private ClassOrInterfaceDeclaration interfaceComponent;
+    private List<ClassOrInterfaceDeclaration> concreteComponents = new ArrayList<>();
+    private List<ClassOrInterfaceDeclaration> abstractDecorators = new ArrayList<>();
+    private List<ClassOrInterfaceDeclaration> concreteDecorators = new ArrayList<>();
 
     private DecoratorPatternInstance() {
     }
 
+    public ClassOrInterfaceDeclaration getInterfaceComponent() {
+        return interfaceComponent;
+    }
+
+    public List<ClassOrInterfaceDeclaration> getConcreteComponents() {
+        return concreteComponents;
+    }
+
+    public List<ClassOrInterfaceDeclaration> getAbstractDecorators() {
+        return abstractDecorators;
+    }
+
+    public List<ClassOrInterfaceDeclaration> getConcreteDecorators() {
+        return concreteDecorators;
+    }
+
     /**
-     * Method for identifying which classes are part of the same decorator
-     * pattern instance.
+     * Method for identifying which classes are part of the same decorator pattern instance.
      *
-     * @param map A map where every element of the decorator pattern (e.g.
-     *            concrete decorator) is mapped to all the classes of said
-     *            element type
+     * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
+     *            mapped to all the classes of said element type
      *
      * @return A list of all identified instances of the pattern
      */
@@ -47,18 +58,16 @@ final class DecoratorPatternInstance {
             Pattern.DECORATOR_ABSTRACT_DECORATOR);
         List<ClassOrInterfaceDeclaration> concreteDecorators = map.get(
             Pattern.DECORATOR_CONCRETE_DECORATOR);
-        HashMap<ClassOrInterfaceDeclaration, DecoratorPatternInstance>
-            patternInstances = new HashMap();
+        HashMap<ClassOrInterfaceDeclaration, DecoratorPatternInstance> patternInstances =
+            new HashMap();
 
         interfaceComponents.forEach((interfaceComponent) -> {
-            DecoratorPatternInstance patternInstance =
-                new DecoratorPatternInstance();
+            DecoratorPatternInstance patternInstance = new DecoratorPatternInstance();
             patternInstance.interfaceComponent = interfaceComponent;
             patternInstances.putIfAbsent(interfaceComponent, patternInstance);
         });
 
-        ArrayList<ClassOrInterfaceDeclaration> identifiedElements =
-            new ArrayList<>();
+        ArrayList<ClassOrInterfaceDeclaration> identifiedElements = new ArrayList<>();
 
         // Found no better way to populate PatternInstances than looping
         // through everything multiple times
@@ -67,10 +76,9 @@ final class DecoratorPatternInstance {
                 String interfaceName = interfaceComponent.getNameAsString();
                 concreteComponents.forEach(cc -> {
                     cc.getImplementedTypes().forEach(implementedInterface -> {
-                        if (implementedInterface.getNameAsString().equals(
-                            interfaceName)) {
-                            DecoratorPatternInstance patternInstance =
-                                patternInstances.get(interfaceComponent);
+                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                            DecoratorPatternInstance patternInstance = patternInstances.get(
+                                interfaceComponent);
                             patternInstance.concreteComponents.add(cc);
                             identifiedElements.add(cc);
                         }
@@ -79,10 +87,9 @@ final class DecoratorPatternInstance {
 
                 abstractDecorators.forEach(ad -> {
                     ad.getImplementedTypes().forEach(implementedInterface -> {
-                        if (implementedInterface.getNameAsString().equals(
-                            interfaceName)) {
-                            DecoratorPatternInstance patternInstance =
-                                patternInstances.get(interfaceComponent);
+                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                            DecoratorPatternInstance patternInstance = patternInstances.get(
+                                interfaceComponent);
                             patternInstance.abstractDecorators.add(ad);
                             identifiedElements.add(ad);
 
@@ -90,8 +97,7 @@ final class DecoratorPatternInstance {
                                 cd.getExtendedTypes().forEach(extendedClass -> {
                                     if (extendedClass.getNameAsString().equals(
                                         ad.getName().asString())) {
-                                        patternInstance.concreteDecorators.add(
-                                            cd);
+                                        patternInstance.concreteDecorators.add(cd);
                                         identifiedElements.add(cd);
                                     }
                                 });
@@ -120,38 +126,39 @@ final class DecoratorPatternInstance {
             patternInstances.put(null, patternInstance);
         }
 
-        return new ArrayList<DecoratorPatternInstance>(
-            patternInstances.values());
+        return new ArrayList<DecoratorPatternInstance>(patternInstances.values());
     }
 
     /**
      * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
      * <p>For a pattern instance to be valid it has to contain the following: <ul><li>Exactly
-     * one interface component</li><li>At least one of each of following:
-     * concrete component, abstract decorator and concrete decorator</li></ul></p>
-     *
-     * @param patternInstance The pattern instance to verify
+     * one interface component</li><li>At least one of each of following: concrete component,
+     * abstract decorator and concrete decorator</li></ul></p>
      *
      * @return A feedback object containing the boolean result
      */
     @SuppressWarnings("PMD.LinguisticNaming")
-    public Feedback hasAllElements(DecoratorPatternInstance patternInstance) {
+    public Feedback hasAllElements() {
         StringBuilder feedbackMessage = new StringBuilder(127);
         feedbackMessage.append("The following elements are missing: ");
         boolean errorOccurred = false;
-        if (patternInstance.interfaceComponent == null) {
+        if (this.interfaceComponent == null) {
             feedbackMessage.append("Interface component, ");
             errorOccurred = true;
+        } else if (!this.interfaceComponent.isInterface()) {
+            String msg = "Interface component (The annotated class is not an interface), ";
+            feedbackMessage.append(msg);
+            errorOccurred = true;
         }
-        if (patternInstance.concreteComponents.isEmpty()) {
+        if (this.concreteComponents.isEmpty()) {
             feedbackMessage.append("Concrete component(s), ");
             errorOccurred = true;
         }
-        if (patternInstance.abstractDecorators.isEmpty()) {
+        if (this.abstractDecorators.isEmpty()) {
             feedbackMessage.append("Abstract component(s), ");
             errorOccurred = true;
         }
-        if (patternInstance.concreteDecorators.isEmpty()) {
+        if (this.concreteDecorators.isEmpty()) {
             feedbackMessage.append("Concrete decorator(s), ");
             errorOccurred = true;
         }
@@ -159,10 +166,9 @@ final class DecoratorPatternInstance {
         if (errorOccurred) {
             // We know that the last two characters are ", " and we want to remove those.
             feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 2);
+            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
             feedbackMessage.append('.');
-            return Feedback.getPatternInstanceNoChildFeedback(
-                feedbackMessage.toString());
+            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
         }
 
         return Feedback.getSuccessfulFeedback();

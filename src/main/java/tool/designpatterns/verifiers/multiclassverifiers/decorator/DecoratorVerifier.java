@@ -47,8 +47,7 @@ public class DecoratorVerifier implements IPatternGrouper {
     }
 
     /**
-     * <p>Verifies that a correct implementation of the decorator interface has
-     * been found.</p>
+     * <p>Verifies that a correct implementation of the decorator interface has been found.</p>
      * <p>Any valid implementation must fulfill the following requirements:
      *      <ol>
      *          <li>Any given pattern instance must contain:
@@ -59,19 +58,22 @@ public class DecoratorVerifier implements IPatternGrouper {
      *             <li>At least one concrete decorator</li>
      *              </ul>
      *          </li>
-     *          <li>The component interface must contain at least one
-     *          method</li>
+     *          <li>The component interface must contain at least one method</li>
      *
      *         <li>Every abstract decorator must fulfill the following:
      *             <ul>
-     *             <li>It must house a component field</li>
-     *             <li>The component field needs to be initialized during
-     *             construction</li>
+     *                  <li>It must house a component field</li>
+     *                  <li>The component field needs to be initialized during construction</li>
      *             </ul>
      *         </li>
-     *         <li>Every concrete decorator must extend an existing abstract
-     *         decorator in the
-     *         current the pattern instance</li>
+     *         <li>
+     *             Every concrete decorator must extend an existing abstract decorator in the
+     *             current the pattern instance (implicitly done when calling getPatternInstances())
+     *         </li>
+     *         <li>
+     *             Every concrete component must extend the interface component (implicitly done
+     *             when calling getPatternInstances())
+     *         </li>
      *      </ol>
      * </p>
      *
@@ -80,20 +82,25 @@ public class DecoratorVerifier implements IPatternGrouper {
      * @return A {@link Feedback} object that contains the result and information regarding whether
      *     ther or not the instance of the pattern was valid
      */
-    public Feedback verify(DecoratorPatternInstance patternInstance) {
-        Feedback allElementsChild = patternInstance.hasAllElements(patternInstance);
+    @SuppressWarnings("PMD.LinguisticNaming")
+    private Feedback verify(DecoratorPatternInstance patternInstance) {
         List<Feedback> childFeedbacks = new ArrayList<>();
-        childFeedbacks.add(allElementsChild);
-        if (!allElementsChild.getIsError()) {
-            childFeedbacks.add(interfaceContainsMethod(patternInstance.interfaceComponent));
-            patternInstance.abstractDecorators.forEach(decorator -> {
-                childFeedbacks.add(hasFieldOfType(decorator, patternInstance.interfaceComponent));
-                childFeedbacks.add(
-                    fieldInitializedInConstr(decorator, patternInstance.interfaceComponent));
+        ClassOrInterfaceDeclaration interfaceComponent = patternInstance.getInterfaceComponent();
+        List<ClassOrInterfaceDeclaration> abstractDecorators =
+            patternInstance.getAbstractDecorators();
+        List<ClassOrInterfaceDeclaration> concreteDecorators =
+            patternInstance.getConcreteDecorators();
+
+        Feedback hasAllElements = patternInstance.hasAllElements();
+        childFeedbacks.add(hasAllElements);
+        if (!hasAllElements.getIsError()) {
+            childFeedbacks.add(interfaceContainsMethod(interfaceComponent));
+            abstractDecorators.forEach(decorator -> {
+                childFeedbacks.add(hasFieldOfType(decorator, interfaceComponent));
+                childFeedbacks.add(fieldInitializedInConstr(decorator, interfaceComponent));
             });
-            patternInstance.concreteDecorators.forEach(decorator -> {
-                childFeedbacks.add(
-                    fieldInitializedInConstr(decorator, patternInstance.interfaceComponent));
+            concreteDecorators.forEach(decorator -> {
+                childFeedbacks.add(fieldInitializedInConstr(decorator, interfaceComponent));
             });
         }
 
@@ -192,7 +199,7 @@ public class DecoratorVerifier implements IPatternGrouper {
                     toTest.findAll(VariableDeclarator.class).forEach(variableDeclarator -> {
                         if (variableDeclarator.getNameAsString().equals(
                             currentField.getVariable(0).getNameAsString()) &&
-                            !variableDeclarator.getInitializer().isEmpty() &&
+                            variableDeclarator.getInitializer().isPresent() &&
                             !constructorParams.contains(
                                 variableDeclarator.getInitializer().get().toString())) {
                             isInitialized.set(false);
@@ -207,7 +214,7 @@ public class DecoratorVerifier implements IPatternGrouper {
             result = Feedback.getSuccessfulFeedback();
         } else {
             result = Feedback.getNoChildFeedback(
-                "All constructors did not initialize the " + "Component field",
+                "All constructors did not initialize the Component field",
                 new FeedbackTrace(toTest));
         }
         return result;
