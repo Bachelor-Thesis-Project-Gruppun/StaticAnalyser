@@ -1,6 +1,7 @@
 package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,6 +25,23 @@ public class ProxyVerifier implements IPatternGrouper {
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
 
         List<Feedback> feedbacks = new ArrayList<>();
+        List<Feedback> interfaceFeedbacks = new ArrayList<>();
+        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
+            new HashMap<>();
+
+        map.get(Pattern.PROXY_INTERFACE).forEach(interfaceOrAClass -> {
+            Tuple2<Feedback, List<MethodDeclaration>> interfaceMethods = getValidMethods(
+                interfaceOrAClass);
+            interfaceFeedbacks.add(interfaceMethods.getFirst());
+            interfaceMethodMap.put(interfaceOrAClass, interfaceMethods.getSecond());
+        });
+
+        List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
+        Tuple2<Feedback, List<InterfaceSubjectTuple>> interfaceSubjects = verifySubjects(
+            interfaceMethodMap, subjects);
+
+        List<ClassOrInterfaceDeclaration> proxys = map.get(Pattern.PROXY_PROXY);
+        Feedback proxyFeedback = verifyProxys(proxys, interfaceSubjects.getSecond());
         // 1. Gå igenom alla "Pattern.PROXY_INTERFACE":
         //    1b. hämta giltiga metoder.
         // 1c. Kolla så att alla interfaces används.
@@ -37,7 +55,7 @@ public class ProxyVerifier implements IPatternGrouper {
         //
         // 3. Kolla så att alla subjects har en interface och är valid.
         // 3b. Kolla så att alla proxys har en interface och en subject och är valid.
-        
+
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
 
@@ -51,7 +69,7 @@ public class ProxyVerifier implements IPatternGrouper {
     // Step 2 / 2b (also 2* but uses verifyProxy && classImplementsMethod for this) -- vidde
     private Tuple2<Feedback, List<InterfaceSubjectTuple>> verifySubjects(
         Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethods,
-        List<ClassOrInterfaceDeclaration> subjects, List<ClassOrInterfaceDeclaration> proxys) {
+        List<ClassOrInterfaceDeclaration> subjects) {
 
         // The groups of Interface, interfaceMethod and subjects that have been found.
         List<InterfaceSubjectTuple> groups = new ArrayList<>();
@@ -90,6 +108,23 @@ public class ProxyVerifier implements IPatternGrouper {
         return new Tuple2<>(Feedback.getPatternInstanceFeedback(unusedSubjectFeedbacks), groups);
     }
 
+    // 2d / 2f / 2g (also 2e but uses ClassImplementsMethod) -- vidde
+
+    /**
+     * Takes a list of proxys and a list of InterfaceSubjectTuples, matches them together and
+     * verifies that all proxies and interfaceSubjects are used.
+     *
+     * @param proxys            the proxies to verify.
+     * @param interfaceSubjects the InterfaceSubjectTuples to verify.
+     *
+     * @return Feedback on the verification.
+     */
+    private Feedback verifyProxys(
+        List<ClassOrInterfaceDeclaration> proxys, List<InterfaceSubjectTuple> interfaceSubjects) {
+
+        throw new NotImplementedException();
+    }
+
     /**
      * Simple tuple3 to group an interface, a subject and the interface method that belongs
      * together.
@@ -107,14 +142,6 @@ public class ProxyVerifier implements IPatternGrouper {
             this.interfaceMethod = interfaceMethod;
             this.subject = subject;
         }
-    }
-
-    // 2d / 2f / 2g (also 2e but uses ClassImplementsMethod) -- vidde
-    private Feedback verifyProxys(
-        List<ClassOrInterfaceDeclaration> proxys, MethodDeclaration method,
-        ClassOrInterfaceDeclaration subject, MethodDeclaration subjectMethod) {
-
-        throw new NotImplementedException();
     }
 
     // Steps 2c / 2e -- nemo
