@@ -20,5 +20,4 @@ public enum Pattern {
     PatternGroup getGroup() {
         return this.group;
     }
-
 }
