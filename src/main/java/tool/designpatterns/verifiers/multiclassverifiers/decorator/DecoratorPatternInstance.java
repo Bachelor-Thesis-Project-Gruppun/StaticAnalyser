@@ -72,46 +72,43 @@ final class DecoratorPatternInstance {
         // Found no better way to populate PatternInstances than looping
         // through everything multiple times
         interfaceComponents.forEach((interfaceComponent) -> {
-            if (interfaceComponent.isInterface()) {
-                String interfaceName = interfaceComponent.getNameAsString();
-                concreteComponents.forEach(cc -> {
-                    cc.getImplementedTypes().forEach(implementedInterface -> {
-                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            DecoratorPatternInstance patternInstance = patternInstances.get(
-                                interfaceComponent);
-                            patternInstance.concreteComponents.add(cc);
-                            identifiedElements.add(cc);
-                        }
-                    });
+            String interfaceName = interfaceComponent.getNameAsString();
+            concreteComponents.forEach(cc -> {
+                cc.getImplementedTypes().forEach(implementedInterface -> {
+                    if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                        DecoratorPatternInstance patternInstance = patternInstances.get(
+                            interfaceComponent);
+                        patternInstance.concreteComponents.add(cc);
+                        identifiedElements.add(cc);
+                    }
                 });
+            });
 
-                abstractDecorators.forEach(ad -> {
-                    ad.getImplementedTypes().forEach(implementedInterface -> {
-                        if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                            DecoratorPatternInstance patternInstance = patternInstances.get(
-                                interfaceComponent);
-                            patternInstance.abstractDecorators.add(ad);
-                            identifiedElements.add(ad);
+            abstractDecorators.forEach(ad -> {
+                ad.getImplementedTypes().forEach(implementedInterface -> {
+                    if (implementedInterface.getNameAsString().equals(interfaceName)) {
+                        DecoratorPatternInstance patternInstance = patternInstances.get(
+                            interfaceComponent);
+                        patternInstance.abstractDecorators.add(ad);
+                        identifiedElements.add(ad);
 
-                            concreteDecorators.forEach(cd -> {
-                                cd.getExtendedTypes().forEach(extendedClass -> {
-                                    if (extendedClass.getNameAsString().equals(
-                                        ad.getName().asString())) {
-                                        patternInstance.concreteDecorators.add(cd);
-                                        identifiedElements.add(cd);
-                                    }
-                                });
+                        concreteDecorators.forEach(cd -> {
+                            cd.getExtendedTypes().forEach(extendedClass -> {
+                                if (extendedClass.getNameAsString().equals(
+                                    ad.getName().asString())) {
+                                    patternInstance.concreteDecorators.add(cd);
+                                    identifiedElements.add(cd);
+                                }
                             });
-                        }
-                    });
+                        });
+                    }
                 });
-                // If any elements are left then they are invalid instances
-                concreteComponents.removeAll(identifiedElements);
-                abstractDecorators.removeAll(identifiedElements);
-                concreteDecorators.removeAll(identifiedElements);
-            } else {
-                throw new UnsupportedOperationException("Was not an interface");
-            }
+            });
+            // If any elements are left then they are invalid instances
+            concreteComponents.removeAll(identifiedElements);
+            abstractDecorators.removeAll(identifiedElements);
+            concreteDecorators.removeAll(identifiedElements);
+
         });
         // If there are elements that do not relate to any of the previous
         // interface components, since they are invalid, put them in an
