@@ -182,12 +182,7 @@ public class AdapterVerifier implements IPatternGrouper {
             ClassOrInterfaceDeclaration adaptee) {
             List<Boolean> list = method.accept(new MethodCallVisitor(currentClass), adaptee);
 
-            for (Boolean bool : list) {
-                if (bool) {
-                    return Boolean.TRUE;
-                }
-            }
-            return Boolean.FALSE;
+            return list.stream().anyMatch(e-> e);
         }
     }
 
@@ -238,7 +233,6 @@ public class AdapterVerifier implements IPatternGrouper {
 
 
 }
-
 
 
 
