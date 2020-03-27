@@ -7,8 +7,8 @@ package tool.feedback;
  */
 public class FeedbackWrapper<T> {
 
-    private Feedback feedback;
-    private T other;
+    private final Feedback feedback;
+    private final T other;
 
     public FeedbackWrapper(Feedback feedback, T other) {
         this.feedback = feedback;
