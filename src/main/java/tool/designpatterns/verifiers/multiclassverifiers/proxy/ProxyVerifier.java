@@ -16,6 +16,7 @@ import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
+import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
 
 public class ProxyVerifier implements IPatternGrouper {
@@ -37,11 +38,11 @@ public class ProxyVerifier implements IPatternGrouper {
         });
 
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        Tuple2<Feedback, List<InterfaceSubjectTuple>> interfaceSubjects = verifySubjects(
+        FeedbackWrapper<List<InterfaceSubjectTuple>> interfaceSubjects = verifySubjects(
             interfaceMethodMap, subjects);
 
         List<ClassOrInterfaceDeclaration> proxys = map.get(Pattern.PROXY_PROXY);
-        Feedback proxyFeedback = verifyProxys(proxys, interfaceSubjects.getSecond());
+        Feedback proxyFeedback = verifyProxys(proxys, interfaceSubjects.getOther());
         // 1. Gå igenom alla "Pattern.PROXY_INTERFACE":
         //    1b. hämta giltiga metoder.
         // 1c. Kolla så att alla interfaces används.
@@ -67,7 +68,7 @@ public class ProxyVerifier implements IPatternGrouper {
     }
 
     // Step 2 / 2b (also 2* but uses verifyProxy && classImplementsMethod for this) -- vidde
-    private Tuple2<Feedback, List<InterfaceSubjectTuple>> verifySubjects(
+    private FeedbackWrapper<List<InterfaceSubjectTuple>> verifySubjects(
         Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethods,
         List<ClassOrInterfaceDeclaration> subjects) {
 
@@ -105,7 +106,8 @@ public class ProxyVerifier implements IPatternGrouper {
             }
         });
 
-        return new Tuple2<>(Feedback.getPatternInstanceFeedback(unusedSubjectFeedbacks), groups);
+        return new FeedbackWrapper<>(
+            Feedback.getPatternInstanceFeedback(unusedSubjectFeedbacks), groups);
     }
 
     // 2d / 2f / 2g (also 2e but uses ClassImplementsMethod) -- vidde
