@@ -3,7 +3,7 @@ package mocks.decorator.failingpattern;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
- * Should fail predicate because the class does not set it's component at any point
+ * Should fail predicate because the class does not set it's component in one of the constructors
  */
 @SuppressFBWarnings("URF_UNREAD_FIELD")
 public class FailingCream extends FailingCoffeeDecorator {

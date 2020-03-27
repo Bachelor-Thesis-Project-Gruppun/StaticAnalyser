@@ -110,14 +110,12 @@ public class DecoratorVerifier implements IPatternGrouper {
     public Feedback interfaceContainsMethod(
         ClassOrInterfaceDeclaration interfaceComponent) {
         Feedback result;
-        MethodDeclaration erroringMethod = null;
 
         AtomicBoolean resultBool = new AtomicBoolean(false);
         for (MethodDeclaration methodDeclaration : interfaceComponent.findAll(
             MethodDeclaration.class)) {
             if (!methodDeclaration.isPrivate()) {
                 resultBool.set(true);
-                erroringMethod = methodDeclaration;
             }
         }
 
@@ -125,11 +123,7 @@ public class DecoratorVerifier implements IPatternGrouper {
             result = Feedback.getSuccessfulFeedback();
         } else {
             String msg = "Interface does not contain any methods!";
-            if (erroringMethod == null) {
-                result = Feedback.getPatternInstanceNoChildFeedback(msg);
-            } else {
-                result = Feedback.getNoChildFeedback(msg, new FeedbackTrace(erroringMethod));
-            }
+            result = Feedback.getPatternInstanceNoChildFeedback(msg);
         }
 
         return result;
@@ -149,7 +143,7 @@ public class DecoratorVerifier implements IPatternGrouper {
         Feedback result;
         AtomicBoolean hasAComponent = new AtomicBoolean(false);
         toTest.findAll(VariableDeclarator.class).forEach(fieldDeclaration -> {
-            if (fieldDeclaration.getTypeAsString().contains(
+            if (fieldDeclaration.getTypeAsString().equals(
                 type.getNameAsString())) { //Check that this works
                 hasAComponent.set(true);
             }
@@ -176,10 +170,7 @@ public class DecoratorVerifier implements IPatternGrouper {
         ClassOrInterfaceDeclaration toTest, ClassOrInterfaceDeclaration interfaceName) {
         Feedback result;
         AtomicBoolean isInitialized = new AtomicBoolean(true);
-        List<FieldDeclaration> fieldsInClass = new ArrayList<>();
-        toTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
-            fieldsInClass.add(fieldDeclaration);
-        });
+        List<FieldDeclaration> fieldsInClass = toTest.findAll(FieldDeclaration.class);
         String nameOfInterface = interfaceName.getNameAsString();
         List<String> constructorParams = new ArrayList<>();
         for (FieldDeclaration currentField : fieldsInClass) {
