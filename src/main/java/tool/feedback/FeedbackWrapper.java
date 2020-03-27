@@ -1,5 +1,10 @@
 package tool.feedback;
 
+/**
+ * A wrapper to be able to return something more than a feedback from methods.
+ *
+ * @param <T> the type that one wants to be able to return.
+ */
 public class FeedbackWrapper<T> {
 
     private Feedback feedback;
