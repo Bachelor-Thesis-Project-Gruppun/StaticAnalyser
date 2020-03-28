@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers.proxy.helpers;
+package tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers;
 
 import java.util.List;
 
