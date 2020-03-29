@@ -3,24 +3,21 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.MethodVerification.classImplementsMethod;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers.InterfaceSubjectTuple;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
-import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 
 /**
  * A class responsible for verifying a Proxy pattern Subject class.
  */
 public class ProxySubjectVerifier {
-
-    // Step 2 / 2b (also 2* but uses verifyProxy && classImplementsMethod for this) -- vidde
 
     /**
      * Method to validate that the given Proxy Subjects are valid and group them together with their
@@ -33,61 +30,38 @@ public class ProxySubjectVerifier {
      * @return The feedback of the verification as well as a list of the interfaces,
      *     interfaceMethods, Subject and Subject methods grouped together.
      */
-    static FeedbackWrapper<List<InterfaceSubjectTuple>> verifySubjects(
+    static FeedbackWrapper<List<ProxyPatternGroup>> verifySubjects(
         Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethods,
         List<ClassOrInterfaceDeclaration> subjects) {
 
-        // The groups of Interface, interfaceMethod and subjects that have been found.
-        List<InterfaceSubjectTuple> interfaceSubjectGroups = new ArrayList<>();
-        List<Feedback> interfaceFeedbacks = new ArrayList<>();
+        List<Feedback> groupingFeedbacks = new ArrayList<>();
+        List<ProxyPatternGroup> proxyPatterns = new ArrayList<>();
 
-        interfaceMethods.keySet().forEach(interfaceOrAClass -> {
-            interfaceMethods.get(interfaceOrAClass).forEach(method -> {
-                AtomicBoolean interfaceIsUsed = new AtomicBoolean(false);
-                subjects.forEach(subject -> {
-                    FeedbackWrapper<MethodDeclaration> subjectMethod = classImplementsMethod(
-                        subject, interfaceOrAClass, method);
+        for (ClassOrInterfaceDeclaration subject : subjects) {
+            for (ClassOrInterfaceDeclaration interfaceOrAClass : interfaceMethods.keySet()) {
+                List<MethodGroup> methodGroups = new ArrayList<>();
+                for (MethodDeclaration method : interfaceMethods.get(interfaceOrAClass)) {
+                    FeedbackWrapper<MethodDeclaration> result = classImplementsMethod(subject,
+                                                                                      interfaceOrAClass,
+                                                                                      method);
 
-                    if (subjectMethod != null) {
-                        interfaceSubjectGroups.add(
-                            new InterfaceSubjectTuple(interfaceOrAClass, method, subject,
-                                                      subjectMethod.getOther()));
-                        interfaceIsUsed.set(true);
+                    groupingFeedbacks.add(result.getFeedback());
+
+                    if (result.getOther() != null) {
+                        methodGroups.add(new MethodGroup(method, result.getOther()));
                     }
-                });
-
-                // Validate that this interface is used.
-                if (!interfaceIsUsed.get()) {
-                    interfaceFeedbacks.add(Feedback.getNoChildFeedback(
-                        "Interface appears to lack a proxy subject implementation",
-                        new FeedbackTrace(interfaceOrAClass)));
                 }
-            });
-        });
 
-        List<Feedback> unusedSubjectFeedbacks = new ArrayList<>();
-        subjects.forEach(subject -> {
-            AtomicBoolean isUsed = new AtomicBoolean(false);
-
-            interfaceSubjectGroups.forEach(group -> {
-                if (group.getSubject().equals(subject)) {
-                    isUsed.set(true);
+                if (!methodGroups.isEmpty()) {
+                    // The subject and interface are now Grouped.
+                    proxyPatterns.add(ProxyPatternGroup
+                                          .getInterfaceSubjectGroup(interfaceOrAClass, subject,
+                                                                    methodGroups));
                 }
-            });
-
-            if (!isUsed.get()) {
-                String message =
-                    subject.getNameAsString() + " is not a valid Proxy Subject, it needs to " +
-                    "implement a proxy interface method.";
-                unusedSubjectFeedbacks.add(
-                    Feedback.getNoChildFeedback(message, new FeedbackTrace(subject)));
             }
-        });
+        }
 
-        // Merge all subFeedbacks together.
-        unusedSubjectFeedbacks.addAll(interfaceFeedbacks);
-
-        return new FeedbackWrapper<>(
-            Feedback.getPatternInstanceFeedback(unusedSubjectFeedbacks), interfaceSubjectGroups);
+        return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(groupingFeedbacks),
+                                     proxyPatterns);
     }
 }

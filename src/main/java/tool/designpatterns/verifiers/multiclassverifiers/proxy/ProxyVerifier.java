@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxyVerifier.verifyProxys;
+import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxyVerifier.verifyProxies;
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxySubjectVerifier.verifySubjects;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -16,7 +16,7 @@ import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.helpers.InterfaceSubjectTuple;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
@@ -42,11 +42,17 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        FeedbackWrapper<List<InterfaceSubjectTuple>> interfaceSubjects = verifySubjects(
+        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjects = verifySubjects(
             interfaceMethodMap, subjects);
 
-        // Verify the proxys
+        feedbacks.add(interfaceSubjects.getFeedback());
+
+        // Verify the Proxies.
         List<ClassOrInterfaceDeclaration> proxys = map.get(Pattern.PROXY_PROXY);
+        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjectProxies = verifyProxies();
+
+        /*
+        // Verify the proxys
         Feedback proxyFeedback = verifyProxys(proxys, interfaceSubjects.getOther());
 
         // 1. Gå igenom alla "Pattern.PROXY_INTERFACE":
@@ -62,6 +68,7 @@ public class ProxyVerifier implements IPatternGrouper {
         //
         // 3. Kolla så att alla subjects har en interface och är valid.
         // 3b. Kolla så att alla proxys har en interface och en subject och är valid.
+         */
 
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
