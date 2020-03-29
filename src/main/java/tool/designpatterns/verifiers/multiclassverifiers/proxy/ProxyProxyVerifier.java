@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 
+import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
@@ -89,6 +90,8 @@ public class ProxyProxyVerifier {
             // Validate that every proxy method uses the corresponding subject method.
 
         }
+
+        throw new NotImplementedException();
     }
 
     private static FeedbackWrapper<List<VariableDeclarator>> getVariableCandidates(

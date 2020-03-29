@@ -14,7 +14,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import groovy.lang.Tuple2;
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
-import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
@@ -55,7 +54,7 @@ public class ProxyVerifier implements IPatternGrouper {
         // Validate that all classes marked as parts of a Proxy pattern are used at least once.
         throw new NotImplementedException();
 
-        return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
+        //        return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
 
     // Steps 1 / 1b -- nemo
