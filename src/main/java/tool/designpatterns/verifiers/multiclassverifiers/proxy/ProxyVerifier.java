@@ -16,7 +16,7 @@ import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers.ProxyPatternGroup;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
@@ -49,26 +49,11 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the Proxies.
         List<ClassOrInterfaceDeclaration> proxys = map.get(Pattern.PROXY_PROXY);
-        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjectProxies = verifyProxies();
+        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjectProxies = verifyProxies(
+            interfaceSubjects.getOther(), proxys);
 
-        /*
-        // Verify the proxys
-        Feedback proxyFeedback = verifyProxys(proxys, interfaceSubjects.getOther());
-
-        // 1. Gå igenom alla "Pattern.PROXY_INTERFACE":
-        //    1b. hämta giltiga metoder.
-        // 1c. Kolla så att alla interfaces används.
-        // 2. För alla giltiga metoder:
-        //    2b. Gå igenom alla "Pattern.PROXY_SUBJECT":
-        //        2c. Kolla att den implementerar metoden (/ inhertetar från interfacet).
-        //        2d. Gå igenom alla Pattern.PROXY_PROXY"
-        //            2e. Kolla att den också har metoden (/ inhertetar från interfacet).
-        //            2f. Kolla att den har en privat variable av typ SUBJECT.
-        //            2g. Kolla att SUBJECTs metod kallas i metoden.
-        //
-        // 3. Kolla så att alla subjects har en interface och är valid.
-        // 3b. Kolla så att alla proxys har en interface och en subject och är valid.
-         */
+        // Validate that all classes marked as parts of a Proxy pattern are used at least once.
+        throw new NotImplementedException();
 
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }

@@ -2,160 +2,125 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.MethodVerification.classImplementsMethod;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 
-import org.apache.commons.lang.NotImplementedException;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers.InterfaceSubjectProxyTuple;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.tuplehelpers.InterfaceSubjectTuple;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 
 /**
- * Class responsible for verifying a Proxy pattern Proxy class
+ * Class to verify the Proxy class part of the Proxy pattern.
  */
 public class ProxyProxyVerifier {
 
-    // 2d / 2f / 2g (also 2e but uses ClassImplementsMethod) -- vidde
-
-    /**
-     * Takes a list of proxys and a list of InterfaceSubjectTuples, matches them together and
-     * verifies that all proxies and interfaceSubjects are used.
-     *
-     * @param proxys            the proxies to verify.
-     * @param interfaceSubjects the InterfaceSubjectTuples to verify.
-     *
-     * @return Feedback on the verification.
-     */
-    static Feedback verifyProxys(
-        List<ClassOrInterfaceDeclaration> proxys, List<InterfaceSubjectTuple> interfaceSubjects) {
+    public static FeedbackWrapper<List<ProxyPatternGroup>> verifyProxies(
+        List<ProxyPatternGroup> interfaceSubjects, List<ClassOrInterfaceDeclaration> proxies) {
 
         List<Feedback> feedbacks = new ArrayList<>();
 
-        // Find out which proxies belongs to which interfaceSubjects (note we allow multiple
-        // classes to be proxys for the same interfaceSubjects).
-        FeedbackWrapper<List<InterfaceSubjectProxyTuple>> interfaceSubjectProxyGroups =
-            addProxiesToGroup(proxys, interfaceSubjects);
-        feedbacks.add(interfaceSubjectProxyGroups.getFeedback());
+        FeedbackWrapper<List<ProxyPatternGroup>> noVariableGroups = addProxies(proxies,
+                                                                               interfaceSubjects);
 
-        // Make sure that all proxy classes were used.
-        Feedback unusedProxyFeedback = validateProxysAreUsed(
-            proxys, interfaceSubjectProxyGroups.getOther());
-        feedbacks.add(unusedProxyFeedback);
+        feedbacks.add(noVariableGroups.getFeedback());
 
-        // Validate that the proxy has a variable that holds the subject.
-        Feedback proxysHasVariablesFeedback = validateProxysHasVariables(
-            interfaceSubjectProxyGroups.getOther());
+        Feedback proxyUsesSubject = verifyProxyUsesSubject(noVariableGroups.getOther());
 
-        // Validate that the proxys method calls the subjects method.
-        // FeedbackWrapper<List<ProxyMethodGroup>> methodGroups = filterToMethods();
+        feedbacks.add(proxyUsesSubject);
 
-        throw new NotImplementedException();
+        return new FeedbackWrapper(Feedback.getPatternInstanceFeedback(feedbacks),
+                                   noVariableGroups.getOther());
     }
 
-    /**
-     * Finds a proxy class for each interfaceSubject and creates a InterfaceSubjectProxyGroup from
-     * all of them.
-     *
-     * @param proxys            the proxies to check.
-     * @param interfaceSubjects the interfaceSubjecs to check.
-     *
-     * @return the new interfaceSubjectProxyGroups and feedback.
-     */
-    private static FeedbackWrapper<List<InterfaceSubjectProxyTuple>> addProxiesToGroup(
+    private static FeedbackWrapper<List<ProxyPatternGroup>> addProxies(
+        List<ClassOrInterfaceDeclaration> proxies, List<ProxyPatternGroup> interfaceSubjects) {
 
-        List<ClassOrInterfaceDeclaration> proxys, List<InterfaceSubjectTuple> interfaceSubjects) {
-        List<Feedback> feedbacks = new ArrayList<>();
+        List<Feedback> groupingFeedbacks = new ArrayList<>();
+        List<ProxyPatternGroup> noVariableGroups = new ArrayList<>();
 
-        List<InterfaceSubjectProxyTuple> interfaceSubjectProxyGroups = new ArrayList<>();
-        for (ClassOrInterfaceDeclaration proxy : proxys) {
-            for (InterfaceSubjectTuple interfaceSubject : interfaceSubjects) {
-                FeedbackWrapper<MethodDeclaration> proxyMethod = classImplementsMethod(proxy,
-                                                                                       interfaceSubject
-                                                                                           .getInterfaceOrAClass(),
-                                                                                       interfaceSubject
-                                                                                           .getInterfaceMethod());
+        // Group together the new ProxyPatternGroups
+        for (ClassOrInterfaceDeclaration proxy : proxies) {
+            for (ProxyPatternGroup interfaceSubject : interfaceSubjects) {
+                List<MethodGroup> newMethodGroups = new ArrayList<>();
+                for (MethodGroup oldMethodGroup : interfaceSubject.getMethods()) {
+                    FeedbackWrapper<MethodDeclaration> proxyMethod = classImplementsMethod(proxy,
+                                                                                           interfaceSubject
+                                                                                               .getInterfaceOrAClass(),
+                                                                                           oldMethodGroup
+                                                                                               .getInterfaceMethod());
 
-                feedbacks.add(proxyMethod.getFeedback());
+                    groupingFeedbacks.add(proxyMethod.getFeedback());
 
-                if (proxyMethod.getOther() != null) {
-                    interfaceSubjectProxyGroups.add(
-                        new InterfaceSubjectProxyTuple(interfaceSubject, proxy,
-                                                       proxyMethod.getOther()));
+                    if (proxyMethod.getOther() != null) {
+                        newMethodGroups.add(
+                            new MethodGroup(oldMethodGroup, proxyMethod.getOther()));
+                    }
+                }
+
+                if (!newMethodGroups.isEmpty()) {
+                    // The class implements the same interface as the subject.
+                    noVariableGroups.add(
+                        ProxyPatternGroup.getWithProxy(interfaceSubject, newMethodGroups, proxy));
                 }
             }
         }
 
-        return new FeedbackWrapper<>(
-            Feedback.getPatternInstanceFeedback(feedbacks), interfaceSubjectProxyGroups);
+        return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(groupingFeedbacks),
+                                     noVariableGroups);
     }
 
-    /**
-     * Validate that all the given proxy classes are in a InterfaceSubjectProxyTuple.
-     *
-     * @param proxys                      the proxys to check.
-     * @param interfaceSubjectProxyGroups the InterfaceSubjectProxyTuples to check.
-     *
-     * @return a list of Feedbacks on the result.
-     */
-    private static Feedback validateProxysAreUsed(
-        List<ClassOrInterfaceDeclaration> proxys,
-        List<InterfaceSubjectProxyTuple> interfaceSubjectProxyGroups) {
-        List<Feedback> feedbacks = new ArrayList<>();
+    private static Feedback verifyProxyUsesSubject(
+        List<ProxyPatternGroup> withoutVariables) {
 
-        for (ClassOrInterfaceDeclaration proxy : proxys) {
-            boolean proxyIsUsed = false;
-            for (InterfaceSubjectProxyTuple interfaceSubjectProxy : interfaceSubjectProxyGroups) {
-                if (proxy.equals(interfaceSubjectProxy.getProxy())) {
-                    proxyIsUsed = true;
+        for (ProxyPatternGroup proxyGroup : withoutVariables) {
+            // Get all possible variables (i.e. variables with the correct type)
+            FeedbackWrapper<List<VariableDeclarator>> variableCandidates = getVariableCandidates(
+                proxyGroup);
+
+            // Validate that every proxy method uses the corresponding subject method.
+
+        }
+    }
+
+    private static FeedbackWrapper<List<VariableDeclarator>> getVariableCandidates(
+        ProxyPatternGroup proxyGroup) {
+        List<VariableDeclarator> variables = new ArrayList<>();
+        for (FieldDeclaration field : proxyGroup.getProxy().getFields()) {
+            for (VariableDeclarator variable : field.getVariables()) {
+                if (VariableIsTypeofClass(variable, proxyGroup.getSubject())) {
+                    variables.add(variable);
                 }
             }
-
-            if (!proxyIsUsed) {
-                feedbacks.add(Feedback.getNoChildFeedback(
-                    "Proxy class appears to not to have a matching proxy subject and proxy " +
-                    "subject.))", new FeedbackTrace(proxy)));
-            }
         }
 
-        return Feedback.getPatternInstanceFeedback(feedbacks);
-    }
-
-    /**
-     * Validates that all of the proxys in the given interfaceSubjectProxyGroups, hold a variable
-     * with the type of the subject.
-     * <p>
-     * Query: Do we care about if the variable is assigned to or not? Answer: Probably not as we
-     * will later check if the variable is used(?).
-     *
-     * @param interfaceSubjectProxyGroups
-     *
-     * @return
-     */
-    private static Feedback validateProxysHasVariables(
-        List<InterfaceSubjectProxyTuple> interfaceSubjectProxyGroups) {
-        List<Feedback> feedbacks = new ArrayList<>();
-
-        for (InterfaceSubjectProxyTuple interfaceSubjectProxy : interfaceSubjectProxyGroups) {
-            FeedbackWrapper<VariableDeclarator> proxyVariable = validateProxyHasVariable(
-                interfaceSubjectProxy.getProxy(),
-                interfaceSubjectProxy.getInterfaceSubject().getSubject());
-            feedbacks.add(proxyVariable.getFeedback());
-
+        if (variables.isEmpty()) {
+            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(
+                "Proxy class is missing a variable of subject type '" +
+                proxyGroup.getSubject().getNameAsString() + "'",
+                new FeedbackTrace(proxyGroup.getProxy())), variables);
         }
 
-        return Feedback.getPatternInstanceFeedback(feedbacks);
+        return new FeedbackWrapper<>(Feedback.getSuccessfulFeedback(), variables);
     }
 
-    private static FeedbackWrapper<VariableDeclarator> validateProxyHasVariable(
-        ClassOrInterfaceDeclaration proxy, ClassOrInterfaceDeclaration subject) {
+    private static boolean VariableIsTypeofClass(
+        VariableDeclarator variable, ClassOrInterfaceDeclaration type) {
+        ResolvedReferenceTypeDeclaration classType = type.resolve();
 
-        throw new NotImplementedException();
+        AtomicBoolean isSameType = new AtomicBoolean(false);
+        variable.getType().toClassOrInterfaceType().ifPresent(variableClassType -> {
+            isSameType.set(variableClassType.resolve().getTypeDeclaration().equals(classType));
+        });
+
+        return isSameType.get();
     }
-
 }
