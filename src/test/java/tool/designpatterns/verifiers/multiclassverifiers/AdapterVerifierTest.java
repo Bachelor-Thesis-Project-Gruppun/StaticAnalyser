@@ -20,28 +20,23 @@ public class AdapterVerifierTest {
 
     @Test
     public void testVerifyImplementsAdapter() throws IOException {
-        ClassOrInterfaceDeclaration adapter = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "MicroUsbToLightningAdapter").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
-        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit(
-            "adapter/implementsAdapter", "LightningPhone").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration adapter = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "MicroUsbToLightningAdapter");
+        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockClassOrI(
+            "adapter/implementsAdapter", "LightningPhone");
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
 
-        System.out.println(new AdapterVerifier().verifyGroup(patternGroup).getFullMessage());
         assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
     public void testVerifyExtendsAdapter() throws IOException {
-        ClassOrInterfaceDeclaration adapter = TestHelper.getMockCompUnit(
-            "adapter/extendsAdapter", "MicroUsbToLightningAdapter").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration adapter = TestHelper.getMockClassOrI(
+            "adapter/extendsAdapter", "MicroUsbToLightningAdapter");
 
-        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit("adapter/extendsAdapter",
-                                                                         "Iphone").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockClassOrI("adapter/extendsAdapter",
+                                                                         "Iphone");
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
 
@@ -50,16 +45,13 @@ public class AdapterVerifierTest {
 
     @Test
     public void testVerifyInterfaces() throws IOException {
-        ClassOrInterfaceDeclaration concreteAdaptee = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "Iphone").findAll(ClassOrInterfaceDeclaration.class)
-                                                                .get(0);
-        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "LightningPhone").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration concreteAdaptee = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "Iphone");
+        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "LightningPhone");
 
-        ClassOrInterfaceDeclaration adapter = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "MicroUsbToLightningAdapter").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration adapter = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "MicroUsbToLightningAdapter");
 
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
@@ -72,12 +64,10 @@ public class AdapterVerifierTest {
 
     @Test
     public void testIsWrapping() throws IOException {
-        ClassOrInterfaceDeclaration adapter = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "NotWrappingAdapter").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
-        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockCompUnit(
-            "adapter" + "/implementsAdapter", "LightningPhone").findAll(
-            ClassOrInterfaceDeclaration.class).get(0);
+        ClassOrInterfaceDeclaration adapter = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "NotWrappingAdapter");
+        ClassOrInterfaceDeclaration adaptee = TestHelper.getMockClassOrI(
+            "adapter" + "/implementsAdapter", "LightningPhone");
 
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);

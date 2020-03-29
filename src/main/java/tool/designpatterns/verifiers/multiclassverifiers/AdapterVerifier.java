@@ -78,7 +78,7 @@ public class AdapterVerifier implements IPatternGrouper {
     }
 
     /**
-     * A method to verify a the implementation of a single adapter pattern.
+     * A method to verify the implementation of a single adapter pattern.
      *
      * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
      * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
@@ -89,8 +89,8 @@ public class AdapterVerifier implements IPatternGrouper {
         MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor(adapter);
 
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
-            for (Boolean b : adapter.accept(methodVisitor, adaptee)) {
-                if (b) {
+            for (Boolean methodWraps : adapter.accept(methodVisitor, adaptee)) {
+                if (methodWraps) {
                     return verifyInterfaces(adapter, adaptee);
                 }
             }
