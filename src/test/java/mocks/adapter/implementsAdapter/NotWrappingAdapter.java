@@ -5,7 +5,7 @@ public class NotWrappingAdapter implements LightningPhone {
     private final LightningPhone lightningPhone;
 
     public NotWrappingAdapter() {
-        lightningPhone = new Iphone();
+        lightningPhone = new Iphone2();
     }
 
     @Override

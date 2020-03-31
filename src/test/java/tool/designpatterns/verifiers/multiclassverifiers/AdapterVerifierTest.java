@@ -27,6 +27,7 @@ public class AdapterVerifierTest {
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
 
+        System.out.println(new AdapterVerifier().verifyGroup(patternGroup).getFullMessage());
         assertFalse(new AdapterVerifier().verifyGroup(patternGroup).hasError());
     }
 

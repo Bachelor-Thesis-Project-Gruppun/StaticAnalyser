@@ -20,6 +20,7 @@ import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
+import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
 
 /**
@@ -34,6 +35,7 @@ public class AdapterVerifier implements IPatternGrouper {
      * A method for verifying one or more instances of the adapter pattern in a project.
      *
      * @param patternParts The classes that are marked with a adapter annotation
+     *
      * @return a Feedback with true or false regarding if the pattern is implemented successfully.
      */
     @Override
@@ -46,25 +48,40 @@ public class AdapterVerifier implements IPatternGrouper {
             feedbacks.add(partsFeedback);
         } else {
             List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
+            System.out.println(adaptees.size());
+            for (ClassOrInterfaceDeclaration coi : adaptees) {
+                System.out.println(coi.getNameAsString());
+            }
+            List<ClassOrInterfaceDeclaration> notMatchingAdaptees = new ArrayList<>(adaptees);
 
             for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
-                feedbacks.add(verifyAdapter(adapter, adaptees));
+                FeedbackWrapper<List<ClassOrInterfaceDeclaration>> foo = verifyAdapter(adapter,
+                                                                                       adaptees);
+                if (!foo.getFeedback().getIsError()) {
+                    notMatchingAdaptees.removeAll(foo.getOther());
+                }
+                feedbacks.add(foo.getFeedback());
+            }
+            for (ClassOrInterfaceDeclaration adaptee : notMatchingAdaptees) {
+                feedbacks.add(Feedback
+                                  .getNoChildFeedback("Annotated adaptee has no matching adapter",
+                                                      new FeedbackTrace(adaptee)));
             }
         }
         return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
     }
 
-    private Feedback verifyParts(Map<Pattern,List<ClassOrInterfaceDeclaration>> patternParts) {
+    private Feedback verifyParts(Map<Pattern, List<ClassOrInterfaceDeclaration>> patternParts) {
         StringBuilder stringBuilder = new StringBuilder(62);
         boolean allParts = true;
         if (!patternParts.containsKey(ADAPTER_ADAPTER) || patternParts.get(ADAPTER_ADAPTER)
-            .isEmpty()) {
+                                                                      .isEmpty()) {
             allParts = false;
             stringBuilder.append("There is no annotated adapter, ");
         }
 
         if (!patternParts.containsKey(ADAPTER_ADAPTEE) || patternParts.get(ADAPTER_ADAPTEE)
-            .isEmpty()) {
+                                                                      .isEmpty()) {
             allParts = false;
             stringBuilder.append("There is no annotated adaptee, ");
         }
@@ -72,8 +89,9 @@ public class AdapterVerifier implements IPatternGrouper {
         if (allParts) {
             return Feedback.getSuccessfulFeedback();
         } else {
-            return Feedback.getPatternInstanceNoChildFeedback(stringBuilder.delete(
-                stringBuilder.length() - 2, stringBuilder.length()).toString());
+            return Feedback.getPatternInstanceNoChildFeedback(
+                stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length())
+                             .toString());
         }
     }
 
@@ -82,22 +100,35 @@ public class AdapterVerifier implements IPatternGrouper {
      *
      * @param adapter  The adapter classOrInterfaceDeclaration for the specific pattern instance
      * @param adaptees A list of all possible classOrInterfaceDeclaration adaptees
-     * @return A feedback with the result of the verification
+     *
+     * @return A feedbackWrapper with the result of the verification and a list of adaptees for the
+     *     adapter
      */
-    private Feedback verifyAdapter(
+    private FeedbackWrapper<List<ClassOrInterfaceDeclaration>> verifyAdapter(
         ClassOrInterfaceDeclaration adapter, List<ClassOrInterfaceDeclaration> adaptees) {
         MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor(adapter);
 
+        List<Feedback> feedbacks = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> candidateAdaptees = new ArrayList<>(); // Since an
+        // adapter can be used for multiple adaptees we need to save each candidate
         for (ClassOrInterfaceDeclaration adaptee : adaptees) {
             for (Boolean methodWraps : adapter.accept(methodVisitor, adaptee)) {
                 if (methodWraps) {
-                    return verifyInterfaces(adapter, adaptee);
+                    feedbacks.add(verifyInterfaces(adapter, adaptee));
+                    candidateAdaptees.add(adaptee);
+                    //return new FeedbackWrapper<>(verifyInterfaces(adapter, adaptee), adaptee);
                 }
             }
 
         }
-        return Feedback.getNoChildFeedback(
-            "Adapter does not wrap the adaptee", new FeedbackTrace(adapter));
+        if (feedbacks.isEmpty()) {
+            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(
+                "Adapter does not wrap the adaptee", new FeedbackTrace(adapter)), null);
+        } else {
+            return new FeedbackWrapper<>(
+                Feedback.getFeedbackWithChildren(new FeedbackTrace(adapter), feedbacks),
+                candidateAdaptees);
+        }
     }
 
     /**
@@ -106,6 +137,7 @@ public class AdapterVerifier implements IPatternGrouper {
      *
      * @param adapter The ClassOrInterfaceDeclaration for the adapter
      * @param adaptee The ClassOrInterfaceDeclaration of the interface or superclass to be adapted
+     *
      * @return Boolean regarding if the implementation is correct or not.
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops") // The only instantiated objects in
@@ -116,7 +148,7 @@ public class AdapterVerifier implements IPatternGrouper {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
                     return Feedback.getNoChildFeedback("The adapter implements the adaptee",
-                        new FeedbackTrace(adapter));
+                                                       new FeedbackTrace(adapter));
                 }
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
@@ -153,6 +185,7 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param method  The MethodDeclaration of the method to be checked.
          * @param adaptee The ClassOrInterfaceDeclaration of the adaptees method to be wrapped.
+         *
          * @return a list of booleans
          */
         @Override
@@ -175,6 +208,7 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param method  The MethodDeclaration fo the wrapping method.
          * @param adaptee The ClassOrInterfaceDeclaration to look for the wrapped method in.
+         *
          * @return a boolean, true if it is wrapped, otherwise false.
          */
         private Boolean isWrapper(
@@ -207,6 +241,7 @@ public class AdapterVerifier implements IPatternGrouper {
          *
          * @param methodCallExpr the type of node to be visited
          * @param adaptee        the ClassOrInterfaceDeclaration nodes are being visited in.
+         *
          * @return a list of Booleans, true if wrapped method call otherwise false.
          */
         @Override
@@ -230,7 +265,6 @@ public class AdapterVerifier implements IPatternGrouper {
             return boolList;
         }
     }
-
 
 }
 

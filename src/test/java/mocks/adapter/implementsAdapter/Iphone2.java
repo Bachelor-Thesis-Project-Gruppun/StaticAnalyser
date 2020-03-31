@@ -1,7 +1,7 @@
 package mocks.adapter.implementsAdapter;
 
 // From the example on wikipedia: https://en.wikipedia.org/wiki/Adapter_pattern
-class Iphone implements LightningPhone {
+class Iphone2 implements LightningPhone {
 
     private boolean connector;
 

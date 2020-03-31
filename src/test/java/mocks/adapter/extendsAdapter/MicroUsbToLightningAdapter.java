@@ -1,5 +1,9 @@
 package mocks.adapter.extendsAdapter;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
+@DesignPattern(pattern = {Pattern.ADAPTER_ADAPTER})
 class MicroUsbToLightningAdapter extends Iphone implements MicroUsbPhone {
 
     private final LightningPhone lightningPhone;
