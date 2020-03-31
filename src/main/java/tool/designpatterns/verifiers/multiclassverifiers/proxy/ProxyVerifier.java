@@ -20,6 +20,7 @@ import groovy.lang.Tuple2;
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodDeclarationVisitor;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
@@ -63,11 +64,10 @@ public class ProxyVerifier implements IPatternGrouper {
         //        return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
 
-    // Steps 1 / 1b -- nemo
     private Tuple2<Feedback, List<MethodDeclaration>> getValidMethods(
         ClassOrInterfaceDeclaration classOrI) {
 
-        MethodDeclarationVisitor mdv = new MethodDeclarationVisitor(classOrI);
+        MethodDeclarationVisitor mdv = new MethodDeclarationVisitor();
         List<MethodDeclaration> methodDeclarations = classOrI.accept(mdv, classOrI);
         List<MethodDeclaration> validMethodDeclarations = new ArrayList<>();
 
@@ -96,31 +96,4 @@ public class ProxyVerifier implements IPatternGrouper {
         return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDeclarations);
     }
 
-    /**
-     * A class used to visit nodes in a AST created by JavaParser.
-     */
-    private static class MethodDeclarationVisitor
-        extends GenericListVisitorAdapter<MethodDeclaration, ClassOrInterfaceDeclaration> {
-
-        public MethodDeclarationVisitor(ClassOrInterfaceDeclaration currentClass) {
-            super();
-        }
-
-        /**
-         * Visit all MethodDeclarations in a ClassOrInterfaceDeclaration and add them to a list.
-         *
-         * @param method the Method currently being visited.
-         * @param classOrI the ClassOrInterfaceDeclaration the method is declared in.
-         *
-         * @return a list of MethodDeclarations present in the ClassOrInterfaceDeclaration.
-         */
-        @Override
-        public List<MethodDeclaration> visit(
-            MethodDeclaration method, ClassOrInterfaceDeclaration classOrI) {
-            List<MethodDeclaration> resultList = super.visit(method, classOrI);
-            resultList.add(method);
-            return resultList;
-        }
-
-    }
 }
