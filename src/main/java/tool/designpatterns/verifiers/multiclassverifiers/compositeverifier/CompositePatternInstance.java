@@ -41,8 +41,7 @@ public final class CompositePatternInstance extends APatternInstance {
      *
      * @return A list of all identified instances of the pattern
      */
-    @Override
-    public List<? extends APatternInstance> createInstancesFromMap(
+    public static List<CompositePatternInstance> createInstancesFromMap(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         List<ClassOrInterfaceDeclaration> components = map.get(Pattern.COMPOSITE_COMPONENT);
         List<ClassOrInterfaceDeclaration> nodes = map.get(Pattern.COMPOSITE_NODES);

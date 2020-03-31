@@ -1,12 +1,15 @@
 package tool.designpatterns.verifiers.multiclassverifiers.compositeverifier;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.Pattern;
+import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.feedback.Feedback;
 import tool.feedback.PatternGroupFeedback;
 
 /**
@@ -20,6 +23,18 @@ public class CompositeVerifier implements IPatternGrouper {
     @Override
     public PatternGroupFeedback verifyGroup(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
-        return null;
+        List<CompositePatternInstance> patternInstances =
+            CompositePatternInstance.createInstancesFromMap(map);
+        List<Feedback> results = new ArrayList<>();
+        patternInstances.forEach(patternInstance -> {
+            results.add(verify(patternInstance));
+        });
+
+        return new PatternGroupFeedback(PatternGroup.COMPOSITE, results);
+    }
+
+    private Feedback verify(CompositePatternInstance patternInstance) {
+        patternInstance.hasAllElements();
+        return Feedback.getSuccessfulFeedback();
     }
 }
