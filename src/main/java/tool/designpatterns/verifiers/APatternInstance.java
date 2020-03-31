@@ -25,7 +25,7 @@ public abstract class APatternInstance {
      * @param map a HashMap fom subPatterns to lsit of Classes or interfaces
      * @return a list of configured Pattern instances
      */
-    public abstract List<APatternInstance> createInstancesFromMap(
+    public abstract List<? extends APatternInstance> createInstancesFromMap(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map);
 
     /**
