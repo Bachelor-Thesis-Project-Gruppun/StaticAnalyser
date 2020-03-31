@@ -9,14 +9,21 @@ import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxy
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxySubjectVerifier.verifySubjects;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 
+import groovy.lang.Tuple;
 import groovy.lang.Tuple2;
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodDeclarationVisitor;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
+import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
 
@@ -59,10 +66,36 @@ public class ProxyVerifier implements IPatternGrouper {
         //        return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
 
-    // Steps 1 / 1b -- nemo
     private Tuple2<Feedback, List<MethodDeclaration>> getValidMethods(
         ClassOrInterfaceDeclaration classOrI) {
 
-        throw new NotImplementedException();
+        MethodDeclarationVisitor mdv = new MethodDeclarationVisitor();
+        List<MethodDeclaration> methodDeclarations = classOrI.accept(mdv, classOrI);
+        List<MethodDeclaration> validMethodDeclarations = new ArrayList<>();
+
+        if(methodDeclarations.isEmpty()){
+            String message = "There are no methods to implement.";
+            return new Tuple2<>(Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
+                                methodDeclarations);
+        } else if(classOrI.isInterface()) {
+            validMethodDeclarations.addAll(methodDeclarations);
+            String message = "";
+        } else {
+            for (MethodDeclaration md : classOrI.accept(mdv, classOrI)) {
+                if (md.isAbstract()){
+                    validMethodDeclarations.add(md);
+                }
+            }
+            if(validMethodDeclarations.isEmpty()){
+                String message = "There are no abstract methods to implement.";
+                return new Tuple2<>(
+                    Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
+                    methodDeclarations);
+            }
+
+        }
+
+        return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDeclarations);
     }
+
 }
