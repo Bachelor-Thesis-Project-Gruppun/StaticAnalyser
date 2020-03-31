@@ -9,19 +9,14 @@ import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxy
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxySubjectVerifier.verifySubjects;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 
-import groovy.lang.Tuple;
 import groovy.lang.Tuple2;
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternGrouper;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodDeclarationVisitor;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodDeclarationVisitor;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
