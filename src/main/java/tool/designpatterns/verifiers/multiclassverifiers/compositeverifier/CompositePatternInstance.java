@@ -6,55 +6,50 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.APatternInstance;
-import tool.feedback.Feedback;
 
-public class CompositePatternInstance extends APatternInstance {
+/**
+ * Class which defines how an instance of Composte is structured, created and is neccesary for it
+ * to function.
+ */
+public final class CompositePatternInstance extends APatternInstance {
 
-    private ClassOrInterfaceDeclaration component;
-    private List<ClassOrInterfaceDeclaration> nodes = new ArrayList<>();
-    private List<ClassOrInterfaceDeclaration> leaves = new ArrayList<>();
+    private final ClassOrInterfaceDeclaration component;
+    private final List<ClassOrInterfaceDeclaration> nodes;
+    private final List<ClassOrInterfaceDeclaration> leaves;
 
-    private CompositePatternInstance(ClassOrInterfaceDeclaration component) {
+    /**
+     * Cosntructor for the pattern instance. makes sure alla fields are initialised.
+     *
+     * @param component The interface or absract class which defines the composite instance.
+     */
+    public CompositePatternInstance(ClassOrInterfaceDeclaration component) {
+        super();
         this.component = component;
         this.leaves = new ArrayList<>();
         this.nodes = new ArrayList<>();
     }
 
-    private ClassOrInterfaceDeclaration getComponent() {
-        return component;
-    }
-
-    private List<ClassOrInterfaceDeclaration> getNodes() {
-        return nodes;
-    }
-
-    private List<ClassOrInterfaceDeclaration> getLeaves() {
-        return leaves;
-    }
-
     /**
      * Method for identifying which classes are part of the same decorator pattern instance.
      *
-     * @param map A map where every element of the decorator pattern (e.g. concrete
-     *            decorator) is
+     * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
      *            mapped to all the classes of said element type
      *
      * @return A list of all identified instances of the pattern
      */
-    public static List<CompositePatternInstance> getPatternInstances(
+    @Override
+    public List<? extends APatternInstance> createInstancesFromMap(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
-        List<ClassOrInterfaceDeclaration> components = map.get(
-            Pattern.COMPOSITE_COMPONENT);
-        List<ClassOrInterfaceDeclaration> nodes = map.get(
-            Pattern.COMPOSITE_NODES);
-        List<ClassOrInterfaceDeclaration> leaves = map.get(
-            Pattern.COMPOSITE_LEAF);
+        List<ClassOrInterfaceDeclaration> components = map.get(Pattern.COMPOSITE_COMPONENT);
+        List<ClassOrInterfaceDeclaration> nodes = map.get(Pattern.COMPOSITE_NODES);
+        List<ClassOrInterfaceDeclaration> leaves = map.get(Pattern.COMPOSITE_LEAF);
 
         HashMap<ClassOrInterfaceDeclaration, CompositePatternInstance> patternInstances =
-            new HashMap();
+            new HashMap<>();
 
         components.forEach((component) -> {
             CompositePatternInstance patternInstance = new CompositePatternInstance(component);
@@ -65,65 +60,56 @@ public class CompositePatternInstance extends APatternInstance {
 
         // Found no better way to populate PatternInstances than looping
         // through everything multiple times
-        interfaceComponents.forEach((interfaceComponent) -> {
-            String interfaceName = interfaceComponent.getNameAsString();
-            concreteComponents.forEach(cc -> {
-                cc.getImplementedTypes().forEach(implementedInterface -> {
-                    if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                        DecoratorPatternInstance patternInstance = patternInstances.get(
-                            interfaceComponent);
-                        patternInstance.concreteComponents.add(cc);
-                        identifiedElements.add(cc);
+        components.forEach((component) -> {
+            String componentName = component.getNameAsString();
+            nodes.forEach(node -> {
+                List<ClassOrInterfaceType> types = new ArrayList<>();
+                types.addAll(node.getExtendedTypes());
+                types.addAll(node.getImplementedTypes());
+                types.forEach(classOrInterface -> {
+                    if (classOrInterface.getNameAsString().equals(componentName)) {
+                        CompositePatternInstance patternInstance = patternInstances.get(component);
+                        patternInstance.nodes.add(node);
+                        identifiedElements.add(node);
+                    }
+                });
+            });
+            leaves.forEach(leaf -> {
+                List<ClassOrInterfaceType> types = new ArrayList<>();
+                types.addAll(leaf.getExtendedTypes());
+                types.addAll(leaf.getImplementedTypes());
+                types.forEach(classOrInterface -> {
+                    if (classOrInterface.getNameAsString().equals(componentName)) {
+                        CompositePatternInstance patternInstance = patternInstances.get(component);
+                        patternInstance.leaves.add(leaf);
+                        identifiedElements.add(leaf);
                     }
                 });
             });
 
-            abstractDecorators.forEach(ad -> {
-                ad.getImplementedTypes().forEach(implementedInterface -> {
-                    if (implementedInterface.getNameAsString().equals(interfaceName)) {
-                        DecoratorPatternInstance patternInstance = patternInstances.get(
-                            interfaceComponent);
-                        patternInstance.abstractDecorators.add(ad);
-                        identifiedElements.add(ad);
-
-                        concreteDecorators.forEach(cd -> {
-                            cd.getExtendedTypes().forEach(extendedClass -> {
-                                if (extendedClass.getNameAsString().equals(
-                                    ad.getName().asString())) {
-                                    patternInstance.concreteDecorators.add(cd);
-                                    identifiedElements.add(cd);
-                                }
-                            });
-                        });
-                    }
-                });
-            });
             // If any elements are left then they are invalid instances
-            concreteComponents.removeAll(identifiedElements);
-            abstractDecorators.removeAll(identifiedElements);
-            concreteDecorators.removeAll(identifiedElements);
+            nodes.removeAll(identifiedElements);
+            leaves.removeAll(identifiedElements);
 
         });
         // If there are elements that do not relate to any of the previous
         // interface components, since they are invalid, put them in an
         // invalid pattern instance object for verify() to handle
-        if (!(
-            concreteComponents.isEmpty() && abstractDecorators.isEmpty() &&
-            concreteDecorators.isEmpty())) {
-            var patternInstance = new DecoratorPatternInstance();
-            patternInstance.concreteComponents = concreteComponents;
-            patternInstance.abstractDecorators = abstractDecorators;
-            patternInstance.concreteDecorators = concreteDecorators;
-            patternInstances.put(null, patternInstance);
+        if (!(nodes.isEmpty() && leaves.isEmpty())) {
+            var noComponentInstance = new CompositePatternInstance(null);
+            noComponentInstance.nodes.addAll(nodes);
+            noComponentInstance.leaves.addAll(leaves);
+            patternInstances.put(null, noComponentInstance);
         }
 
-        return new ArrayList<CompositePatternInstance>(patternInstances.values());
+        return new ArrayList<>(patternInstances.values());
     }
 
     /**
-     *
+     * Component may not bit be null and there has to be atleast one nodes.
      *
      * @param feedbackMessage Stringbuilder used in hasAllElements
+     *
      * @return boolean signifying if an error has occured
      */
     @Override
@@ -136,9 +122,10 @@ public class CompositePatternInstance extends APatternInstance {
         }
         if (nodes.isEmpty()) {
             feedbackMessage.append("node(s), ");
-            errorOccured =true;
+            errorOccured = true;
         }
 
         return errorOccured;
     }
+
 }

@@ -9,7 +9,13 @@ import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.feedback.PatternGroupFeedback;
 
+/**
+ * A verifier for the compsite pattern.
+ */
 public class CompositeVerifier implements IPatternGrouper {
+
+    public CompositeVerifier() {
+    }
 
     @Override
     public PatternGroupFeedback verifyGroup(
