@@ -39,6 +39,7 @@ public class AdapterVerifier implements IPatternGrouper {
      * @return a Feedback with true or false regarding if the pattern is implemented successfully.
      */
     @Override
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public PatternGroupFeedback verifyGroup(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> patternParts) {
         List<Feedback> feedbacks = new ArrayList<>();
@@ -48,10 +49,6 @@ public class AdapterVerifier implements IPatternGrouper {
             feedbacks.add(partsFeedback);
         } else {
             List<ClassOrInterfaceDeclaration> adaptees = patternParts.get(ADAPTER_ADAPTEE);
-            System.out.println(adaptees.size());
-            for (ClassOrInterfaceDeclaration coi : adaptees) {
-                System.out.println(coi.getNameAsString());
-            }
             List<ClassOrInterfaceDeclaration> notMatchingAdaptees = new ArrayList<>(adaptees);
 
             for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
@@ -65,7 +62,8 @@ public class AdapterVerifier implements IPatternGrouper {
             for (ClassOrInterfaceDeclaration adaptee : notMatchingAdaptees) {
                 feedbacks.add(Feedback
                                   .getNoChildFeedback("Annotated adaptee has no matching adapter",
-                                                      new FeedbackTrace(adaptee)));
+                                                      new FeedbackTrace(adaptee))); // Suppressed
+                // warning
             }
         }
         return new PatternGroupFeedback(PatternGroup.ADAPTER, feedbacks);
