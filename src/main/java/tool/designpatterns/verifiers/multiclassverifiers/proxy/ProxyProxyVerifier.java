@@ -2,6 +2,7 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.MethodVerification.classImplementsMethod;
@@ -11,10 +12,13 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 import org.apache.commons.lang.NotImplementedException;
+import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodCallVisitor;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
@@ -34,7 +38,7 @@ public class ProxyProxyVerifier {
 
         feedbacks.add(noVariableGroups.getFeedback());
 
-        Feedback proxyUsesSubject = verifyProxyUsesSubject(noVariableGroups.getOther());
+        Feedback proxyUsesSubject = verifyProxiesUsesSubjects(noVariableGroups.getOther());
 
         feedbacks.add(proxyUsesSubject);
 
@@ -79,17 +83,40 @@ public class ProxyProxyVerifier {
                                      noVariableGroups);
     }
 
-    private static Feedback verifyProxyUsesSubject(
+    private static Feedback verifyProxiesUsesSubjects(
         List<ProxyPatternGroup> withoutVariables) {
+
+        List<Feedback> feedbacks = new ArrayList<>();
 
         for (ProxyPatternGroup proxyGroup : withoutVariables) {
             // Get all possible variables (i.e. variables with the correct type)
             FeedbackWrapper<List<VariableDeclarator>> variableCandidates = getVariableCandidates(
                 proxyGroup);
 
-            // Validate that every proxy method uses the corresponding subject method.
+            feedbacks.add(variableCandidates.getFeedback());
 
+            // Validate that every proxy method uses the corresponding subject method.
+            feedbacks.add(verifyProxyUsesSubject(proxyGroup, variableCandidates.getOther()));
         }
+
+        return Feedback.getPatternInstanceFeedback(feedbacks);
+    }
+
+    private static Feedback verifyProxyUsesSubject(
+        ProxyPatternGroup proxyGroup, List<VariableDeclarator> proxyVariables) {
+        for (MethodGroup methodGroup : proxyGroup.getMethods()) {
+            for (VariableDeclarator variable : proxyVariables) {
+                Feedback feedback = methodCallsOther(methodGroup.getProxyMethod(),
+                                                     methodGroup.getSubjectMethod(), variable);
+            }
+        }
+
+        throw new NotImplementedException();
+    }
+
+    private static Feedback methodCallsOther(
+        MethodDeclaration method, MethodDeclaration other, VariableDeclarator otherReference) {
+        method.accept(new MethodCallVisitor(otherReference, other), null);
 
         throw new NotImplementedException();
     }
@@ -121,9 +148,28 @@ public class ProxyProxyVerifier {
 
         AtomicBoolean isSameType = new AtomicBoolean(false);
         variable.getType().toClassOrInterfaceType().ifPresent(variableClassType -> {
-            isSameType.set(variableClassType.resolve().getTypeDeclaration().equals(classType));
+            ResolvedReferenceType resolvedType = variableClassType.resolve();
+            isSameType.set(resolvedType.getTypeDeclaration().equals(classType));
         });
 
         return isSameType.get();
+    }
+
+    /**
+     * TEST METHOD REMOVE LATER!!
+     */
+    public static void test(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
+        List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
+        List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
+
+        subjects.forEach(subject -> {
+            proxies.forEach(proxy -> {
+                proxy.getFields().forEach(proxyField -> {
+                    VariableDeclarator variable = proxyField.getVariable(0);
+                    System.out.println(
+                        "TEST VariableIsTypeofClass: " + VariableIsTypeofClass(variable, subject));
+                });
+            });
+        });
     }
 }

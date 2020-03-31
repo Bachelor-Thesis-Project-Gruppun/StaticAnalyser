@@ -26,6 +26,8 @@ public class ProxyVerifier implements IPatternGrouper {
     public PatternGroupFeedback verifyGroup(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
 
+        ProxyProxyVerifier.test(map);
+
         List<Feedback> feedbacks = new ArrayList<>();
         List<Feedback> interfaceFeedbacks = new ArrayList<>();
         Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =

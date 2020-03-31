@@ -1,5 +1,6 @@
 package tool;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +13,8 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.SourceRoot;
 
 import tool.designpatterns.DesignPattern;
@@ -35,10 +38,13 @@ public final class ProjectParser {
      */
     public static List<ClassOrInterfaceDeclaration> findAllClassesAndInterfaces(String sourcePath) {
         // Enable symbolsolving.
-        TypeSolver typeSolver = new CombinedTypeSolver();
+        File lookForTypes = new File("src");
+        TypeSolver typeSolver = new CombinedTypeSolver(new JavaParserTypeSolver(lookForTypes),
+                                                       new ReflectionTypeSolver());
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         ParserConfiguration config = StaticJavaParser.getConfiguration();
         config.setSymbolResolver(symbolSolver);
+        StaticJavaParser.setConfiguration(config);
 
         Path pathToSource = Paths.get(sourcePath);
         SourceRoot sourceRoot = new SourceRoot(pathToSource, config);

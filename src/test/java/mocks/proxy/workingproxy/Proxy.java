@@ -1,20 +1,24 @@
 package mocks.proxy.workingproxy;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
+@DesignPattern(pattern = {Pattern.PROXY_PROXY})
 public class Proxy implements ProxyInterface {
 
-    private Subject subject;
+    private Subject theSubject;
 
-    public Proxy(Subject subject) {
-        this.subject = subject;
+    public Proxy(Subject theSubject) {
+        this.theSubject = theSubject;
     }
 
     @Override
     public int[] getTextIDs() {
-        return subject.getTextIDs();
+        return theSubject.getTextIDs();
     }
 
     @Override
     public String getText(int id) {
-        return subject.getText(id);
+        return theSubject.getText(id);
     }
 }
