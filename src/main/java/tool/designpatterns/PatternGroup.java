@@ -1,6 +1,6 @@
 package tool.designpatterns;
 
-import tool.designpatterns.verifiers.multiclassverifiers.CompositeVerifier;
+import tool.designpatterns.verifiers.multiclassverifiers.compositeverifier.CompositeVerifier;
 import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.designpatterns.verifiers.singleclassverifiers.SingleClassGrouper;
 import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;

@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers.compositeverifier;
 
 import java.util.List;
 import java.util.Map;
