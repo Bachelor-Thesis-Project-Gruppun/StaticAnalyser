@@ -3,8 +3,8 @@ package tool;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,22 +15,37 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-public class SolveThatSymbolSolver {
+/**
+ * Class to create a config including a symbol solver for the project parser.
+ */
+public final class SolveThatSymbolSolver {
 
-    public static ParserConfiguration GetConfig(String rootDir) {
+    private SolveThatSymbolSolver() {
+
+    }
+
+    /**
+     * Get a config with a symbol solver.
+     *
+     * @param rootDir the root directory of the project.
+     *
+     * @return the new config.
+     */
+    @SuppressWarnings("PMD.SystemPrintln") // Catch errors that I don't quite know what to do with.
+    public static ParserConfiguration getConfig(String rootDir) {
 
         File lookForTypes = new File("src");
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
             new JavaParserTypeSolver(lookForTypes), new ReflectionTypeSolver(),
             new JavaParserTypeSolver(new File("src/test/java")));
 
-        List<JavaParserTypeSolver> javaParserTypeSolvers = null;
+        List<JavaParserTypeSolver> typeSolvers = null;
         try {
-            javaParserTypeSolvers = getSourceTypeSolvers(new File(rootDir));
-            for (JavaParserTypeSolver solver : javaParserTypeSolvers) {
+            typeSolvers = getSourceTypeSolvers(new File(rootDir));
+            for (JavaParserTypeSolver solver : typeSolvers) {
                 typeSolver.add(solver);
             }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             System.err.println("Unable to get config for " + rootDir);
             System.err.println(e);
         }
@@ -50,13 +65,15 @@ public class SolveThatSymbolSolver {
      * @return A list of JavaParserTypeSolvers, one for each package root found. Alternatively an
      *     empty list if none could be found.
      */
-    private static List<JavaParserTypeSolver> getSourceTypeSolvers(File rootDir) throws Exception {
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops") // Would be less performant to
+    // cache nodes in a list and then creating TypeSolvers from them.
+    private static List<JavaParserTypeSolver> getSourceTypeSolvers(File rootDir)
+        throws IllegalArgumentException {
         List<JavaParserTypeSolver> typeSolvers = new ArrayList<>();
 
         // It is a directory, let's keep going
         File[] childFiles = rootDir.listFiles();
         for (File child : childFiles) {
-            System.out.println("Found child: " + child.toString());
             if (child.getName().endsWith(".java")) {
                 // Find the root package for this java file.
                 String pkg = getPackage(child);
@@ -67,7 +84,7 @@ public class SolveThatSymbolSolver {
                     numFolders--;
                     node = node.getParentFile();
                     if (node == null) {
-                        throw new Exception(
+                        throw new IllegalArgumentException(
                             "Unable to find root package directory for " + rootDir.toString());
                     }
 
@@ -85,15 +102,15 @@ public class SolveThatSymbolSolver {
     /**
      * Counts the number of occurances of the given char in the given string.
      *
-     * @param pkgName the string to look in.
-     * @param ch      the char to look for.
+     * @param pkgName   the string to look in.
+     * @param character the char to look for.
      *
      * @return the number of occurances of the char in the string.
      */
-    private static int getCharOccurances(String pkgName, Character ch) {
+    private static int getCharOccurances(String pkgName, Character character) {
         int count = 0;
-        for (Character character : pkgName.toCharArray()) {
-            if (character.equals(ch)) {
+        for (Character arrChar : pkgName.toCharArray()) {
+            if (arrChar.equals(character)) {
                 count++;
             }
         }
@@ -109,9 +126,10 @@ public class SolveThatSymbolSolver {
      */
     private static String getPackage(File file) {
         StringBuilder pkg = new StringBuilder();
+        BufferedReader bufferedReader = null;
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line = br.readLine();
+            bufferedReader = Files.newBufferedReader(file.toPath());
+            String line = bufferedReader.readLine();
 
             // Used as a package can be declared on multiple lines.
             boolean foundPackage = false;
@@ -128,17 +146,27 @@ public class SolveThatSymbolSolver {
                     pkg.append(toAppend);
                     String theString = pkg.toString();
                     if (theString.contains(";")) {
+                        bufferedReader.close();
                         // Remove the semi-colon and everything after it and return.
                         return theString.substring(0, theString.indexOf(";"));
                     }
                 }
-                line = br.readLine();
+                line = bufferedReader.readLine();
             }
         } catch (FileNotFoundException e) {
             System.out.println("No package found for file " + file.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        if (bufferedReader != null) {
+            try {
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         return "";
     }
 
