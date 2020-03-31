@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers;
+package tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors;
 
 
 import java.util.List;
