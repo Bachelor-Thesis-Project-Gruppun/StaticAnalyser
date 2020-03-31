@@ -8,6 +8,10 @@ public enum Pattern {
     IMMUTABLE(PatternGroup.IMMUTABLE),
     SINGLETON(PatternGroup.SINGLETON);
 
+    COMPOSITE_COMPONENT(PatternGroup.COMPOSITE),
+    COMPOSITE_CONTAINER(PatternGroup.COMPOSITE),
+    COMPOSITE_LEAF(PatternGroup.COMPOSITE);
+
     private PatternGroup group;
 
     Pattern(PatternGroup group) {
