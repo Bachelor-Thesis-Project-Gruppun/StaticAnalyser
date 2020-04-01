@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 
 import org.gradle.api.GradleException;
 import tool.designpatterns.DesignPattern;
@@ -52,6 +53,11 @@ public final class MainProgram {
 
         Map<Pattern, List<ClassOrInterfaceDeclaration>> patternAnnotMap =
             extracter.getPatternClassMap();
+
+        ResolvedReferenceTypeDeclaration rcli = patternAnnotMap.get(Pattern.IMMUTABLE).get(0)
+                                                               .resolve();
+        System.out.println("RCLI: " + rcli.getClassName());
+
         Map<PatternGroup, Map<Pattern, List<ClassOrInterfaceDeclaration>>> patternGroupMap =
             mapToMap(patternAnnotMap);
 

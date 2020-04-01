@@ -79,7 +79,23 @@ public class SolveThatSymbolSolver {
             }
         }
 
-        return typeSolvers;
+        packageRoots = new ArrayList<>();
+        return packageRoots;
+    }
+
+    private static File getPackageRootNode(String pkg, File base) {
+        int numFolders = pkg.isEmpty() ? 0 : getCharOccurances(pkg, '.') + 2;
+
+        File node = base;
+        while (numFolders > 0) {
+            numFolders--;
+            node = node.getParentFile();
+            if (node == null) {
+                throw new IllegalArgumentException(
+                    "Unable to find root package directory for " + base.toString());
+            }
+        }
+        return node;
     }
 
     /**
