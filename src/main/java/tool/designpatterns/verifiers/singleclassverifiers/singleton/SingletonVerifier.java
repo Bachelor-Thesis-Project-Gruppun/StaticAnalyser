@@ -39,9 +39,12 @@ public class SingletonVerifier implements IPatternVerifier {
         //                   onlyInstantiatedIfNull(classToVerify) && hasPrivateConstructor(
         //     classToVerify) && isInstantiated;
         List<Feedback> childFeedbacks = new ArrayList<>();
-        childFeedbacks.add(hasAStaticInstance(classToVerify));
-        childFeedbacks.add(onlyInstantiatedIfNull(classToVerify));
         childFeedbacks.add(hasPrivateConstructor(classToVerify));
+        childFeedbacks.add(findMultipleInstances(classToVerify));
+        for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(classToVerify)) {
+            childFeedbacks.add(staticInstance(fieldDeclaration, classToVerify.getNameAsString()));
+        }
+        childFeedbacks.add(onlyInstantiatedIfNull(classToVerify));
         if (!isInstantiated) {
             childFeedbacks.add(Feedback.getNoChildFeedback(
                 "There is no way to instantiate the " + "class", new FeedbackTrace(classToVerify)));
@@ -57,6 +60,7 @@ public class SingletonVerifier implements IPatternVerifier {
      *
      * @return True iff all constructors are private
      */
+    @SuppressWarnings("PMD.LinguisticNaming")
     public Feedback hasPrivateConstructor(ClassOrInterfaceDeclaration classToTest) {
         List<ConstructorDeclaration> publicConstructors = new ArrayList<>();
         // Finds and checks if the constructors are private or not.
@@ -80,58 +84,72 @@ public class SingletonVerifier implements IPatternVerifier {
     }
 
     /**
-     * Method for declaring if a java class holds a field variable of a static instance
-     * https://stackoverflow .com/questions/53300710/how-to-parse-inner-class-from-java-source-code
-     * might help solving a check for inner classes
+     * Method for declaring if a FieldDeclaration is a private static field. https://stackoverflow
+     * .com/questions/53300710/how-to-parse-inner-class-from-java-source-code might help solving a
+     * check for inner classes
      *
-     * @param classToTest The ClassOrInterfaceDeclaration representing the java class to look at
+     * @param field     The field to look at.
+     * @param className the name of the class to check in.
      *
-     * @return True iff the java class holds a field variable with a static modifier of the same
-     *     type as the class itself (eg. static SingletonVerifier sv;)
+     * @return A Feedback holding the result
      */
-    public Feedback hasAStaticInstance(ClassOrInterfaceDeclaration classToTest) {
-        boolean multipleInstances = false;
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    public Feedback staticInstance(FieldDeclaration field, String className) {
         boolean isStatic = false;
         List<Feedback> childFeedbacks = new ArrayList<>();
-        for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(classToTest)) {
-            if (fieldDeclaration.getVariables().get(0).getType().toString().equals(
-                classToTest.getNameAsString())) {
-                if (multipleInstances) {
-                    childFeedbacks.add(Feedback.getNoChildFeedback(
-                        "Found multiple instance " + "fields",
-                        new FeedbackTrace(fieldDeclaration)));
-                }
-                if (!fieldDeclaration.getVariables().get(0).getInitializer().isEmpty()) {
-                    isInstantiated = true;
-                }
-                for (Modifier md : fieldDeclaration.getModifiers()) {
-                    if (md.getKeyword().asString().equals("public")) {
-                        childFeedbacks.add(Feedback.getNoChildFeedback(
-                            "Found a public instance of " + "the class, could be set " +
-                            "multiple times", new FeedbackTrace(fieldDeclaration)));
-                    } else if (md.getKeyword().asString().equals("protected")) {
-                        childFeedbacks.add(Feedback.getNoChildFeedback(
-                            "Found package-private " + "instance of the class, " +
-                            "could be set multiple " + "times",
-                            new FeedbackTrace(fieldDeclaration)));
-                    } else if (md.getKeyword().asString().equals("static")) {
-                        isStatic = true;
-                    }
-                }
-                if (!isStatic) {
-                    childFeedbacks.add(Feedback.getNoChildFeedback(
-                        "Non-static field found in " + "class, this field should " +
-                        "never be initializeable so " + "it may never be used",
-                        new FeedbackTrace(fieldDeclaration)));
-                }
-                instanceVar = fieldDeclaration;
-                multipleInstances = true;
+        if (field.getVariables().get(0).getType().toString().equals(className)) {
+            if (!field.getVariables().get(0).getInitializer().isEmpty()) {
+                isInstantiated = true;
             }
+            for (Modifier modifier : field.getModifiers()) {
+                String mdName = modifier.getKeyword().asString();
+                String pub = "public";
+                String prot = "protected";
+                if (pub.equals(mdName) || prot.equals(mdName)) {
+                    childFeedbacks.add(Feedback.getNoChildFeedback(
+                        "Found a non-private instance of the class, could be set " +
+                        "multiple times", new FeedbackTrace(field)));
+                } else if (modifier.getKeyword().asString().equals("static")) {
+                    isStatic = true;
+                }
+            }
+            if (!isStatic) {
+                childFeedbacks.add(Feedback.getNoChildFeedback(
+                    "Non-static field found in " + "class, this field should " +
+                    "never be initializeable so " + "it may never be used",
+                    new FeedbackTrace(field)));
+            }
+            instanceVar = field;
         }
         if (childFeedbacks.isEmpty()) {
             return Feedback.getSuccessfulFeedback();
         }
-        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToTest), childFeedbacks);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(field), childFeedbacks);
+    }
+
+    /**
+     * Checks if a java class contains multiple fields of the Singleton type.
+     *
+     * @param classToTest The Java class to check.
+     *
+     * @return a Feedback containing the result.
+     */
+    public Feedback findMultipleInstances(ClassOrInterfaceDeclaration classToTest) {
+        AtomicBoolean firstInstanceFound = new AtomicBoolean(false);
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        classToTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
+            if (firstInstanceFound.get()) {
+                childFeedbacks.add(Feedback.getNoChildFeedback("Found multiple instance fields",
+                                                               new FeedbackTrace(
+                                                                   fieldDeclaration)));
+            }
+            firstInstanceFound.set(true);
+        });
+        if (childFeedbacks.isEmpty()) {
+            return Feedback.getSuccessfulFeedback();
+        } else {
+            return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToTest), childFeedbacks);
+        }
     }
 
     /**
@@ -198,6 +216,7 @@ public class SingletonVerifier implements IPatternVerifier {
      *
      * @return True if the method is called from another public method in the same class
      */
+    @SuppressWarnings("PMD.LinguisticNaming")
     public Feedback isMethodCalledFromPublic(
         List<MethodDeclaration> allMethods, MethodDeclaration methodToLookFor) {
         List<MethodCallExpr> publicCalls = new ArrayList<>();
@@ -249,12 +268,15 @@ public class SingletonVerifier implements IPatternVerifier {
      * @return true, if a check that the instance variable is null before the constructor is called
      *     is performed.
      */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public Feedback onlyInstantiatedIfNull(ClassOrInterfaceDeclaration compUnit) {
         List<Feedback> childFeedbacks = new ArrayList<>();
+        String feedbackString =
+            "Object can be instatiated even if there is another instace created";
         AtomicBoolean onlyIfNull = new AtomicBoolean(true);
-        compUnit.findAll(ObjectCreationExpr.class).forEach(objCreateExpr -> {
-            if (objCreateExpr.getTypeAsString().equals(compUnit.getNameAsString())) {
-                Node node = objCreateExpr.getParentNodeForChildren();
+        compUnit.findAll(ObjectCreationExpr.class).forEach(objInstExpr -> {
+            if (objInstExpr.getTypeAsString().equals(compUnit.getNameAsString())) {
+                Node node = objInstExpr.getParentNodeForChildren();
                 while (true && !isInstantiated) {
                     if (node instanceof IfStmt) {
                         IfStmt ifStmtNode = (IfStmt) node;
@@ -262,21 +284,15 @@ public class SingletonVerifier implements IPatternVerifier {
                             if (checkForNull(ifStmtNode) && checkForType(ifStmtNode, instanceVar)) {
                                 if (ifStmtNode.hasElseBlock()) {
                                     ifStmtNode.getElseStmt().get().findAll(ObjectCreationExpr.class)
-                                              .forEach(objCreateExpr1 -> {
-                                                  if (objCreateExpr1.getTypeAsString().equals(
+                                              .forEach(objCreateExpr -> {
+                                                  if (objCreateExpr.getTypeAsString().equals(
                                                       instanceVar.getVariable(0)
                                                                  .getTypeAsString())) {
                                                       childFeedbacks.add(Feedback
                                                                              .getNoChildFeedback(
-                                                                                 "Object can be " +
-                                                                                 "instatiated " +
-                                                                                 "even if there " +
-                                                                                 "is another " +
-                                                                                 "instace created",
+                                                                                 feedbackString,
                                                                                  new FeedbackTrace(
-                                                                                     ifStmtNode
-                                                                                         .getElseStmt()
-                                                                                         .get())));
+                                                                                     objInstExpr)));
                                                   }
                                               });
                                 }
@@ -285,18 +301,18 @@ public class SingletonVerifier implements IPatternVerifier {
                                 childFeedbacks.add(Feedback.getNoChildFeedback(
                                     "Object can be " + "instantiated " + "even if there is " +
                                     "another instance " + "created",
-                                    new FeedbackTrace(objCreateExpr)));
+                                    new FeedbackTrace(objInstExpr)));
                             }
                         } else {
                             childFeedbacks.add(Feedback.getNoChildFeedback(
                                 "Object can be " + "instantiated " + "even if there is " +
-                                "another instance " + "created", new FeedbackTrace(objCreateExpr)));
+                                "another instance " + "created", new FeedbackTrace(objInstExpr)));
                         }
                         break;
                     } else if (node instanceof ClassOrInterfaceDeclaration) {
                         childFeedbacks.add(Feedback.getNoChildFeedback(
                             "Object can be " + "instantiated " + "even if there is " +
-                            "another instance " + "created", new FeedbackTrace(objCreateExpr)));
+                            "another instance " + "created", new FeedbackTrace(objInstExpr)));
                         break;
                     }
                     node = node.getParentNode().get();
