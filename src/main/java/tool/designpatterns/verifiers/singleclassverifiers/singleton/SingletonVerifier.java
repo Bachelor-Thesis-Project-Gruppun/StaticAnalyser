@@ -157,21 +157,21 @@ public class SingletonVerifier implements IPatternVerifier {
      * of the Singleton class, does not support a Singleton that is initialized at variable
      * declaration in the Instance field.
      *
-     * @param compUnit The ClassOrInterfaceDeclaration representing the java class to look at
+     * @param classToVerify The ClassOrInterfaceDeclaration representing the java class to look at
      *
      * @return
      */
-    public boolean callsConstructor(ClassOrInterfaceDeclaration compUnit) {
+    public boolean callsConstructor(ClassOrInterfaceDeclaration classToVerify) {
         boolean instanceMethod = true;
         List<MethodDeclaration> methods = new ArrayList<>();
-        compUnit.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {
+        classToVerify.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {
             methods.add(methodDeclaration);
         });
         for (MethodDeclaration declaration : methods) {
-            if (declaration.getTypeAsString().equals(compUnit.getNameAsString())) {
+            if (declaration.getTypeAsString().equals(classToVerify.getNameAsString())) {
                 if (declaration.isStatic()) {
                     if (declaration.isPrivate()) {
-                        compUnit.findAll(ConstructorDeclaration.class).forEach(
+                        classToVerify.findAll(ConstructorDeclaration.class).forEach(
                             constructor -> constDeclList.add(constructor));
                         instanceMethod &= !isMethodCalledFromPublic(methods, declaration)
                             .getIsError();   //
@@ -263,19 +263,19 @@ public class SingletonVerifier implements IPatternVerifier {
      * that the instance variable is null, should be extended to make sure that the returned
      * instance is assigned to the instance variable and not returned directly.
      *
-     * @param compUnit The ClassOrInterfaceDeclaration representing the java class to look at
+     * @param classToVerify The ClassOrInterfaceDeclaration representing the java class to look at
      *
      * @return true, if a check that the instance variable is null before the constructor is called
      *     is performed.
      */
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-    public Feedback onlyInstantiatedIfNull(ClassOrInterfaceDeclaration compUnit) {
+    public Feedback onlyInstantiatedIfNull(ClassOrInterfaceDeclaration classToVerify) {
         List<Feedback> childFeedbacks = new ArrayList<>();
         String feedbackString =
             "Object can be instatiated even if there is another instace created";
         AtomicBoolean onlyIfNull = new AtomicBoolean(true);
-        compUnit.findAll(ObjectCreationExpr.class).forEach(objInstExpr -> {
-            if (objInstExpr.getTypeAsString().equals(compUnit.getNameAsString())) {
+        classToVerify.findAll(ObjectCreationExpr.class).forEach(objInstExpr -> {
+            if (objInstExpr.getTypeAsString().equals(classToVerify.getNameAsString())) {
                 Node node = objInstExpr.getParentNodeForChildren();
                 while (true && !isInstantiated) {
                     if (node instanceof IfStmt) {
@@ -299,20 +299,19 @@ public class SingletonVerifier implements IPatternVerifier {
                                 onlyIfNull.compareAndSet(true, true);
                             } else {
                                 childFeedbacks.add(Feedback.getNoChildFeedback(
-                                    "Object can be " + "instantiated " + "even if there is " +
-                                    "another instance " + "created",
-                                    new FeedbackTrace(objInstExpr)));
+                                    "Object can be instantiated even if there is " +
+                                    "another instance created", new FeedbackTrace(objInstExpr)));
                             }
                         } else {
                             childFeedbacks.add(Feedback.getNoChildFeedback(
-                                "Object can be " + "instantiated " + "even if there is " +
-                                "another instance " + "created", new FeedbackTrace(objInstExpr)));
+                                "Object can be instantiated even if there is " +
+                                "another instance created", new FeedbackTrace(objInstExpr)));
                         }
                         break;
                     } else if (node instanceof ClassOrInterfaceDeclaration) {
                         childFeedbacks.add(Feedback.getNoChildFeedback(
-                            "Object can be " + "instantiated " + "even if there is " +
-                            "another instance " + "created", new FeedbackTrace(objInstExpr)));
+                            "Object can be instantiated even if there is " +
+                            "another instance created", new FeedbackTrace(objInstExpr)));
                         break;
                     }
                     node = node.getParentNode().get();
@@ -326,7 +325,7 @@ public class SingletonVerifier implements IPatternVerifier {
         if (childFeedbacks.isEmpty()) {
             return Feedback.getSuccessfulFeedback();
         }
-        return Feedback.getFeedbackWithChildren(new FeedbackTrace(compUnit), childFeedbacks);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToVerify), childFeedbacks);
     }
 
     /**
