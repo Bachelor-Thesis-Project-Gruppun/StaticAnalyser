@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.utils.SourceRoot;
 
@@ -29,8 +30,11 @@ public final class ProjectParser {
      * @return a list of {@link ClassOrInterfaceDeclaration}
      */
     public static List<ClassOrInterfaceDeclaration> findAllClassesAndInterfaces(String sourcePath) {
+        // Enable symbolsolving.
+        ParserConfiguration config = SolveThatSymbolSolver.getConfig(sourcePath);
         Path pathToSource = Paths.get(sourcePath);
-        SourceRoot sourceRoot = new SourceRoot(pathToSource);
+        SourceRoot sourceRoot = new SourceRoot(pathToSource, config);
+
         try {
             sourceRoot.tryToParse();
         } catch (IOException e) {
