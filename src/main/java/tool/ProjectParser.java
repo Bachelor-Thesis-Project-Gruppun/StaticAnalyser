@@ -32,7 +32,7 @@ public final class ProjectParser {
      */
     public static List<ClassOrInterfaceDeclaration> findAllClassesAndInterfaces(String sourcePath) {
         // Enable symbolsolving.
-        ParserConfiguration config = SolveThatSymbolSolver.GetConfig(sourcePath);
+        ParserConfiguration config = SolveThatSymbolSolver.getConfig(sourcePath);
         Path pathToSource = Paths.get(sourcePath);
         SourceRoot sourceRoot = new SourceRoot(pathToSource, config);
 
