@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers;
+package tool.designpatterns.verifiers.singleclassverifiers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
