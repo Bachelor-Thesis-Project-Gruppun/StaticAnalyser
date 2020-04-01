@@ -30,7 +30,8 @@ public final class SolveThatSymbolSolver {
      *
      * @return the new config.
      */
-    @SuppressWarnings("PMD.SystemPrintln") // Catch errors that I don't quite know what to do with.
+    @SuppressWarnings({"PMD.SystemPrintln", "PMD.AvoidInstantiatingObjectsInLoops"})
+    // Catch errors that I don't quite know what to do with. Used for debugging purposes mostly.
     public static ParserConfiguration getConfig(String rootDir) {
 
         File lookForTypes = new File("src");
@@ -49,7 +50,6 @@ public final class SolveThatSymbolSolver {
             }
 
             for (File pkgRoot : noDuplicates) {
-                System.out.println("Adding package root" + pkgRoot.toString());
                 typeSolver.add(new JavaParserTypeSolver(pkgRoot));
             }
         } catch (IllegalArgumentException e) {
@@ -105,28 +105,8 @@ public final class SolveThatSymbolSolver {
         return packageRoots;
     }
 
-    private static List<File> addIfNotDuplicate(List<File> base, List<File> toAdd) {
-        List<File> newList = new ArrayList<>();
-        newList.addAll(base);
-
-        for (File file : toAdd) {
-            boolean exists = false;
-            for (File existing : base) {
-                if (file.getAbsolutePath().equals(existing.getAbsolutePath())) {
-                    exists = true;
-                }
-            }
-
-            if (!exists) {
-                newList.add(file);
-            }
-        }
-
-        return newList;
-    }
-
     private static File getPackageRootNode(String pkg, File base) {
-        int numFolders = pkg.isEmpty() ? 0 : getCharOccurances(pkg, '.') + 1;
+        int numFolders = pkg.isEmpty() ? 0 : getCharOccurances(pkg, '.') + 2;
 
         File node = base;
         while (numFolders > 0) {
