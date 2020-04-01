@@ -5,8 +5,12 @@ package tool.designpatterns;
  * added, then the enum must be expanded manually.
  */
 public enum Pattern {
+
     IMMUTABLE(PatternGroup.IMMUTABLE),
     SINGLETON(PatternGroup.SINGLETON),
+
+    ADAPTER_ADAPTER(PatternGroup.ADAPTER),
+    ADAPTER_ADAPTEE(PatternGroup.ADAPTER);
 
     COMPOSITE_COMPONENT(PatternGroup.COMPOSITE),
     COMPOSITE_NODES(PatternGroup.COMPOSITE),
