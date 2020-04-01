@@ -13,7 +13,7 @@ public enum Pattern {
     ADAPTER_ADAPTEE(PatternGroup.ADAPTER),
 
     COMPOSITE_COMPONENT(PatternGroup.COMPOSITE),
-    COMPOSITE_NODES(PatternGroup.COMPOSITE),
+    COMPOSITE_CONTAINER(PatternGroup.COMPOSITE),
     COMPOSITE_LEAF(PatternGroup.COMPOSITE);
 
     private PatternGroup group;

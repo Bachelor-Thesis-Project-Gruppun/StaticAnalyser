@@ -12,8 +12,8 @@ import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.APatternInstance;
 
 /**
- * Class which defines how an instance of Composte is structured, created and is neccesary for it
- * to function.
+ * Class which defines how an instance of Composte is structured, created and is neccesary for it to
+ * function.
  */
 public final class CompositePatternInstance extends APatternInstance {
 
@@ -28,7 +28,6 @@ public final class CompositePatternInstance extends APatternInstance {
     public List<ClassOrInterfaceDeclaration> getNodes() {
         return nodes;
     }
-
 
     /**
      * Cosntructor for the pattern instance. makes sure alla fields are initialised.
@@ -53,7 +52,7 @@ public final class CompositePatternInstance extends APatternInstance {
     public static List<CompositePatternInstance> createInstancesFromMap(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         List<ClassOrInterfaceDeclaration> components = map.get(Pattern.COMPOSITE_COMPONENT);
-        List<ClassOrInterfaceDeclaration> nodes = map.get(Pattern.COMPOSITE_NODES);
+        List<ClassOrInterfaceDeclaration> nodes = map.get(Pattern.COMPOSITE_CONTAINER);
         List<ClassOrInterfaceDeclaration> leaves = map.get(Pattern.COMPOSITE_LEAF);
 
         HashMap<ClassOrInterfaceDeclaration, CompositePatternInstance> patternInstances =
@@ -136,4 +135,9 @@ public final class CompositePatternInstance extends APatternInstance {
         return errorOccured;
     }
 
+    @Override
+    public String toString() {
+        return "CompositePatternInstance{" + "component=" + component + ", nodes=" + nodes.size() +
+               ", leaves=" + leaves.size() + '}';
+    }
 }

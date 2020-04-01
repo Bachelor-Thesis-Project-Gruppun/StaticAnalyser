@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
@@ -13,6 +15,7 @@ import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
+import tool.util.VariableReader;
 
 /**
  * A verifier for the compsite pattern.
@@ -49,9 +52,8 @@ public class CompositeVerifier implements IPatternGrouper {
         List<Feedback> feedbacks = new ArrayList<>();
         feedbacks.add(componentHasMethods(patternInstance.getComponent()));
         for (ClassOrInterfaceDeclaration node : patternInstance.getNodes()) {
-            FeedbackWrapper<List<String>> collectionFields = getCollectionFieldsOfType(node,
-                                                                                       patternInstance
-                                                                                           .getComponent());
+            FeedbackWrapper<List<FieldDeclaration>> collectionFields = getCollectionFieldsOfType(
+                node, patternInstance.getComponent());
             if (collectionFields.getOther().isEmpty()) {
                 feedbacks.add(collectionFields.getFeedback());
             } else {
@@ -67,12 +69,30 @@ public class CompositeVerifier implements IPatternGrouper {
                                            new FeedbackTrace(component));
     }
 
-    private FeedbackWrapper<List<String>> getCollectionFieldsOfType(
+    private FeedbackWrapper<List<FieldDeclaration>> getCollectionFieldsOfType(
         ClassOrInterfaceDeclaration node, ClassOrInterfaceDeclaration componentType) {
-        List<String> fieldNames = new ArrayList<>();
-        Feedback feedback = Feedback.getNoChildFeedback(
-            "har inte implementerat det här ännu", new FeedbackTrace(node));
+        List<FieldDeclaration> fieldNames = new ArrayList<>();
 
+        for (FieldDeclaration field : VariableReader.readVariables(node)) {
+            for (ResolvedReferenceType type : field.getElementType().resolve().asReferenceType()
+                                                   .getAllAncestors()) {
+                if (type.getQualifiedName().equals("java.util.Collection")) {
+                    for (var pair : type.getTypeParametersMap()) {
+                        if (pair.b.describe().equals(componentType.getFullyQualifiedName().get())) {
+                            fieldNames.add(field);
+                        }
+                    }
+                }
+            }
+        }
+        Feedback feedback;
+        if (fieldNames.size() > 0) {
+            feedback = Feedback.getSuccessfulFeedback();
+        } else {
+            feedback = Feedback.getNoChildFeedback(
+                "The container has no Collection with the " + "component as parameter",
+                new FeedbackTrace(node));
+        }
         return new FeedbackWrapper<>(feedback, fieldNames);
     }
 
