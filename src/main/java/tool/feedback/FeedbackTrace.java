@@ -114,7 +114,7 @@ public final class FeedbackTrace {
         // a constructor for it / one of its super classes.
         throw new NotImplementedException(
             "The given type is not yet supported, here follows the entire node: \n\n" +
-            node.toString());
+                node.toString());
     }
 
     @Override
