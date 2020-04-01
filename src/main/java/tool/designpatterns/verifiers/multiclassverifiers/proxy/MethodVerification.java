@@ -15,7 +15,14 @@ import tool.feedback.FeedbackWrapper;
  */
 public class MethodVerification {
 
-    // Steps 2c / 2e -- nemo
+    /**
+     * A method to find out if both the interface and the class implement the method.
+     *
+     * @param theClass The class to find a matching MethodDeclaration in.
+     * @param theInterface The interface to find a matching MethodDeclaration in.
+     * @param method The MethodDeclaration to be found in the class and interface.
+     * @return A feedbackwrapper containing a feedback and the class MethodDeclaration object.
+     */
     static FeedbackWrapper<MethodDeclaration> classImplementsMethod(
         ClassOrInterfaceDeclaration theClass, ClassOrInterfaceDeclaration theInterface,
         MethodDeclaration method) {

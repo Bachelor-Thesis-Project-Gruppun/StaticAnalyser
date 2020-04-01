@@ -20,7 +20,7 @@ public class MethodDeclarationVisitor
     /**
      * Visit all MethodDeclarations in a ClassOrInterfaceDeclaration and add them to a list.
      *
-     * @param method the Method currently being visited.
+     * @param method the MethodDeclaration currently being visited.
      * @param classOrI the ClassOrInterfaceDeclaration the method is declared in.
      *
      * @return a list of MethodDeclarations present in the ClassOrInterfaceDeclaration.
