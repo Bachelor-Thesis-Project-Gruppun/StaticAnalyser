@@ -21,6 +21,15 @@ public final class CompositePatternInstance extends APatternInstance {
     private final List<ClassOrInterfaceDeclaration> nodes;
     private final List<ClassOrInterfaceDeclaration> leaves;
 
+    public ClassOrInterfaceDeclaration getComponent() {
+        return component;
+    }
+
+    public List<ClassOrInterfaceDeclaration> getNodes() {
+        return nodes;
+    }
+
+
     /**
      * Cosntructor for the pattern instance. makes sure alla fields are initialised.
      *
