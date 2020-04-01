@@ -49,13 +49,14 @@ public class CompositeVerifier implements IPatternGrouper {
         List<Feedback> feedbacks = new ArrayList<>();
         feedbacks.add(componentHasMethods(patternInstance.getComponent()));
         for (ClassOrInterfaceDeclaration node : patternInstance.getNodes()) {
-            FeedbackWrapper<List<String>> collectionFields =
-                getCollectionFieldsOfType(node,patternInstance.getComponent());
+            FeedbackWrapper<List<String>> collectionFields = getCollectionFieldsOfType(node,
+                                                                                       patternInstance
+                                                                                           .getComponent());
             if (collectionFields.getOther().isEmpty()) {
                 feedbacks.add(collectionFields.getFeedback());
             } else {
                 feedbacks.add(Feedback.getSuccessfulFeedback());
-                feedbacks.add(delegatesToCollection(node, collectionFields.getOther()));
+                feedbacks.add(delegatesToCollection(node, patternInstance.getComponent()));
             }
         }
         return feedbacks;
@@ -75,8 +76,16 @@ public class CompositeVerifier implements IPatternGrouper {
         return new FeedbackWrapper<>(feedback, fieldNames);
     }
 
+    /**
+     * Checks that a method delegates the call to at least one child of the type componentType
+     *
+     * @param node          The node that is being checked
+     * @param componentType The type of the children
+     *
+     * @return The result of the validation of the predicate
+     */
     private Feedback delegatesToCollection(
-        ClassOrInterfaceDeclaration node, List<String> fieldNames) {
+        ClassOrInterfaceDeclaration node, ClassOrInterfaceDeclaration componentType) {
         return Feedback.getNoChildFeedback("finns inget fält med typen collection och nåt mer",
                                            new FeedbackTrace(node));
     }
