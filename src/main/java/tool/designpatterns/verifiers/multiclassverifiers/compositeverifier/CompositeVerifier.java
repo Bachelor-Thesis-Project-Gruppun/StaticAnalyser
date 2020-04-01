@@ -34,7 +34,15 @@ public class CompositeVerifier implements IPatternGrouper {
     }
 
     private Feedback verify(CompositePatternInstance patternInstance) {
-        patternInstance.hasAllElements();
-        return Feedback.getSuccessfulFeedback();
+        Feedback hasAllElements = patternInstance.hasAllElements();
+        if (hasAllElements.getIsError()) {
+            return hasAllElements;
+        } else { // the instance is complete and the predicates may now be checked
+            List<Feedback> childFeedbacks = new ArrayList<>();
+
+
+
+            return Feedback.getPatternInstanceFeedback(childFeedbacks);
+        }
     }
 }

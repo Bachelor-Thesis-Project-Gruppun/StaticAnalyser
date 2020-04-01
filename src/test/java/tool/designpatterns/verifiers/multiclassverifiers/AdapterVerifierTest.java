@@ -14,6 +14,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import org.junit.jupiter.api.Test;
 import tool.designpatterns.Pattern;
+import tool.designpatterns.verifiers.multiclassverifiers.adapterverifier.AdapterVerifier;
 import utilities.TestHelper;
 
 public class AdapterVerifierTest {

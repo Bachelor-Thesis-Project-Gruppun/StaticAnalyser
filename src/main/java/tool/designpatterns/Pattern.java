@@ -10,7 +10,7 @@ public enum Pattern {
     SINGLETON(PatternGroup.SINGLETON),
 
     ADAPTER_ADAPTER(PatternGroup.ADAPTER),
-    ADAPTER_ADAPTEE(PatternGroup.ADAPTER);
+    ADAPTER_ADAPTEE(PatternGroup.ADAPTER),
 
     COMPOSITE_COMPONENT(PatternGroup.COMPOSITE),
     COMPOSITE_NODES(PatternGroup.COMPOSITE),

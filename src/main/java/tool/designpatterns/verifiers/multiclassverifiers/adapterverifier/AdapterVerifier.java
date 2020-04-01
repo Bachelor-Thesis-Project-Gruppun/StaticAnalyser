@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers.adapterverifier;
 
 import java.util.ArrayList;
 import java.util.List;
