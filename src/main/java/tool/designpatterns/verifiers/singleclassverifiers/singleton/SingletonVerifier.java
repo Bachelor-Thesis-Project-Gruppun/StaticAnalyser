@@ -1,0 +1,356 @@
+package tool.designpatterns.verifiers.singleclassverifiers.singleton;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.stmt.IfStmt;
+
+import tool.designpatterns.verifiers.IPatternVerifier;
+import tool.feedback.Feedback;
+import tool.feedback.FeedbackTrace;
+import tool.util.VariableReader;
+
+/**
+ * A verifier for the singleton pattern.
+ */
+public class SingletonVerifier implements IPatternVerifier {
+
+    private final transient List<ConstructorDeclaration> constDeclList = new ArrayList<>();
+    private transient FieldDeclaration instanceVar;
+    private transient boolean isInstantiated;       // Tbh idk what transient means but PMD would
+    // not let it work without it.
+
+    public SingletonVerifier() {
+    }
+
+    @Override
+    public Feedback verify(ClassOrInterfaceDeclaration classToVerify) {
+        // boolean isValid = callsConstructor(classToVerify) && hasAStaticInstance(classToVerify) &&
+        //                   onlyInstantiatedIfNull(classToVerify) && hasPrivateConstructor(
+        //     classToVerify) && isInstantiated;
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        childFeedbacks.add(hasAStaticInstance(classToVerify));
+        childFeedbacks.add(onlyInstantiatedIfNull(classToVerify));
+        childFeedbacks.add(hasPrivateConstructor(classToVerify));
+        if (!isInstantiated) {
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "There is no way to instantiate the " + "class", new FeedbackTrace(classToVerify)));
+        }
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToVerify), childFeedbacks);
+
+    }
+
+    /**
+     * Method for checking if all the constructors in a Java class are private.
+     *
+     * @param classToTest The ClassOrInterfaceDeclaration representing the Java class to look at
+     *
+     * @return True iff all constructors are private
+     */
+    public Feedback hasPrivateConstructor(ClassOrInterfaceDeclaration classToTest) {
+        List<ConstructorDeclaration> publicConstructors = new ArrayList<>();
+        // Finds and checks if the constructors are private or not.
+        classToTest.findAll(ConstructorDeclaration.class).forEach(constructor -> {
+            if (!constructor.isPrivate()) {
+                publicConstructors.add(constructor);
+            }
+
+        });
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        if (publicConstructors.isEmpty()) {
+            return Feedback.getSuccessfulFeedback();
+        } else {
+            publicConstructors.forEach(constr -> {
+                childFeedbacks.add(Feedback.getNoChildFeedback(
+                    "Non-private constructor found, " + "class can be instantiated " + "elsewhere",
+                    new FeedbackTrace(constr)));
+            });
+        }
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToTest), childFeedbacks);
+    }
+
+    /**
+     * Method for declaring if a java class holds a field variable of a static instance
+     * https://stackoverflow .com/questions/53300710/how-to-parse-inner-class-from-java-source-code
+     * might help solving a check for inner classes
+     *
+     * @param classToTest The ClassOrInterfaceDeclaration representing the java class to look at
+     *
+     * @return True iff the java class holds a field variable with a static modifier of the same
+     *     type as the class itself (eg. static SingletonVerifier sv;)
+     */
+    public Feedback hasAStaticInstance(ClassOrInterfaceDeclaration classToTest) {
+        boolean multipleInstances = false;
+        boolean isStatic = false;
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        for (FieldDeclaration fieldDeclaration : VariableReader.readVariables(classToTest)) {
+            if (fieldDeclaration.getVariables().get(0).getType().toString().equals(
+                classToTest.getNameAsString())) {
+                if (multipleInstances) {
+                    childFeedbacks.add(Feedback.getNoChildFeedback(
+                        "Found multiple instance " + "fields",
+                        new FeedbackTrace(fieldDeclaration)));
+                }
+                if (!fieldDeclaration.getVariables().get(0).getInitializer().isEmpty()) {
+                    isInstantiated = true;
+                }
+                for (Modifier md : fieldDeclaration.getModifiers()) {
+                    if (md.getKeyword().asString().equals("public")) {
+                        childFeedbacks.add(Feedback.getNoChildFeedback(
+                            "Found a public instance of " + "the class, could be set " +
+                            "multiple times", new FeedbackTrace(fieldDeclaration)));
+                    } else if (md.getKeyword().asString().equals("protected")) {
+                        childFeedbacks.add(Feedback.getNoChildFeedback(
+                            "Found package-private " + "instance of the class, " +
+                            "could be set multiple " + "times",
+                            new FeedbackTrace(fieldDeclaration)));
+                    } else if (md.getKeyword().asString().equals("static")) {
+                        isStatic = true;
+                    }
+                }
+                if (!isStatic) {
+                    childFeedbacks.add(Feedback.getNoChildFeedback(
+                        "Non-static field found in " + "class, this field should " +
+                        "never be initializeable so " + "it may never be used",
+                        new FeedbackTrace(fieldDeclaration)));
+                }
+                instanceVar = fieldDeclaration;
+                multipleInstances = true;
+            }
+        }
+        if (childFeedbacks.isEmpty()) {
+            return Feedback.getSuccessfulFeedback();
+        }
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToTest), childFeedbacks);
+    }
+
+    /**
+     * Method for declaring if a java class has a getInstance() method which calls the constructor
+     * of the Singleton class, does not support a Singleton that is initialized at variable
+     * declaration in the Instance field.
+     *
+     * @param compUnit The ClassOrInterfaceDeclaration representing the java class to look at
+     *
+     * @return
+     */
+    public boolean callsConstructor(ClassOrInterfaceDeclaration compUnit) {
+        boolean instanceMethod = true;
+        List<MethodDeclaration> methods = new ArrayList<>();
+        compUnit.findAll(MethodDeclaration.class).forEach(methodDeclaration -> {
+            methods.add(methodDeclaration);
+        });
+        for (MethodDeclaration declaration : methods) {
+            if (declaration.getTypeAsString().equals(compUnit.getNameAsString())) {
+                if (declaration.isStatic()) {
+                    if (declaration.isPrivate()) {
+                        compUnit.findAll(ConstructorDeclaration.class).forEach(
+                            constructor -> constDeclList.add(constructor));
+                        instanceMethod &= !isMethodCalledFromPublic(methods, declaration)
+                            .getIsError();   //
+                    } else {
+                        instanceMethod &= true;
+                    }
+                } else {
+                    instanceMethod = false;
+                }
+            }
+        }
+        return instanceMethod;
+    }
+
+    /**
+     * Method to look for a constructor call, might be useful to differentiate between different
+     * types of singletons in the future, currently unused.
+     *
+     * @param declaration A method to look inside to see if there is a ConstructorCall
+     * @param constructor A ConstructorDeclaration for the class
+     *
+     * @return If a method is calling a specific constructor
+     */
+    public boolean findConstructorCall(
+        MethodDeclaration declaration, ConstructorDeclaration constructor) {
+        List<ObjectCreationExpr> calledMethods = new ArrayList<>();
+        declaration.findAll(ObjectCreationExpr.class).forEach(methodDeclaration -> {
+            if (methodDeclaration.getTypeAsString().equals(constructor.getNameAsString())) {
+                calledMethods.add(methodDeclaration);
+            }
+        });
+        return !calledMethods.isEmpty();
+    }
+
+    /**
+     * Method returns whether a method is called from a public method in the same class or not.
+     * Calls itself recursively until no more calls are found. Method does currently not
+     * differentiate between overloaded methods since it compares names of methods at this time.
+     *
+     * @param allMethods      A list of MethodDeclarations of all methods in a class
+     * @param methodToLookFor Method checks if it is called from a public method in the same class
+     *
+     * @return True if the method is called from another public method in the same class
+     */
+    public Feedback isMethodCalledFromPublic(
+        List<MethodDeclaration> allMethods, MethodDeclaration methodToLookFor) {
+        List<MethodCallExpr> publicCalls = new ArrayList<>();
+        List<MethodCallExpr> privateCalls = new ArrayList<>();
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        boolean result = false;
+        for (MethodDeclaration current : allMethods) {
+            current.findAll(MethodCallExpr.class).forEach(methodCallExpr -> {
+                if (methodCallExpr.getChildNodes().get(0).toString().equals(
+                    methodToLookFor.getNameAsString())) {
+                    if (current.isPrivate()) {
+                        privateCalls.add(methodCallExpr);
+                    } else {
+                        publicCalls.add(methodCallExpr);
+                    }
+                }
+            });
+        }
+        result = !publicCalls.isEmpty();
+        if (!result) {
+            for (MethodCallExpr currentExpr : privateCalls) {
+                Node node = currentExpr;
+                while (!(node instanceof ClassOrInterfaceDeclaration) && !result) {
+                    if (node instanceof MethodDeclaration) {
+                        result = !isMethodCalledFromPublic(allMethods, (MethodDeclaration) node)
+                            .getIsError();
+                        break;
+                    } else {
+                        node = node.getParentNode().get();
+                    }
+                }
+            }
+        }
+        if (result) {
+            return Feedback.getSuccessfulFeedback();
+        } else {
+            return Feedback.getFeedbackWithChildren(new FeedbackTrace(methodToLookFor),
+                                                    childFeedbacks);
+        }
+    }
+
+    /**
+     * Method for checking that an object of the Singleton class is only instantiated after checking
+     * that the instance variable is null, should be extended to make sure that the returned
+     * instance is assigned to the instance variable and not returned directly.
+     *
+     * @param compUnit The ClassOrInterfaceDeclaration representing the java class to look at
+     *
+     * @return true, if a check that the instance variable is null before the constructor is called
+     *     is performed.
+     */
+    public Feedback onlyInstantiatedIfNull(ClassOrInterfaceDeclaration compUnit) {
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        AtomicBoolean onlyIfNull = new AtomicBoolean(true);
+        compUnit.findAll(ObjectCreationExpr.class).forEach(objCreateExpr -> {
+            if (objCreateExpr.getTypeAsString().equals(compUnit.getNameAsString())) {
+                Node node = objCreateExpr.getParentNodeForChildren();
+                while (true && !isInstantiated) {
+                    if (node instanceof IfStmt) {
+                        IfStmt ifStmtNode = (IfStmt) node;
+                        if (ifStmtNode.getCondition().isBinaryExpr()) {
+                            if (checkForNull(ifStmtNode) && checkForType(ifStmtNode, instanceVar)) {
+                                if (ifStmtNode.hasElseBlock()) {
+                                    ifStmtNode.getElseStmt().get().findAll(ObjectCreationExpr.class)
+                                              .forEach(objCreateExpr1 -> {
+                                                  if (objCreateExpr1.getTypeAsString().equals(
+                                                      instanceVar.getVariable(0)
+                                                                 .getTypeAsString())) {
+                                                      childFeedbacks.add(Feedback
+                                                                             .getNoChildFeedback(
+                                                                                 "Object can be " +
+                                                                                 "instatiated " +
+                                                                                 "even if there " +
+                                                                                 "is another " +
+                                                                                 "instace created",
+                                                                                 new FeedbackTrace(
+                                                                                     ifStmtNode
+                                                                                         .getElseStmt()
+                                                                                         .get())));
+                                                  }
+                                              });
+                                }
+                                onlyIfNull.compareAndSet(true, true);
+                            } else {
+                                childFeedbacks.add(Feedback.getNoChildFeedback(
+                                    "Object can be " + "instantiated " + "even if there is " +
+                                    "another instance " + "created",
+                                    new FeedbackTrace(objCreateExpr)));
+                            }
+                        } else {
+                            childFeedbacks.add(Feedback.getNoChildFeedback(
+                                "Object can be " + "instantiated " + "even if there is " +
+                                "another instance " + "created", new FeedbackTrace(objCreateExpr)));
+                        }
+                        break;
+                    } else if (node instanceof ClassOrInterfaceDeclaration) {
+                        childFeedbacks.add(Feedback.getNoChildFeedback(
+                            "Object can be " + "instantiated " + "even if there is " +
+                            "another instance " + "created", new FeedbackTrace(objCreateExpr)));
+                        break;
+                    }
+                    node = node.getParentNode().get();
+                }
+
+            }
+        });
+        if (onlyIfNull.get()) {
+            isInstantiated = true;
+        }
+        if (childFeedbacks.isEmpty()) {
+            return Feedback.getSuccessfulFeedback();
+        }
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(compUnit), childFeedbacks);
+    }
+
+    /**
+     * Checks if an IfStmt contains a NullLiteralExpr.
+     *
+     * @param ifStmt The IfStmt to check.
+     *
+     * @return true iff the IfStmt contains a NullLiteralExpr.
+     */
+    private boolean checkForNull(IfStmt ifStmt) {
+        boolean isNull = false;
+        BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
+        isNull |= ifAsBinary.getLeft().isNullLiteralExpr();
+        isNull |= ifAsBinary.getRight().isNullLiteralExpr();
+        return isNull;
+    }
+
+    /**
+     * Method for checking if an IfStmt has a partial expression of the same type as a variable in a
+     * class.
+     *
+     * @param ifStmt          If statement to check.
+     * @param compareVariable The variable to compare with.
+     *
+     * @return true iff the IfStmt contains an expression with the same type as a variable in a
+     *     class.
+     */
+    private boolean checkForType(IfStmt ifStmt, FieldDeclaration compareVariable) {
+        boolean isOfType = false;
+        BinaryExpr ifAsBinary = ifStmt.getCondition().asBinaryExpr();
+        String comparedTypeName = compareVariable.getVariables().get(0).getNameAsString();
+        if (!ifAsBinary.getLeft().isNullLiteralExpr()) {
+            isOfType |= ifAsBinary.getLeft().asNameExpr().getNameAsString().equals(
+                comparedTypeName);
+        }
+        if (!ifAsBinary.getRight().isNullLiteralExpr()) {
+            isOfType |= ifAsBinary.getRight().asNameExpr().getNameAsString().equals(
+                comparedTypeName);
+        }
+        return isOfType;
+    }
+
+}
