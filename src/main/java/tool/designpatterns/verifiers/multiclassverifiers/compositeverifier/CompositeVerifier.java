@@ -6,7 +6,17 @@ import java.util.Map;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
+import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
+import com.github.javaparser.ast.visitor.Visitable;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
@@ -106,7 +116,121 @@ public class CompositeVerifier implements IPatternGrouper {
      */
     private Feedback delegatesToCollection(
         ClassOrInterfaceDeclaration node, ClassOrInterfaceDeclaration componentType) {
-        return Feedback.getNoChildFeedback("finns inget fält med typen collection och nåt mer",
-                                           new FeedbackTrace(node));
+        List<Feedback> responses = new ArrayList<>();
+        node.findAll(MethodDeclaration.class).forEach(e -> {
+            if (methodBelongsToComponent(e, componentType)) {
+                Feedback f = e.accept(new LoopVisitor(), e);
+                if (f == null) {
+                    responses.add(Feedback.getNoChildFeedback(
+                        "There is no iterating block in container", new FeedbackTrace(e)));
+                } else {
+                    responses.add(f);
+                }
+            }
+        });
+
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(node), responses);
     }
+
+    private boolean methodBelongsToComponent(
+        MethodDeclaration method, ClassOrInterfaceDeclaration component) {
+        for (MethodDeclaration e : component.getMethods()) {
+            if (isSameMethod(e, method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSameMethod(MethodDeclaration m1, MethodDeclaration m2) {
+        boolean hasSameName = m1.getName().equals(m2.getName());
+        boolean hasSameParameters = m1.getParameters().equals(m2.getParameters());
+        return hasSameName && hasSameParameters;
+    }
+
+    private boolean isSameMethod(MethodDeclaration m1, MethodCallExpr m2) {
+        boolean hasSameName = m1.getName().equals(m2.getName());
+        boolean hasSameParameters = m1.getParameters().equals(m2.getArguments());
+        return hasSameName && hasSameParameters;
+    }
+
+    private class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaration> {
+
+        @Override
+        public Feedback visit(
+            ForStmt n, MethodDeclaration arg) {
+            super.visit(n, arg);
+            return verifyLoop(n.getBody(), arg);
+        }
+
+        @Override
+        public Feedback visit(
+            WhileStmt n, MethodDeclaration arg) {
+            super.visit(n, arg);
+            return verifyLoop(n.getBody(), arg);
+        }
+
+        @Override
+        public Feedback visit(
+            DoStmt n, MethodDeclaration arg) {
+            super.visit(n, arg);
+            return verifyLoop(n.getBody(), arg);
+        }
+
+        @Override
+        public Feedback visit(
+            ForEachStmt n, MethodDeclaration arg) {
+            super.visit(n, arg);
+            return verifyLoop(n.getBody(), arg);
+        }
+
+        @Override
+        public Feedback visit(
+            MethodCallExpr n, MethodDeclaration arg) {
+            super.visit(n, arg);
+            if (n.getNameAsString().equalsIgnoreCase("forEach")) {
+                return verifyLoop(n.getArgument(0), arg);
+            }
+            return Feedback.getNoChildFeedback(
+                "Container method does not contain forEach " + "statement", new FeedbackTrace(arg));
+        }
+
+        private Feedback verifyLoop(Visitable loopStmt, MethodDeclaration parentMethod) {
+            ComponentMethodVisitor visitor = new ComponentMethodVisitor();
+            loopStmt.accept(visitor, parentMethod);
+            if (visitor.getDoesDelegate().stream().anyMatch(e -> e)) {
+                return Feedback.getSuccessfulFeedback();
+            } else {
+                return Feedback.getNoChildFeedback("Container method does not delegate method call",
+                                                   new FeedbackTrace(parentMethod));
+            }
+        }
+    }
+
+
+    private class ComponentMethodVisitor extends VoidVisitorAdapter<MethodDeclaration> {
+
+        private List<Boolean> doesDelegate;
+
+        private ComponentMethodVisitor() {
+            this.doesDelegate = new ArrayList<>();
+        }
+
+        private List<Boolean> getDoesDelegate() {
+            return doesDelegate;
+        }
+
+        @Override
+        public void visit(
+            MethodCallExpr methodCall, MethodDeclaration parentMethod) {
+            super.visit(methodCall, parentMethod);
+            try {
+                JavaParserMethodDeclaration m = (JavaParserMethodDeclaration) methodCall.resolve();
+                doesDelegate.add(isSameMethod(m.getWrappedNode(), parentMethod));
+            } catch (ClassCastException exception) {
+                doesDelegate.add(Boolean.FALSE);
+            }
+        }
+    }
+
 }
