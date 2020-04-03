@@ -30,7 +30,8 @@ public final class SolveThatSymbolSolver {
      *
      * @return the new config.
      */
-    @SuppressWarnings("PMD.SystemPrintln") // Catch errors that I don't quite know what to do with.
+    @SuppressWarnings({"PMD.SystemPrintln", "PMD.AvoidInstantiatingObjectsInLoops"})
+    // Catch errors that I don't quite know what to do with. Used for debugging purposes mostly.
     public static ParserConfiguration getConfig(String rootDir) {
 
         File lookForTypes = new File("src");
@@ -49,7 +50,6 @@ public final class SolveThatSymbolSolver {
             }
 
             for (File pkgRoot : noDuplicates) {
-                System.out.println("Adding package root" + pkgRoot.toString());
                 typeSolver.add(new JavaParserTypeSolver(pkgRoot));
             }
         } catch (IllegalArgumentException e) {

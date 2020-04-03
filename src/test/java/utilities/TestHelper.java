@@ -1,15 +1,13 @@
 package utilities;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import tool.designpatterns.DesignPattern;
-import tool.designpatterns.Pattern;
+import tool.SolveThatSymbolSolver;
 
 /**
  * A testmanager that provides some basic test utilities.
@@ -33,14 +31,18 @@ public class TestHelper {
     /**
      * returns the 'File' for the mock file given a path.
      *
-     * @param pattern the pattern folder name.
+     * @param pattern   the pattern folder name.
      * @param className the name of the mock class to load.
+     *
      * @return the file for the mockfile.
-     * @throws FileNotFoundException in case the file could not be found.
+     *
+     * @exception FileNotFoundException in case the file could not be found.
      */
-    public static CompilationUnit getMockCompUnit(String pattern, String className) throws FileNotFoundException {
+    public static CompilationUnit getMockCompUnit(String pattern, String className)
+        throws FileNotFoundException {
         String path = getFullMockPath(pattern + "/" + className + ".java");
         File file = new File(path);
+        SolveThatSymbolSolver.getConfig("src");
         return StaticJavaParser.parse(file);
     }
 
@@ -55,7 +57,7 @@ public class TestHelper {
      * @exception FileNotFoundException in case the file could not be found.
      */
     public static ClassOrInterfaceDeclaration getMockClassOrI(String pattern, String className)
-    throws FileNotFoundException {
+        throws FileNotFoundException {
         CompilationUnit compUnit = getMockCompUnit(pattern, className);
 
         ClassOrInterfaceDeclaration classOrIToReturn = null;

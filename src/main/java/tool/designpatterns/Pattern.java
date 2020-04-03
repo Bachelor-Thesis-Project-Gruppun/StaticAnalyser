@@ -5,11 +5,18 @@ package tool.designpatterns;
  * added, then the enum must be expanded manually.
  */
 public enum Pattern {
+    // Single class patterns
     IMMUTABLE(PatternGroup.IMMUTABLE),
     SINGLETON(PatternGroup.SINGLETON),
+
+    // Proxy
     PROXY_INTERFACE(PatternGroup.PROXY),
     PROXY_SUBJECT(PatternGroup.PROXY),
-    PROXY_PROXY(PatternGroup.PROXY);
+    PROXY_PROXY(PatternGroup.PROXY),
+
+    // Adapter
+    ADAPTER_ADAPTER(PatternGroup.ADAPTER),
+    ADAPTER_ADAPTEE(PatternGroup.ADAPTER);
 
     private PatternGroup group;
 
