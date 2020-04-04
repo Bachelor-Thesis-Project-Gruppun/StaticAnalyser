@@ -73,4 +73,14 @@ public class ProxyPatternGroup {
     public List<MethodGroup> getMethods() {
         return methods;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("Proxy pattern containing: ");
+        stringBuilder.append("proxy: ").append(proxy.getNameAsString());
+        stringBuilder.append(", interface: ").append(interfaceOrAClass.getNameAsString());
+        stringBuilder.append(", subject: ").append(subject.getNameAsString());
+
+        return stringBuilder.toString();
+    }
 }
