@@ -2,7 +2,6 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.MethodVerification.classImplementsMethod;
@@ -14,8 +13,6 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
-import org.apache.commons.lang.NotImplementedException;
-import tool.designpatterns.Pattern;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodCallVisitor;
@@ -42,8 +39,8 @@ public class ProxyProxyVerifier {
 
         feedbacks.add(proxyUsesSubject);
 
-        return new FeedbackWrapper(Feedback.getPatternInstanceFeedback(feedbacks),
-                                   noVariableGroups.getOther());
+        return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(feedbacks),
+                                     noVariableGroups.getOther());
     }
 
     private static FeedbackWrapper<List<ProxyPatternGroup>> addProxies(
@@ -104,21 +101,38 @@ public class ProxyProxyVerifier {
 
     private static Feedback verifyProxyUsesSubject(
         ProxyPatternGroup proxyGroup, List<VariableDeclarator> proxyVariables) {
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        boolean atLeastOneCalls = false;
+
         for (MethodGroup methodGroup : proxyGroup.getMethods()) {
             for (VariableDeclarator variable : proxyVariables) {
                 Feedback feedback = methodCallsOther(methodGroup.getProxyMethod(),
                                                      methodGroup.getSubjectMethod(), variable);
+                childFeedbacks.add(feedback);
+
+                if (!feedback.getIsError()) {
+                    atLeastOneCalls = true;
+                }
             }
         }
 
-        throw new NotImplementedException();
+        if (atLeastOneCalls) {
+            return Feedback.getSuccessfulFeedback();
+        }
+
+        return Feedback.getPatternInstanceFeedback(childFeedbacks);
     }
 
     private static Feedback methodCallsOther(
         MethodDeclaration method, MethodDeclaration other, VariableDeclarator otherReference) {
-        method.accept(new MethodCallVisitor(otherReference, other), null);
+        Boolean isValid = method.accept(new MethodCallVisitor(otherReference, other), null);
+        if (isValid == null || !isValid) {
+            return Feedback.getNoChildFeedback(
+                "Proxy method " + method.getNameAsString() + " " + "does not call subject method " +
+                other.getNameAsString(), new FeedbackTrace(method));
+        }
 
-        throw new NotImplementedException();
+        return Feedback.getSuccessfulFeedback();
     }
 
     private static FeedbackWrapper<List<VariableDeclarator>> getVariableCandidates(
@@ -153,23 +167,5 @@ public class ProxyProxyVerifier {
         });
 
         return isSameType.get();
-    }
-
-    /**
-     * TEST METHOD REMOVE LATER!!
-     */
-    public static void test(Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
-        List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-
-        subjects.forEach(subject -> {
-            proxies.forEach(proxy -> {
-                proxy.getFields().forEach(proxyField -> {
-                    VariableDeclarator variable = proxyField.getVariable(0);
-                    System.out.println(
-                        "TEST VariableIsTypeofClass: " + VariableIsTypeofClass(variable, subject));
-                });
-            });
-        });
     }
 }
