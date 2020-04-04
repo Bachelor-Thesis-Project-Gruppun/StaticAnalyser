@@ -14,7 +14,8 @@ public class Proxy implements ProxyInterface {
 
     @Override
     public int[] getTextIDs() {
-        return theSubject.getTextIDs();
+        this.theSubject.getText(0);
+        return this.theSubject.getTextIDs();
     }
 
     @Override
