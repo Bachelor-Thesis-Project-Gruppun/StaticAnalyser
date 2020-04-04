@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +53,7 @@ public class AdapterVerifier implements IPatternGrouper {
 
             for (ClassOrInterfaceDeclaration adapter : patternParts.get(ADAPTER_ADAPTER)) {
                 FeedbackWrapper<List<ClassOrInterfaceDeclaration>> foo = verifyAdapter(adapter,
-                                                                                       adaptees);
+                    adaptees);
                 if (!foo.getFeedback().getIsError()) {
                     notMatchingAdaptees.removeAll(foo.getOther());
                 }
@@ -61,8 +61,8 @@ public class AdapterVerifier implements IPatternGrouper {
             }
             for (ClassOrInterfaceDeclaration adaptee : notMatchingAdaptees) {
                 feedbacks.add(Feedback
-                                  .getNoChildFeedback("Annotated adaptee has no matching adapter",
-                                                      new FeedbackTrace(adaptee))); // Suppressed
+                    .getNoChildFeedback("Annotated adaptee has no matching adapter",
+                        new FeedbackTrace(adaptee))); // Suppressed
                 // warning
             }
         }
@@ -120,8 +120,9 @@ public class AdapterVerifier implements IPatternGrouper {
 
         }
         if (feedbacks.isEmpty()) {
-            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(
-                "Adapter does not wrap the adaptee", new FeedbackTrace(adapter)), null);
+            return new FeedbackWrapper<>(Feedback
+                .getNoChildFeedback("Adapter does not wrap the adaptee",
+                    new FeedbackTrace(adapter)), null);
         } else {
             return new FeedbackWrapper<>(
                 Feedback.getFeedbackWithChildren(new FeedbackTrace(adapter), feedbacks),
@@ -146,7 +147,7 @@ public class AdapterVerifier implements IPatternGrouper {
             if (adaptee.isInterface()) {
                 if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
                     return Feedback.getNoChildFeedback("The adapter implements the adaptee",
-                                                       new FeedbackTrace(adapter));
+                        new FeedbackTrace(adapter));
                 }
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {

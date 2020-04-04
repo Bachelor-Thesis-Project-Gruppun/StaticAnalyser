@@ -81,6 +81,8 @@ public final class ProxyProxyVerifier {
             noVariableGroups);
     }
 
+    // The alternative would be less performant.
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     private static FeedbackWrapper<ProxyPatternGroup> getGroupWithProxy(
         ClassOrInterfaceDeclaration proxy, ProxyPatternGroup interfaceSubject) {
         List<Feedback> feedbacks = new ArrayList<>();

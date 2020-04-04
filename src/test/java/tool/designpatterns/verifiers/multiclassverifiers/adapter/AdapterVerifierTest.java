@@ -1,4 +1,4 @@
-package tool.designpatterns.verifiers.multiclassverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers.adapter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class AdapterVerifierTest {
             "adapter/extendsAdapter", "MicroUsbToLightningAdapter");
 
         ClassOrInterfaceDeclaration adaptee = TestHelper.getMockClassOrI("adapter/extendsAdapter",
-                                                                         "Iphone");
+            "Iphone");
         HashMap<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = createPatternGroup(
             adapter, adaptee);
 
