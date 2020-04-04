@@ -25,6 +25,16 @@ import tool.feedback.FeedbackWrapper;
  */
 public class ProxyProxyVerifier {
 
+    /**
+     * Verifies the given proxies for the given interfaceSubject groups.
+     *
+     * @param interfaceSubjects the interfaceSubjects to verify for.
+     * @param proxies           the proxies to verify.
+     *
+     * @return a feedback wrapper with ProxyPatternGroups (containing the same as the
+     *     interfaceSubjects but with the appropriate proxies added) and a feedback on how the
+     *     verification went.
+     */
     public static FeedbackWrapper<List<ProxyPatternGroup>> verifyProxies(
         List<ProxyPatternGroup> interfaceSubjects, List<ClassOrInterfaceDeclaration> proxies) {
 
