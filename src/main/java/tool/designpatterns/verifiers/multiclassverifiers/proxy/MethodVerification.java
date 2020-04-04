@@ -18,9 +18,10 @@ public class MethodVerification {
     /**
      * A method to find out if both the interface and the class implement the method.
      *
-     * @param theClass The class to find a matching MethodDeclaration in.
+     * @param theClass     The class to find a matching MethodDeclaration in.
      * @param theInterface The interface to find a matching MethodDeclaration in.
-     * @param method The MethodDeclaration to be found in the class and interface.
+     * @param method       The MethodDeclaration to be found in the class and interface.
+     *
      * @return A feedbackwrapper containing a feedback and the class MethodDeclaration object.
      */
     static FeedbackWrapper<MethodDeclaration> classImplementsMethod(
@@ -32,45 +33,43 @@ public class MethodVerification {
         List<MethodDeclaration> interfaceMethods = theInterface.accept(mdv, theInterface);
         boolean isInClass = false;
         boolean isInInterface = false;
-        MethodDeclaration classDeclaration  = new MethodDeclaration();
+        MethodDeclaration classDeclaration = new MethodDeclaration();
 
-        if(implementedMethods.isEmpty()){
+        if (implementedMethods.isEmpty()) {
             String message = "There are no method declarations in the class";
-            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(message,
-                                                                     new FeedbackTrace(theInterface)), null);
+            return new FeedbackWrapper<>(
+                Feedback.getNoChildFeedback(message, new FeedbackTrace(theInterface)), null);
         } else if (interfaceMethods.isEmpty()) {
             String message = "There are no method declarations in the interface";
-            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(message,
-                                                                     new FeedbackTrace(theInterface)), null);
-        } else if (method == null){
+            return new FeedbackWrapper<>(
+                Feedback.getNoChildFeedback(message, new FeedbackTrace(theInterface)), null);
+        } else if (method == null) {
             String message = "No such method";
-            return new FeedbackWrapper<>(Feedback.getNoChildFeedback(message,
-                                                                     new FeedbackTrace(theInterface)), null);
+            return new FeedbackWrapper<>(
+                Feedback.getNoChildFeedback(message, new FeedbackTrace(theInterface)), null);
         }
 
-        for ( MethodDeclaration md : implementedMethods ) {
-            if(md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
+        for (MethodDeclaration md : implementedMethods) {
+            if (md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
                 classDeclaration = md;
                 isInClass = true;
                 break;
             }
         }
 
-        for ( MethodDeclaration md : interfaceMethods) {
-            if(md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
+        for (MethodDeclaration md : interfaceMethods) {
+            if (md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
                 isInInterface = true;
                 break;
             }
         }
 
-        if(isInClass && isInInterface){
+        if (isInClass && isInInterface) {
             return new FeedbackWrapper<>(Feedback.getSuccessfulFeedback(), classDeclaration);
         }
 
-
         String message = "The method is not implemented in the class or the interface";
-        return new FeedbackWrapper<>(Feedback.getNoChildFeedback(message,
-                                                                 new FeedbackTrace(theInterface)), null);
+        return new FeedbackWrapper<>(
+            Feedback.getNoChildFeedback(message, new FeedbackTrace(theInterface)), null);
     }
-
 }
