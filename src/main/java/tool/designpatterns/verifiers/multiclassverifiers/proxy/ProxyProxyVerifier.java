@@ -23,7 +23,11 @@ import tool.feedback.FeedbackWrapper;
 /**
  * Class to verify the Proxy class part of the Proxy pattern.
  */
-public class ProxyProxyVerifier {
+public final class ProxyProxyVerifier {
+
+    private ProxyProxyVerifier() {
+
+    }
 
     /**
      * Verifies the given proxies for the given interfaceSubject groups.
@@ -62,30 +66,38 @@ public class ProxyProxyVerifier {
         // Group together the new ProxyPatternGroups
         for (ClassOrInterfaceDeclaration proxy : proxies) {
             for (ProxyPatternGroup interfaceSubject : interfaceSubjects) {
-                List<MethodGroup> newMethodGroups = new ArrayList<>();
-                for (MethodGroup oldMethodGroup : interfaceSubject.getMethods()) {
-                    FeedbackWrapper<MethodDeclaration> proxyMethod = classImplementsMethod(proxy,
-                        interfaceSubject.getInterfaceOrAClass(),
-                        oldMethodGroup.getInterfaceMethod());
-
-                    groupingFeedbacks.add(proxyMethod.getFeedback());
-
-                    if (proxyMethod.getOther() != null) {
-                        newMethodGroups.add(
-                            new MethodGroup(oldMethodGroup, proxyMethod.getOther()));
-                    }
-                }
-
-                if (!newMethodGroups.isEmpty()) {
-                    // The class implements the same interface as the subject.
-                    noVariableGroups.add(
-                        ProxyPatternGroup.getWithProxy(interfaceSubject, newMethodGroups, proxy));
-                }
+                FeedbackWrapper<ProxyPatternGroup> groupWithProxy = getGroupWithProxy(
+                    proxy, interfaceSubject);
             }
         }
 
         return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(groupingFeedbacks),
             noVariableGroups);
+    }
+
+    private static FeedbackWrapper<ProxyPatternGroup> getGroupWithProxy(
+        ClassOrInterfaceDeclaration proxy, ProxyPatternGroup interfaceSubject) {
+        List<Feedback> feedbacks = new ArrayList<>();
+        List<ProxyPatternGroup> newGroups = new ArrayList<>();
+
+        List<MethodGroup> newMethodGroups = new ArrayList<>();
+        for (MethodGroup oldMethodGroup : interfaceSubject.getMethods()) {
+            FeedbackWrapper<MethodDeclaration> proxyMethod = classImplementsMethod(proxy,
+                interfaceSubject.getInterfaceOrAClass(), oldMethodGroup.getInterfaceMethod());
+
+            feedbacks.add(proxyMethod.getFeedback());
+
+            if (proxyMethod.getOther() != null) {
+                newMethodGroups.add(new MethodGroup(oldMethodGroup, proxyMethod.getOther()));
+            }
+        }
+
+        if (!newMethodGroups.isEmpty()) {
+            // The class implements the same interface as the subject.
+            newGroups.add(ProxyPatternGroup.getWithProxy(interfaceSubject, newMethodGroups, proxy));
+        }
+
+        return new FeedbackWrapper(Feedback.getPatternInstanceFeedback(feedbacks), newGroups);
     }
 
     private static Feedback verifyProxiesUsesSubjects(
