@@ -36,10 +36,10 @@ public final class MethodVerification {
         MethodDeclaration method) {
 
         // Check if the class implements the interface / abstract class.
-        if (classImplementsInterface(theClass, theInterface)) {
+        if (!classImplementsInterface(theClass, theInterface)) {
             return new FeedbackWrapper<>(Feedback.getNoChildFeedback(
-                "Class '" + theClass.getNameAsString() + "' does not implement interface '" +
-                theInterface.getNameAsString() + "'", new FeedbackTrace(theClass)), null);
+                "subject does not implement interface '" + theInterface.getNameAsString() + "'",
+                new FeedbackTrace(theClass)), null);
         }
 
         MethodDeclarationVisitor mdv = new MethodDeclarationVisitor();
