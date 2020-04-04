@@ -41,7 +41,7 @@ public class ProxyProxyVerifier {
         List<Feedback> feedbacks = new ArrayList<>();
 
         FeedbackWrapper<List<ProxyPatternGroup>> noVariableGroups = addProxies(proxies,
-                                                                               interfaceSubjects);
+            interfaceSubjects);
 
         feedbacks.add(noVariableGroups.getFeedback());
 
@@ -50,7 +50,7 @@ public class ProxyProxyVerifier {
         feedbacks.add(proxyUsesSubject);
 
         return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(feedbacks),
-                                     noVariableGroups.getOther());
+            noVariableGroups.getOther());
     }
 
     private static FeedbackWrapper<List<ProxyPatternGroup>> addProxies(
@@ -65,10 +65,8 @@ public class ProxyProxyVerifier {
                 List<MethodGroup> newMethodGroups = new ArrayList<>();
                 for (MethodGroup oldMethodGroup : interfaceSubject.getMethods()) {
                     FeedbackWrapper<MethodDeclaration> proxyMethod = classImplementsMethod(proxy,
-                                                                                           interfaceSubject
-                                                                                               .getInterfaceOrAClass(),
-                                                                                           oldMethodGroup
-                                                                                               .getInterfaceMethod());
+                        interfaceSubject.getInterfaceOrAClass(),
+                        oldMethodGroup.getInterfaceMethod());
 
                     groupingFeedbacks.add(proxyMethod.getFeedback());
 
@@ -87,7 +85,7 @@ public class ProxyProxyVerifier {
         }
 
         return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(groupingFeedbacks),
-                                     noVariableGroups);
+            noVariableGroups);
     }
 
     private static Feedback verifyProxiesUsesSubjects(
@@ -117,7 +115,7 @@ public class ProxyProxyVerifier {
         for (MethodGroup methodGroup : proxyGroup.getMethods()) {
             for (VariableDeclarator variable : proxyVariables) {
                 Feedback feedback = methodCallsOther(methodGroup.getProxyMethod(),
-                                                     methodGroup.getSubjectMethod(), variable);
+                    methodGroup.getSubjectMethod(), variable);
                 childFeedbacks.add(feedback);
 
                 if (!feedback.getIsError()) {
@@ -138,7 +136,7 @@ public class ProxyProxyVerifier {
         Boolean isValid = method.accept(new MethodCallVisitor(otherReference, other), null);
         if (isValid == null || !isValid) {
             return Feedback.getNoChildFeedback(
-                "Proxy method " + method.getNameAsString() + " " + "does not call subject method " +
+                "Proxy method " + method.getNameAsString() + " does not call subject method " +
                 other.getNameAsString(), new FeedbackTrace(method));
         }
 
@@ -150,7 +148,7 @@ public class ProxyProxyVerifier {
         List<VariableDeclarator> variables = new ArrayList<>();
         for (FieldDeclaration field : proxyGroup.getProxy().getFields()) {
             for (VariableDeclarator variable : field.getVariables()) {
-                if (VariableIsTypeofClass(variable, proxyGroup.getSubject())) {
+                if (variableIsTypeOfClass(variable, proxyGroup.getSubject())) {
                     variables.add(variable);
                 }
             }
@@ -166,7 +164,7 @@ public class ProxyProxyVerifier {
         return new FeedbackWrapper<>(Feedback.getSuccessfulFeedback(), variables);
     }
 
-    private static boolean VariableIsTypeofClass(
+    private static boolean variableIsTypeOfClass(
         VariableDeclarator variable, ClassOrInterfaceDeclaration type) {
         ResolvedReferenceTypeDeclaration classType = type.resolve();
 

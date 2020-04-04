@@ -14,7 +14,7 @@ public class MethodGroup {
 
     /**
      * Get a new MethodGroup with only a interfaceMethod and SubjectMethod (proxyMethod will be
-     * null)
+     * null).
      *
      * @param interfaceMethod the interface method
      * @param subjectMethod   the subject method that implements it.

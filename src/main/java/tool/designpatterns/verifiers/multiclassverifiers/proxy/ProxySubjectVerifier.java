@@ -42,8 +42,7 @@ public class ProxySubjectVerifier {
                 List<MethodGroup> methodGroups = new ArrayList<>();
                 for (MethodDeclaration method : interfaceMethods.get(interfaceOrAClass)) {
                     FeedbackWrapper<MethodDeclaration> result = classImplementsMethod(subject,
-                                                                                      interfaceOrAClass,
-                                                                                      method);
+                        interfaceOrAClass, method);
 
                     groupingFeedbacks.add(result.getFeedback());
 
@@ -55,13 +54,12 @@ public class ProxySubjectVerifier {
                 if (!methodGroups.isEmpty()) {
                     // The subject and interface are now Grouped.
                     proxyPatterns.add(ProxyPatternGroup
-                                          .getInterfaceSubjectGroup(interfaceOrAClass, subject,
-                                                                    methodGroups));
+                        .getInterfaceSubjectGroup(interfaceOrAClass, subject, methodGroups));
                 }
             }
         }
 
         return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(groupingFeedbacks),
-                                     proxyPatterns);
+            proxyPatterns);
     }
 }
