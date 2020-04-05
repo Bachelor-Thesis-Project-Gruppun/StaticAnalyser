@@ -83,12 +83,12 @@ public class CompositeVerifier implements IPatternGrouper {
         ClassOrInterfaceDeclaration container, ClassOrInterfaceDeclaration componentType) {
         List<FieldDeclaration> fieldNames = new ArrayList<>();
 
-        final String COLLECTION_TYPE = "java.util.Collection";
+        final String collectionType = "java.util.Collection";
 
         for (FieldDeclaration field : VariableReader.readVariables(container)) {
             for (ResolvedReferenceType type : field.getElementType().resolve().asReferenceType()
                                                    .getAllAncestors()) {
-                if (type.getQualifiedName().equals(COLLECTION_TYPE)) {
+                if (type.getQualifiedName().equals(collectionType)) {
                     for (var pair : type.getTypeParametersMap()) {
                         if (pair.b.describe().equals(componentType.getFullyQualifiedName().get())) {
                             fieldNames.add(field);
@@ -98,18 +98,18 @@ public class CompositeVerifier implements IPatternGrouper {
             }
         }
         Feedback feedback;
-        if (fieldNames.size() > 0) {
-            feedback = Feedback.getSuccessfulFeedback();
-        } else {
+        if (fieldNames.isEmpty()) {
             feedback = Feedback.getNoChildFeedback(
                 "The container has no Collection with the component as parameter",
                 new FeedbackTrace(container));
+        } else {
+            feedback = Feedback.getSuccessfulFeedback();
         }
         return new FeedbackWrapper<>(feedback, fieldNames);
     }
 
     /**
-     * Checks that a method delegates the call to at least one child of the type componentType
+     * Checks that a method delegates the call to at least one child of the type componentType.
      *
      * @param container     The container that is being checked
      * @param componentType The type of the children
@@ -121,13 +121,13 @@ public class CompositeVerifier implements IPatternGrouper {
         List<Feedback> responses = new ArrayList<>();
         container.findAll(MethodDeclaration.class).forEach(methodInContainer -> {
             if (methodBelongsToComponent(methodInContainer, componentType)) {
-                Feedback f = methodInContainer.accept(new LoopVisitor(), methodInContainer);
-                if (f == null) {
+                Feedback feedback = methodInContainer.accept(new LoopVisitor(), methodInContainer);
+                if (feedback == null) {
                     responses.add(Feedback.getNoChildFeedback(
                         "There is no iterating block in container",
                         new FeedbackTrace(methodInContainer)));
                 } else {
-                    responses.add(f);
+                    responses.add(feedback);
                 }
             }
         });
@@ -145,13 +145,20 @@ public class CompositeVerifier implements IPatternGrouper {
         return false;
     }
 
-    private boolean isSameMethod(MethodDeclaration m1, MethodDeclaration m2) {
-        boolean hasSameName = m1.getName().equals(m2.getName());
-        boolean hasSameParameters = m1.getParameters().equals(m2.getParameters());
+    private boolean isSameMethod(MethodDeclaration method1, MethodDeclaration method2) {
+        boolean hasSameName = method1.getName().equals(method2.getName());
+        boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
         return hasSameName && hasSameParameters;
     }
 
-    private class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaration> {
+    /**
+     * This Visitor finds all loops and then accepts the Visitor {@link ComponentMethodVisitor}.
+     */
+    private final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaration> {
+
+        private LoopVisitor() {
+            super();
+        }
 
         @Override
         public Feedback visit(
@@ -193,24 +200,29 @@ public class CompositeVerifier implements IPatternGrouper {
                 new FeedbackTrace(parentMethod));
         }
 
-        private Feedback verifyLoop(Visitable loopStmt, MethodDeclaration parentMethod) {
+        private Feedback verifyLoop(Visitable loop, MethodDeclaration parentMethod) {
             ComponentMethodVisitor visitor = new ComponentMethodVisitor();
-            loopStmt.accept(visitor, parentMethod);
+            loop.accept(visitor, parentMethod);
             if (visitor.getDoesDelegate().stream().anyMatch(e -> e)) {
                 return Feedback.getSuccessfulFeedback();
             } else {
-                return Feedback.getNoChildFeedback("Container method does not delegate method call",
-                                                   new FeedbackTrace(parentMethod));
+                return Feedback.getNoChildFeedback(
+                    "Container method does not delegate method call",
+                    new FeedbackTrace(parentMethod));
             }
         }
     }
 
 
+    /**
+     * This visitor is used in The Class LoopVisitor and checks the method passed is ever called.
+     */
     private class ComponentMethodVisitor extends VoidVisitorAdapter<MethodDeclaration> {
 
-        private List<Boolean> doesDelegate;
+        private final List<Boolean> doesDelegate;
 
         private ComponentMethodVisitor() {
+            super();
             this.doesDelegate = new ArrayList<>();
         }
 
@@ -223,8 +235,9 @@ public class CompositeVerifier implements IPatternGrouper {
             MethodCallExpr methodCall, MethodDeclaration parentMethod) {
             super.visit(methodCall, parentMethod);
             try {
-                JavaParserMethodDeclaration m = (JavaParserMethodDeclaration) methodCall.resolve();
-                doesDelegate.add(isSameMethod(m.getWrappedNode(), parentMethod));
+                JavaParserMethodDeclaration methodDeclaration =
+                    (JavaParserMethodDeclaration) methodCall.resolve();
+                doesDelegate.add(isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
             } catch (ClassCastException exception) {
                 doesDelegate.add(Boolean.FALSE);
             }
