@@ -61,14 +61,14 @@ public class CompositeVerifier implements IPatternGrouper {
     private List<Feedback> verifyPredicates(CompositePatternInstance patternInstance) {
         List<Feedback> feedbacks = new ArrayList<>();
         feedbacks.add(componentHasMethods(patternInstance.getComponent()));
-        for (ClassOrInterfaceDeclaration node : patternInstance.getNodes()) {
+        for (ClassOrInterfaceDeclaration container : patternInstance.getContainers()) {
             FeedbackWrapper<List<FieldDeclaration>> collectionFields = getCollectionFieldsOfType(
-                node, patternInstance.getComponent());
+                container, patternInstance.getComponent());
             if (collectionFields.getOther().isEmpty()) {
                 feedbacks.add(collectionFields.getFeedback());
             } else {
                 feedbacks.add(Feedback.getSuccessfulFeedback());
-                feedbacks.add(delegatesToCollection(node, patternInstance.getComponent()));
+                feedbacks.add(delegatesToCollection(container, patternInstance.getComponent()));
             }
         }
         return feedbacks;
@@ -80,13 +80,15 @@ public class CompositeVerifier implements IPatternGrouper {
     }
 
     private FeedbackWrapper<List<FieldDeclaration>> getCollectionFieldsOfType(
-        ClassOrInterfaceDeclaration node, ClassOrInterfaceDeclaration componentType) {
+        ClassOrInterfaceDeclaration container, ClassOrInterfaceDeclaration componentType) {
         List<FieldDeclaration> fieldNames = new ArrayList<>();
 
-        for (FieldDeclaration field : VariableReader.readVariables(node)) {
+        final String COLLECTION_TYPE = "java.util.Collection";
+
+        for (FieldDeclaration field : VariableReader.readVariables(container)) {
             for (ResolvedReferenceType type : field.getElementType().resolve().asReferenceType()
                                                    .getAllAncestors()) {
-                if (type.getQualifiedName().equals("java.util.Collection")) {
+                if (type.getQualifiedName().equals(COLLECTION_TYPE)) {
                     for (var pair : type.getTypeParametersMap()) {
                         if (pair.b.describe().equals(componentType.getFullyQualifiedName().get())) {
                             fieldNames.add(field);
@@ -100,8 +102,8 @@ public class CompositeVerifier implements IPatternGrouper {
             feedback = Feedback.getSuccessfulFeedback();
         } else {
             feedback = Feedback.getNoChildFeedback(
-                "The container has no Collection with the " + "component as parameter",
-                new FeedbackTrace(node));
+                "The container has no Collection with the component as parameter",
+                new FeedbackTrace(container));
         }
         return new FeedbackWrapper<>(feedback, fieldNames);
     }
@@ -109,33 +111,34 @@ public class CompositeVerifier implements IPatternGrouper {
     /**
      * Checks that a method delegates the call to at least one child of the type componentType
      *
-     * @param node          The node that is being checked
+     * @param container     The container that is being checked
      * @param componentType The type of the children
      *
      * @return The result of the validation of the predicate
      */
     private Feedback delegatesToCollection(
-        ClassOrInterfaceDeclaration node, ClassOrInterfaceDeclaration componentType) {
+        ClassOrInterfaceDeclaration container, ClassOrInterfaceDeclaration componentType) {
         List<Feedback> responses = new ArrayList<>();
-        node.findAll(MethodDeclaration.class).forEach(e -> {
-            if (methodBelongsToComponent(e, componentType)) {
-                Feedback f = e.accept(new LoopVisitor(), e);
+        container.findAll(MethodDeclaration.class).forEach(methodInContainer -> {
+            if (methodBelongsToComponent(methodInContainer, componentType)) {
+                Feedback f = methodInContainer.accept(new LoopVisitor(), methodInContainer);
                 if (f == null) {
                     responses.add(Feedback.getNoChildFeedback(
-                        "There is no iterating block in container", new FeedbackTrace(e)));
+                        "There is no iterating block in container",
+                        new FeedbackTrace(methodInContainer)));
                 } else {
                     responses.add(f);
                 }
             }
         });
 
-        return Feedback.getFeedbackWithChildren(new FeedbackTrace(node), responses);
+        return Feedback.getFeedbackWithChildren(new FeedbackTrace(container), responses);
     }
 
     private boolean methodBelongsToComponent(
         MethodDeclaration method, ClassOrInterfaceDeclaration component) {
-        for (MethodDeclaration e : component.getMethods()) {
-            if (isSameMethod(e, method)) {
+        for (MethodDeclaration methodInContainer : component.getMethods()) {
+            if (isSameMethod(methodInContainer, method)) {
                 return true;
             }
         }
@@ -158,41 +161,42 @@ public class CompositeVerifier implements IPatternGrouper {
 
         @Override
         public Feedback visit(
-            ForStmt n, MethodDeclaration arg) {
-            super.visit(n, arg);
-            return verifyLoop(n.getBody(), arg);
+            ForStmt loopStmt, MethodDeclaration parentMethod) {
+            super.visit(loopStmt, parentMethod);
+            return verifyLoop(loopStmt.getBody(), parentMethod);
         }
 
         @Override
         public Feedback visit(
-            WhileStmt n, MethodDeclaration arg) {
-            super.visit(n, arg);
-            return verifyLoop(n.getBody(), arg);
+            WhileStmt loopStmt, MethodDeclaration parentMethod) {
+            super.visit(loopStmt, parentMethod);
+            return verifyLoop(loopStmt.getBody(), parentMethod);
         }
 
         @Override
         public Feedback visit(
-            DoStmt n, MethodDeclaration arg) {
-            super.visit(n, arg);
-            return verifyLoop(n.getBody(), arg);
+            DoStmt loopStmt, MethodDeclaration parentMethod) {
+            super.visit(loopStmt, parentMethod);
+            return verifyLoop(loopStmt.getBody(), parentMethod);
         }
 
         @Override
         public Feedback visit(
-            ForEachStmt n, MethodDeclaration arg) {
-            super.visit(n, arg);
-            return verifyLoop(n.getBody(), arg);
+            ForEachStmt loopStmt, MethodDeclaration parentMethod) {
+            super.visit(loopStmt, parentMethod);
+            return verifyLoop(loopStmt.getBody(), parentMethod);
         }
 
         @Override
         public Feedback visit(
-            MethodCallExpr n, MethodDeclaration arg) {
-            super.visit(n, arg);
-            if (n.getNameAsString().equalsIgnoreCase("forEach")) {
-                return verifyLoop(n.getArgument(0), arg);
+            MethodCallExpr loopFunc, MethodDeclaration parentMethod) {
+            super.visit(loopFunc, parentMethod);
+            if (loopFunc.getNameAsString().equalsIgnoreCase("forEach")) {
+                return verifyLoop(loopFunc.getArgument(0), parentMethod);
             }
             return Feedback.getNoChildFeedback(
-                "Container method does not contain forEach " + "statement", new FeedbackTrace(arg));
+                "Container method does not contain forEach statement",
+                new FeedbackTrace(parentMethod));
         }
 
         private Feedback verifyLoop(Visitable loopStmt, MethodDeclaration parentMethod) {

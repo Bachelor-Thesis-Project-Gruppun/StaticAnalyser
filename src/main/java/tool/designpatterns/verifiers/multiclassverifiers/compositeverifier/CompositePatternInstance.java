@@ -18,15 +18,15 @@ import tool.designpatterns.verifiers.APatternInstance;
 public final class CompositePatternInstance extends APatternInstance {
 
     private final ClassOrInterfaceDeclaration component;
-    private final List<ClassOrInterfaceDeclaration> nodes;
+    private final List<ClassOrInterfaceDeclaration> containers;
     private final List<ClassOrInterfaceDeclaration> leaves;
 
     public ClassOrInterfaceDeclaration getComponent() {
         return component;
     }
 
-    public List<ClassOrInterfaceDeclaration> getNodes() {
-        return nodes;
+    public List<ClassOrInterfaceDeclaration> getContainers() {
+        return containers;
     }
 
     /**
@@ -38,7 +38,7 @@ public final class CompositePatternInstance extends APatternInstance {
         super();
         this.component = component;
         this.leaves = new ArrayList<>();
-        this.nodes = new ArrayList<>();
+        this.containers = new ArrayList<>();
     }
 
     /**
@@ -52,7 +52,7 @@ public final class CompositePatternInstance extends APatternInstance {
     public static List<CompositePatternInstance> createInstancesFromMap(
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
         List<ClassOrInterfaceDeclaration> components = map.get(Pattern.COMPOSITE_COMPONENT);
-        List<ClassOrInterfaceDeclaration> nodes = map.get(Pattern.COMPOSITE_CONTAINER);
+        List<ClassOrInterfaceDeclaration> containers = map.get(Pattern.COMPOSITE_CONTAINER);
         List<ClassOrInterfaceDeclaration> leaves = map.get(Pattern.COMPOSITE_LEAF);
 
         HashMap<ClassOrInterfaceDeclaration, CompositePatternInstance> patternInstances =
@@ -69,15 +69,15 @@ public final class CompositePatternInstance extends APatternInstance {
         // through everything multiple times
         components.forEach((component) -> {
             String componentName = component.getNameAsString();
-            nodes.forEach(node -> {
+            containers.forEach(container -> {
                 List<ClassOrInterfaceType> types = new ArrayList<>();
-                types.addAll(node.getExtendedTypes());
-                types.addAll(node.getImplementedTypes());
+                types.addAll(container.getExtendedTypes());
+                types.addAll(container.getImplementedTypes());
                 types.forEach(classOrInterface -> {
                     if (classOrInterface.getNameAsString().equals(componentName)) {
                         CompositePatternInstance patternInstance = patternInstances.get(component);
-                        patternInstance.nodes.add(node);
-                        identifiedElements.add(node);
+                        patternInstance.containers.add(container);
+                        identifiedElements.add(container);
                     }
                 });
             });
@@ -95,16 +95,16 @@ public final class CompositePatternInstance extends APatternInstance {
             });
 
             // If any elements are left then they are invalid instances
-            nodes.removeAll(identifiedElements);
+            containers.removeAll(identifiedElements);
             leaves.removeAll(identifiedElements);
 
         });
         // If there are elements that do not relate to any of the previous
         // interface components, since they are invalid, put them in an
         // invalid pattern instance object for verify() to handle
-        if (!(nodes.isEmpty() && leaves.isEmpty())) {
+        if (!(containers.isEmpty() && leaves.isEmpty())) {
             var noComponentInstance = new CompositePatternInstance(null);
-            noComponentInstance.nodes.addAll(nodes);
+            noComponentInstance.containers.addAll(containers);
             noComponentInstance.leaves.addAll(leaves);
             patternInstances.put(null, noComponentInstance);
         }
@@ -113,7 +113,7 @@ public final class CompositePatternInstance extends APatternInstance {
     }
 
     /**
-     * Component may not bit be null and there has to be atleast one nodes.
+     * Component may not bit be null and there has to be atleast one container.
      *
      * @param feedbackMessage Stringbuilder used in hasAllElements
      *
@@ -127,8 +127,8 @@ public final class CompositePatternInstance extends APatternInstance {
             feedbackMessage.append("Component, ");
             errorOccured = true;
         }
-        if (nodes.isEmpty()) {
-            feedbackMessage.append("node(s), ");
+        if (containers.isEmpty()) {
+            feedbackMessage.append("container(s), ");
             errorOccured = true;
         }
 
@@ -137,7 +137,7 @@ public final class CompositePatternInstance extends APatternInstance {
 
     @Override
     public String toString() {
-        return "CompositePatternInstance{" + "component=" + component + ", nodes=" + nodes.size() +
-               ", leaves=" + leaves.size() + '}';
+        return "CompositePatternInstance{" + "component=" + component + ", containers=" +
+               containers.size() + ", leaves=" + leaves.size() + '}';
     }
 }
