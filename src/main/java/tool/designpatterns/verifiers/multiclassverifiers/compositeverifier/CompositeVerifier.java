@@ -21,6 +21,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParse
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.VerifierUtils;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
@@ -75,8 +76,7 @@ public class CompositeVerifier implements IPatternGrouper {
     }
 
     private Feedback componentHasMethods(ClassOrInterfaceDeclaration component) {
-        return Feedback.getNoChildFeedback("har inte implementerat det här ännu",
-                                           new FeedbackTrace(component));
+        return VerifierUtils.hasAtLeastOnePublicMethod(component);
     }
 
     private FeedbackWrapper<List<FieldDeclaration>> getCollectionFieldsOfType(
@@ -148,12 +148,6 @@ public class CompositeVerifier implements IPatternGrouper {
     private boolean isSameMethod(MethodDeclaration m1, MethodDeclaration m2) {
         boolean hasSameName = m1.getName().equals(m2.getName());
         boolean hasSameParameters = m1.getParameters().equals(m2.getParameters());
-        return hasSameName && hasSameParameters;
-    }
-
-    private boolean isSameMethod(MethodDeclaration m1, MethodCallExpr m2) {
-        boolean hasSameName = m1.getName().equals(m2.getName());
-        boolean hasSameParameters = m1.getParameters().equals(m2.getArguments());
         return hasSameName && hasSameParameters;
     }
 

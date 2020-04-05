@@ -105,7 +105,7 @@ public final class VerifierUtils {
         if (resultBool.get()) {
             result = Feedback.getSuccessfulFeedback();
         } else {
-            String msg = "Interface does not contain any methods!";
+            String msg = "Interface/Class does not contain any methods!";
             result = Feedback.getPatternInstanceNoChildFeedback(msg);
         }
 
