@@ -6,11 +6,19 @@ import com.github.javaparser.ast.body.MethodDeclaration;
  * Represents a group of a interface method and the proxy subject / proxy proxy class that
  * implements that method.
  */
-public class MethodGroup {
+public final class MethodGroup {
 
     private final MethodDeclaration interfaceMethod;
     private final MethodDeclaration subjectMethod;
     private final MethodDeclaration proxyMethod;
+
+    private MethodGroup(
+        MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod,
+        MethodDeclaration proxyMethod) {
+        this.interfaceMethod = interfaceMethod;
+        this.subjectMethod = subjectMethod;
+        this.proxyMethod = proxyMethod;
+    }
 
     /**
      * Get a new MethodGroup with only a interfaceMethod and SubjectMethod (proxyMethod will be
@@ -19,10 +27,9 @@ public class MethodGroup {
      * @param interfaceMethod the interface method
      * @param subjectMethod   the subject method that implements it.
      */
-    public MethodGroup(MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod) {
-        this.interfaceMethod = interfaceMethod;
-        this.subjectMethod = subjectMethod;
-        this.proxyMethod = null;
+    public static MethodGroup getWithoutProxy(
+        MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod) {
+        return new MethodGroup(interfaceMethod, subjectMethod, null);
     }
 
     /**
@@ -32,10 +39,8 @@ public class MethodGroup {
      * @param other       the other MethodGroup to copy from.
      * @param proxyMethod the proxyMethod.
      */
-    public MethodGroup(MethodGroup other, MethodDeclaration proxyMethod) {
-        this.interfaceMethod = other.interfaceMethod;
-        this.subjectMethod = other.subjectMethod;
-        this.proxyMethod = proxyMethod;
+    public static MethodGroup getWithProxy(MethodGroup other, MethodDeclaration proxyMethod) {
+        return new MethodGroup(other.interfaceMethod, other.subjectMethod, proxyMethod);
     }
 
     public MethodDeclaration getInterfaceMethod() {

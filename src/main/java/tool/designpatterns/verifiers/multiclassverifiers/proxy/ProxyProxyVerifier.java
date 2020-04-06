@@ -81,8 +81,6 @@ public final class ProxyProxyVerifier {
             noVariableGroups);
     }
 
-    // The alternative would be less performant.
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     private static FeedbackWrapper<ProxyPatternGroup> getGroupWithProxy(
         ClassOrInterfaceDeclaration proxy, ProxyPatternGroup interfaceSubject) {
         List<Feedback> feedbacks = new ArrayList<>();
@@ -95,7 +93,8 @@ public final class ProxyProxyVerifier {
             feedbacks.add(proxyMethod.getFeedback());
 
             if (proxyMethod.getOther() != null) {
-                newMethodGroups.add(new MethodGroup(oldMethodGroup, proxyMethod.getOther()));
+                newMethodGroups.add(
+                    MethodGroup.getWithProxy(oldMethodGroup, proxyMethod.getOther()));
             }
         }
 

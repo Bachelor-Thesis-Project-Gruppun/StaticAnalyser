@@ -1,9 +1,9 @@
 package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxyVerifier.verifyProxies;
 import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxySubjectVerifier.verifySubjects;
@@ -22,7 +22,14 @@ import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 import tool.feedback.PatternGroupFeedback;
 
+/**
+ * Verifies proxy pattern groups in the given map.
+ */
 public class ProxyVerifier implements IPatternGrouper {
+
+    public ProxyVerifier() {
+
+    }
 
     @Override
     public PatternGroupFeedback verifyGroup(
@@ -31,7 +38,7 @@ public class ProxyVerifier implements IPatternGrouper {
         List<Feedback> feedbacks = new ArrayList<>();
         List<Feedback> interfaceFeedbacks = new ArrayList<>();
         Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
-            new HashMap<>();
+            new ConcurrentHashMap<>();
 
         // Verify the interfaces.
         List<ClassOrInterfaceDeclaration> interfaces = map.get(Pattern.PROXY_INTERFACE);
@@ -51,13 +58,12 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the Proxies.
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjectProxies = verifyProxies(
+        FeedbackWrapper<List<ProxyPatternGroup>> proxyPatterns = verifyProxies(
             interfaceSubjects.getOther(), proxies);
-        feedbacks.add(interfaceSubjectProxies.getFeedback());
+        feedbacks.add(proxyPatterns.getFeedback());
 
         // Validate that all classes marked as parts of a Proxy pattern are used at least once.
-        feedbacks.add(
-            allClassesAreUsed(interfaceSubjectProxies.getOther(), proxies, interfaces, subjects));
+        feedbacks.add(allClassesAreUsed(proxyPatterns.getOther(), proxies, interfaces, subjects));
 
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
@@ -67,7 +73,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
         MethodDeclarationVisitor mdv = new MethodDeclarationVisitor();
         List<MethodDeclaration> methodDeclarations = classOrI.accept(mdv, classOrI);
-        List<MethodDeclaration> validMethodDeclarations = new ArrayList<>();
+        List<MethodDeclaration> validMethodDecs = new ArrayList<>();
 
         if (methodDeclarations.isEmpty()) {
             String message = "There are no methods to implement.";
@@ -75,15 +81,15 @@ public class ProxyVerifier implements IPatternGrouper {
                 Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
                 methodDeclarations);
         } else if (classOrI.isInterface()) {
-            validMethodDeclarations.addAll(methodDeclarations);
+            validMethodDecs.addAll(methodDeclarations);
             String message = "";
         } else {
             for (MethodDeclaration md : classOrI.accept(mdv, classOrI)) {
                 if (md.isAbstract()) {
-                    validMethodDeclarations.add(md);
+                    validMethodDecs.add(md);
                 }
             }
-            if (validMethodDeclarations.isEmpty()) {
+            if (validMethodDecs.isEmpty()) {
                 String message = "There are no abstract methods to implement.";
                 return new Tuple2<>(
                     Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
@@ -92,7 +98,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
         }
 
-        return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDeclarations);
+        return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDecs);
     }
 
     private Feedback allClassesAreUsed(
@@ -124,37 +130,37 @@ public class ProxyVerifier implements IPatternGrouper {
             subject.remove(interfaceOrAClass);
         });
 
-        List<Feedback> unusedProxyFeedbacks = new ArrayList<>();
+        List<Feedback> unusedProxies = new ArrayList<>();
         if (!proxies.isEmpty()) {
             proxies.forEach(proxy -> {
-                unusedProxyFeedbacks.add(Feedback.getNoChildFeedback(
+                unusedProxies.add(Feedback.getNoChildFeedback(
                     proxy.getNameAsString() + " is marked as proxy class but no accompanying " +
                     "interface or subject could be found", new FeedbackTrace(proxy)));
             });
         }
 
-        List<Feedback> unusedInterfaceFeedbacks = new ArrayList<>();
+        List<Feedback> unusedInterfaces = new ArrayList<>();
         if (!interfaces.isEmpty()) {
             interfaces.forEach(interf -> {
-                unusedInterfaceFeedbacks.add(Feedback.getNoChildFeedback(
+                unusedInterfaces.add(Feedback.getNoChildFeedback(
                     interf.getNameAsString() + " is marked as proxy interface but no accompanying" +
                     " proxy class or subject could be found", new FeedbackTrace(interf)));
             });
         }
 
-        List<Feedback> unusedSubjectFeedbacks = new ArrayList<>();
+        List<Feedback> unusedSubjects = new ArrayList<>();
         if (!subjects.isEmpty()) {
             proxies.forEach(subject -> {
-                unusedSubjectFeedbacks.add(Feedback.getNoChildFeedback(
+                unusedSubjects.add(Feedback.getNoChildFeedback(
                     subject.getNameAsString() + " is marked as proxy subject but no accompanying " +
                     "interface or proxy class could be found", new FeedbackTrace(subject)));
             });
         }
 
         List<Feedback> feedbacks = new ArrayList<>();
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxyFeedbacks));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedInterfaceFeedbacks));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedSubjectFeedbacks));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxies));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedInterfaces));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedSubjects));
         return Feedback.getPatternInstanceFeedback(feedbacks);
     }
 }

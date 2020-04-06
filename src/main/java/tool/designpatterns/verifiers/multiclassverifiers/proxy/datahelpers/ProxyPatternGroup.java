@@ -7,7 +7,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 /**
  * Class that represents all the parts of a Proxy pattern.
  */
-public class ProxyPatternGroup {
+public final class ProxyPatternGroup {
 
     private final ClassOrInterfaceDeclaration interfaceOrAClass;
     private final ClassOrInterfaceDeclaration subject;
@@ -55,7 +55,7 @@ public class ProxyPatternGroup {
         ClassOrInterfaceDeclaration proxy) {
 
         return new ProxyPatternGroup(oldGroup.getInterfaceOrAClass(), oldGroup.getSubject(), proxy,
-                                     newMethodGroups);
+            newMethodGroups);
     }
 
     public ClassOrInterfaceDeclaration getInterfaceOrAClass() {
@@ -76,10 +76,11 @@ public class ProxyPatternGroup {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("Proxy pattern containing: ");
-        stringBuilder.append("proxy: ").append(proxy.getNameAsString());
-        stringBuilder.append(", interface: ").append(interfaceOrAClass.getNameAsString());
-        stringBuilder.append(", subject: ").append(subject.getNameAsString());
+
+        StringBuilder stringBuilder = new StringBuilder(57);
+        stringBuilder.append("Proxy pattern containing: proxy: ").append(proxy.getNameAsString())
+                     .append(", interface: ").append(interfaceOrAClass.getNameAsString()).append(
+            ", subject: ").append(subject.getNameAsString());
 
         return stringBuilder.toString();
     }

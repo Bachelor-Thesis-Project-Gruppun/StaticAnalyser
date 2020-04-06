@@ -67,7 +67,7 @@ public final class ProxySubjectVerifier {
             feedbacks.add(result.getFeedback());
 
             if (result.getOther() != null) {
-                methodGroups.add(new MethodGroup(method, result.getOther()));
+                methodGroups.add(MethodGroup.getWithoutProxy(method, result.getOther()));
             }
         }
 
