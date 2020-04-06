@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
@@ -15,6 +16,7 @@ import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 import com.github.javaparser.ast.visitor.Visitable;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 
@@ -242,6 +244,21 @@ public class CompositeVerifier implements IPatternGrouper {
                 doesDelegate.add(Boolean.FALSE);
             }
         }
+
+
+        @Override
+        public void visit(
+            MethodReferenceExpr methodRefernce, MethodDeclaration parentMethod) {
+            super.visit(methodRefernce, parentMethod);
+            try {
+                JavaParserMethodDeclaration methodDeclaration =
+                    (JavaParserMethodDeclaration) methodRefernce.resolve();
+                doesDelegate.add(isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
+            } catch (ClassCastException | UnsolvedSymbolException exception) {
+                doesDelegate.add(Boolean.FALSE);
+            }
+        }
+
     }
 
 }
