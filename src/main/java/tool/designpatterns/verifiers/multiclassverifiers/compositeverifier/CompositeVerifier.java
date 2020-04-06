@@ -51,7 +51,7 @@ public class CompositeVerifier implements IPatternGrouper {
         return new PatternGroupFeedback(PatternGroup.COMPOSITE, results);
     }
 
-    private Feedback verifyPatternInstance(CompositePatternInstance patternInstance) {
+    public Feedback verifyPatternInstance(CompositePatternInstance patternInstance) {
         Feedback allElementsFeedback = patternInstance.hasAllElements();
         if (allElementsFeedback.getIsError()) {
             return allElementsFeedback;
@@ -244,7 +244,6 @@ public class CompositeVerifier implements IPatternGrouper {
                 doesDelegate.add(Boolean.FALSE);
             }
         }
-
 
         @Override
         public void visit(

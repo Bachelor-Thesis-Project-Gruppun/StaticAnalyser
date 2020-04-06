@@ -29,6 +29,10 @@ public final class CompositePatternInstance extends APatternInstance {
         return containers;
     }
 
+    public List<ClassOrInterfaceDeclaration> getLeaves() {
+        return leaves;
+    }
+
     /**
      * Cosntructor for the pattern instance. makes sure alla fields are initialised.
      *

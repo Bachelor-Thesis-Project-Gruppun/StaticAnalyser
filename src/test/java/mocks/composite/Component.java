@@ -6,11 +6,13 @@ import tool.designpatterns.Pattern;
 @DesignPattern(pattern = {
     Pattern.COMPOSITE_COMPONENT
 })
-public interface CompositeInterface {
+public interface Component {
 
     void test(int a);
 
     void test(String a);
+
+    void foo();
 
     void bar();
 }
