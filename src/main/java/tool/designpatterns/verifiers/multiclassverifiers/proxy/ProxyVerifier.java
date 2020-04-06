@@ -107,27 +107,19 @@ public class ProxyVerifier implements IPatternGrouper {
 
         proxyGroups.forEach(group -> {
             ClassOrInterfaceDeclaration proxy = group.getProxy();
-            if (!proxies.contains(proxy)) {
-                throw new IllegalArgumentException(
-                    "Proxygroup contains proxy not in proxies list " + proxyGroups.toString() +
-                    " -- " + proxy.toString());
+            if (proxies.contains(proxy)) {
+                proxies.remove(proxy);
             }
-            proxies.remove(proxy);
+
             ClassOrInterfaceDeclaration interfaceOrAClass = group.getInterfaceOrAClass();
-            if (!interfaces.contains(interfaceOrAClass)) {
-                throw new IllegalArgumentException("Proxygroup contains interface (or abstract " +
-                                                   "class) not in interfaces list " +
-                                                   proxyGroups.toString() + " -- " +
-                                                   interfaceOrAClass.toString());
+            if (interfaces.contains(interfaceOrAClass)) {
+                interfaces.remove(interfaceOrAClass);
             }
-            interfaces.remove(interfaceOrAClass);
+
             ClassOrInterfaceDeclaration subject = group.getSubject();
-            if (!subjects.contains(subject)) {
-                throw new IllegalArgumentException(
-                    "Proxygroup contains subject not in interfaces list " + proxyGroups.toString() +
-                    " -- " + subject.toString());
+            if (subjects.contains(subject)) {
+                subjects.remove(subject)
             }
-            subject.remove(interfaceOrAClass);
         });
 
         List<Feedback> unusedProxies = new ArrayList<>();
