@@ -64,7 +64,8 @@ public final class MethodVerification {
         }
 
         for (MethodDeclaration md : implementedMethods) {
-            if (md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
+            if (md.getDeclarationAsString(false, false, false)
+                  .equalsIgnoreCase(method.getDeclarationAsString(false, false, false))) {
                 classDeclaration = md;
                 isInClass = true;
                 break;
@@ -72,7 +73,8 @@ public final class MethodVerification {
         }
 
         for (MethodDeclaration md : interfaceMethods) {
-            if (md.getNameAsString().equalsIgnoreCase(method.getNameAsString())) {
+            if (md.getDeclarationAsString(false, false, false)
+                  .equalsIgnoreCase(method.getDeclarationAsString(false, false, false))) {
                 isInInterface = true;
                 break;
             }
