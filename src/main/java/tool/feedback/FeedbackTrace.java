@@ -23,6 +23,14 @@ public final class FeedbackTrace {
 
     /**
      * Feedback implementations for statements.
+     */
+    public FeedbackTrace(Pattern pattern) {
+        StringBuilder msg = new StringBuilder(pattern.toString() + "not found");
+        message = msg.toString();
+    }
+
+    /**
+     * Feedback implementations for statements.
      *
      * @param statement the statement.
      */
