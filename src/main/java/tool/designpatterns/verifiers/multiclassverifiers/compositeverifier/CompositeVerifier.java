@@ -140,7 +140,8 @@ public class CompositeVerifier implements IPatternGrouper {
     private boolean methodBelongsToComponent(
         MethodDeclaration method, ClassOrInterfaceDeclaration component) {
         for (MethodDeclaration methodInContainer : component.getMethods()) {
-            if (isSameMethod(methodInContainer, method)) {
+            Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
+            if (isSameMethod(methodInContainer, method) && overrideAnn.isPresent()) {
                 return true;
             }
         }
