@@ -1,12 +1,15 @@
 package tool.designpatterns.verifiers.multiclassverifiers.compositeverifier;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.stmt.DoStmt;
@@ -61,6 +64,14 @@ public class CompositeVerifier implements IPatternGrouper {
         }
     }
 
+    /**
+     * This method checks all predicates and is only called if the PatternInstance.hasAllElements
+     * return true.
+     *
+     * @param patternInstance a complete pattern instance
+     *
+     * @return feedbacks
+     */
     private List<Feedback> verifyPredicates(CompositePatternInstance patternInstance) {
         List<Feedback> feedbacks = new ArrayList<>();
         feedbacks.add(componentHasMethods(patternInstance.getComponent()));
@@ -77,10 +88,27 @@ public class CompositeVerifier implements IPatternGrouper {
         return feedbacks;
     }
 
+    /**
+     * Composite is defined by its delegate structure so if there are no methods which can delegate
+     * then it cannot be a composite.
+     *
+     * @param component the interface or abstract class defineing the composite
+     *
+     * @return a feedback
+     */
     private Feedback componentHasMethods(ClassOrInterfaceDeclaration component) {
         return VerifierUtils.hasAtLeastOnePublicMethod(component);
     }
 
+    /**
+     * A container has to a have a field which extends from Collection with a type parameter the
+     * same as the Component.
+     *
+     * @param container     the class which has to have a field of type collection<ComponentsType>
+     * @param componentType define the type parameter of the collection.
+     *
+     * @return a feedback
+     */
     private FeedbackWrapper<List<FieldDeclaration>> getCollectionFieldsOfType(
         ClassOrInterfaceDeclaration container, ClassOrInterfaceDeclaration componentType) {
         List<FieldDeclaration> fieldNames = new ArrayList<>();
@@ -137,16 +165,36 @@ public class CompositeVerifier implements IPatternGrouper {
         return Feedback.getFeedbackWithChildren(new FeedbackTrace(container), responses);
     }
 
+    /**
+     * Since all containers and leaves implement the component we now that they must implement all
+     * methods of the compent. So if a method has the {@link Override} Annotation we know that it is
+     * implemented. And if it then has the same name and argumnents, it has the same method head and
+     * is therefore the same method.
+     *
+     * @param method
+     * @param component
+     *
+     * @return
+     */
     private boolean methodBelongsToComponent(
         MethodDeclaration method, ClassOrInterfaceDeclaration component) {
         for (MethodDeclaration methodInContainer : component.getMethods()) {
-            if (isSameMethod(methodInContainer, method)) {
+            Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
+            if (isSameMethod(methodInContainer, method) && overrideAnn.isPresent()) {
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * As getQualifiedName returns the package pa
+     *
+     * @param method1
+     * @param method2
+     *
+     * @return a boolean
+     */
     private boolean isSameMethod(MethodDeclaration method1, MethodDeclaration method2) {
         boolean hasSameName = method1.getName().equals(method2.getName());
         boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
