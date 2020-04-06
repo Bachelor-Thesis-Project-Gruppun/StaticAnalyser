@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.iml" filepath="$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.github.gruppun.staticanalyser.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/staticanalyser.iml" filepath="$PROJECT_DIR$/.idea/modules/staticanalyser.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/staticanalyser.main.iml" filepath="$PROJECT_DIR$/.idea/modules/staticanalyser.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/staticanalyser.test.iml" filepath="$PROJECT_DIR$/.idea/modules/staticanalyser.test.iml" />

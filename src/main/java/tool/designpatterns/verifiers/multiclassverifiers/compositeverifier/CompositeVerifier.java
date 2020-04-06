@@ -81,7 +81,6 @@ public class CompositeVerifier implements IPatternGrouper {
             if (collectionFields.getOther().isEmpty()) {
                 feedbacks.add(collectionFields.getFeedback());
             } else {
-                feedbacks.add(Feedback.getSuccessfulFeedback());
                 feedbacks.add(delegatesToCollection(container, patternInstance.getComponent()));
             }
         }
@@ -92,7 +91,7 @@ public class CompositeVerifier implements IPatternGrouper {
      * Composite is defined by its delegate structure so if there are no methods which can delegate
      * then it cannot be a composite.
      *
-     * @param component the interface or abstract class defineing the composite
+     * @param component the interface or abstract class defining the composite
      *
      * @return a feedback
      */
@@ -104,7 +103,7 @@ public class CompositeVerifier implements IPatternGrouper {
      * A container has to a have a field which extends from Collection with a type parameter the
      * same as the Component.
      *
-     * @param container     the class which has to have a field of type collection<ComponentsType>
+     * @param container     the class which has to have a field of type collection<ComponentsType>.
      * @param componentType define the type parameter of the collection.
      *
      * @return a feedback
@@ -149,163 +148,17 @@ public class CompositeVerifier implements IPatternGrouper {
     private Feedback delegatesToCollection(
         ClassOrInterfaceDeclaration container, ClassOrInterfaceDeclaration componentType) {
         List<Feedback> responses = new ArrayList<>();
+        LoopVisitor looper = new LoopVisitor();
         container.findAll(MethodDeclaration.class).forEach(methodInContainer -> {
-            if (methodBelongsToComponent(methodInContainer, componentType)) {
-                Feedback feedback = methodInContainer.accept(new LoopVisitor(), methodInContainer);
-                if (feedback == null) {
-                    responses.add(Feedback.getNoChildFeedback(
-                        "There is no iterating block in container",
-                        new FeedbackTrace(methodInContainer)));
-                } else {
-                    responses.add(feedback);
-                }
+            if (VerifierUtils.methodBelongsToComponent(methodInContainer, componentType)) {
+                Feedback doesDelegateFeedback = methodInContainer.accept(looper, methodInContainer);
+                responses.add(doesDelegateFeedback);
+                responses.add(looper.hasIteratingBlock(methodInContainer));
+                looper.resetIteratingBlocks();
             }
         });
 
         return Feedback.getFeedbackWithChildren(new FeedbackTrace(container), responses);
-    }
-
-    /**
-     * Since all containers and leaves implement the component we now that they must implement all
-     * methods of the compent. So if a method has the {@link Override} Annotation we know that it is
-     * implemented. And if it then has the same name and argumnents, it has the same method head and
-     * is therefore the same method.
-     *
-     * @param method
-     * @param component
-     *
-     * @return
-     */
-    private boolean methodBelongsToComponent(
-        MethodDeclaration method, ClassOrInterfaceDeclaration component) {
-        for (MethodDeclaration methodInContainer : component.getMethods()) {
-            Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
-            if (isSameMethod(methodInContainer, method) && overrideAnn.isPresent()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * As getQualifiedName returns the package pa
-     *
-     * @param method1
-     * @param method2
-     *
-     * @return a boolean
-     */
-    private boolean isSameMethod(MethodDeclaration method1, MethodDeclaration method2) {
-        boolean hasSameName = method1.getName().equals(method2.getName());
-        boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
-        return hasSameName && hasSameParameters;
-    }
-
-    /**
-     * This Visitor finds all loops and then accepts the Visitor {@link ComponentMethodVisitor}.
-     */
-    private final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaration> {
-
-        private LoopVisitor() {
-            super();
-        }
-
-        @Override
-        public Feedback visit(
-            ForStmt loopStmt, MethodDeclaration parentMethod) {
-            super.visit(loopStmt, parentMethod);
-            return verifyLoop(loopStmt.getBody(), parentMethod);
-        }
-
-        @Override
-        public Feedback visit(
-            WhileStmt loopStmt, MethodDeclaration parentMethod) {
-            super.visit(loopStmt, parentMethod);
-            return verifyLoop(loopStmt.getBody(), parentMethod);
-        }
-
-        @Override
-        public Feedback visit(
-            DoStmt loopStmt, MethodDeclaration parentMethod) {
-            super.visit(loopStmt, parentMethod);
-            return verifyLoop(loopStmt.getBody(), parentMethod);
-        }
-
-        @Override
-        public Feedback visit(
-            ForEachStmt loopStmt, MethodDeclaration parentMethod) {
-            super.visit(loopStmt, parentMethod);
-            return verifyLoop(loopStmt.getBody(), parentMethod);
-        }
-
-        @Override
-        public Feedback visit(
-            MethodCallExpr loopFunc, MethodDeclaration parentMethod) {
-            super.visit(loopFunc, parentMethod);
-            if (loopFunc.getNameAsString().equalsIgnoreCase("forEach")) {
-                return verifyLoop(loopFunc.getArgument(0), parentMethod);
-            }
-            return Feedback.getNoChildFeedback(
-                "Container method does not contain forEach statement",
-                new FeedbackTrace(parentMethod));
-        }
-
-        private Feedback verifyLoop(Visitable loop, MethodDeclaration parentMethod) {
-            ComponentMethodVisitor visitor = new ComponentMethodVisitor();
-            loop.accept(visitor, parentMethod);
-            if (visitor.getDoesDelegate().stream().anyMatch(e -> e)) {
-                return Feedback.getSuccessfulFeedback();
-            } else {
-                return Feedback.getNoChildFeedback(
-                    "Container method does not delegate method call",
-                    new FeedbackTrace(parentMethod));
-            }
-        }
-    }
-
-
-    /**
-     * This visitor is used in The Class LoopVisitor and checks the method passed is ever called.
-     */
-    private class ComponentMethodVisitor extends VoidVisitorAdapter<MethodDeclaration> {
-
-        private final List<Boolean> doesDelegate;
-
-        private ComponentMethodVisitor() {
-            super();
-            this.doesDelegate = new ArrayList<>();
-        }
-
-        private List<Boolean> getDoesDelegate() {
-            return doesDelegate;
-        }
-
-        @Override
-        public void visit(
-            MethodCallExpr methodCall, MethodDeclaration parentMethod) {
-            super.visit(methodCall, parentMethod);
-            try {
-                JavaParserMethodDeclaration methodDeclaration =
-                    (JavaParserMethodDeclaration) methodCall.resolve();
-                doesDelegate.add(isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
-            } catch (ClassCastException exception) {
-                doesDelegate.add(Boolean.FALSE);
-            }
-        }
-
-        @Override
-        public void visit(
-            MethodReferenceExpr methodRefernce, MethodDeclaration parentMethod) {
-            super.visit(methodRefernce, parentMethod);
-            try {
-                JavaParserMethodDeclaration methodDeclaration =
-                    (JavaParserMethodDeclaration) methodRefernce.resolve();
-                doesDelegate.add(isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
-            } catch (ClassCastException | UnsolvedSymbolException exception) {
-                doesDelegate.add(Boolean.FALSE);
-            }
-        }
-
     }
 
 }

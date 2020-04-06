@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
@@ -140,5 +141,44 @@ public final class VerifierUtils {
         }
         return result;
     }
+
+    /**
+     * Since all containers and leaves implement the component we now that they must implement all
+     * methods of the compent. So if a method has the {@link Override} Annotation we know that it is
+     * implemented. And if it then has the same name and argumnents, it has the same method head and
+     * is therefore the same method.
+     *
+     * @param method methods to check if it can come from the component
+     * @param component the class or interface with implementable methods
+     *
+     * @return a boolean specifying if the method can come from the component
+     */
+    public static boolean methodBelongsToComponent(
+        MethodDeclaration method, ClassOrInterfaceDeclaration component) {
+        for (MethodDeclaration methodInContainer : component.getMethods()) {
+            Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
+            if (isSameMethod(methodInContainer, method) && overrideAnn.isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * As getQualifiedName returns the package path to the method, it cant be used to determine
+     * if two merhods are the same. Instead, we check that they have the same name and
+     * idendentical argments.
+     *
+     * @param method1 a method
+     * @param method2 a method
+     *
+     * @return a boolean
+     */
+    public static boolean isSameMethod(MethodDeclaration method1, MethodDeclaration method2) {
+        boolean hasSameName = method1.getName().equals(method2.getName());
+        boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
+        return hasSameName && hasSameParameters;
+    }
+
 
 }
