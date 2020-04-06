@@ -1,27 +1,13 @@
 package tool.designpatterns.verifiers.multiclassverifiers.compositeverifier;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.MethodReferenceExpr;
-import com.github.javaparser.ast.stmt.DoStmt;
-import com.github.javaparser.ast.stmt.ForEachStmt;
-import com.github.javaparser.ast.stmt.ForStmt;
-import com.github.javaparser.ast.stmt.WhileStmt;
-import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
-import com.github.javaparser.ast.visitor.Visitable;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
@@ -54,6 +40,13 @@ public class CompositeVerifier implements IPatternGrouper {
         return new PatternGroupFeedback(PatternGroup.COMPOSITE, results);
     }
 
+    /**
+     * Verifies one instance of the composite pattern.
+     *
+     * @param patternInstance a pattern instance
+     *
+     * @return a feedback
+     */
     public Feedback verifyPatternInstance(CompositePatternInstance patternInstance) {
         Feedback allElementsFeedback = patternInstance.hasAllElements();
         if (allElementsFeedback.getIsError()) {
@@ -103,7 +96,7 @@ public class CompositeVerifier implements IPatternGrouper {
      * A container has to a have a field which extends from Collection with a type parameter the
      * same as the Component.
      *
-     * @param container     the class which has to have a field of type collection<ComponentsType>.
+     * @param container     the class which has to the specified field
      * @param componentType define the type parameter of the collection.
      *
      * @return a feedback

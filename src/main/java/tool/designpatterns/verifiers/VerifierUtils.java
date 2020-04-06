@@ -96,8 +96,7 @@ public final class VerifierUtils {
         Feedback result;
 
         AtomicBoolean resultBool = new AtomicBoolean(false);
-        for (MethodDeclaration methodDeclaration : toTest.findAll(
-            MethodDeclaration.class)) {
+        for (MethodDeclaration methodDeclaration : toTest.findAll(MethodDeclaration.class)) {
             if (!methodDeclaration.isPrivate()) {
                 resultBool.set(true);
             }
@@ -143,12 +142,11 @@ public final class VerifierUtils {
     }
 
     /**
-     * Since all containers and leaves implement the component we now that they must implement all
-     * methods of the compent. So if a method has the {@link Override} Annotation we know that it is
-     * implemented. And if it then has the same name and argumnents, it has the same method head and
-     * is therefore the same method.
+     * If a method has the {@link Override} Annotation we know that it is implemented. And if it
+     * then has the same name and argumnents, it has the same method head and is therefore the same
+     * method.
      *
-     * @param method methods to check if it can come from the component
+     * @param method    methods to check if it can come from the component
      * @param component the class or interface with implementable methods
      *
      * @return a boolean specifying if the method can come from the component
@@ -165,9 +163,9 @@ public final class VerifierUtils {
     }
 
     /**
-     * As getQualifiedName returns the package path to the method, it cant be used to determine
-     * if two merhods are the same. Instead, we check that they have the same name and
-     * idendentical argments.
+     * As getQualifiedName returns the package path to the method, it cant be used to determine if
+     * two merhods are the same. Instead, we check that they have the same name and idendentical
+     * argments.
      *
      * @param method1 a method
      * @param method2 a method
@@ -179,6 +177,5 @@ public final class VerifierUtils {
         boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
         return hasSameName && hasSameParameters;
     }
-
 
 }

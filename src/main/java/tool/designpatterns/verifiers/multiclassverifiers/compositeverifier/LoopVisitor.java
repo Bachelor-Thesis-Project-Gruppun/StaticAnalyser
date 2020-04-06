@@ -3,7 +3,6 @@ package tool.designpatterns.verifiers.multiclassverifiers.compositeverifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
@@ -28,7 +27,7 @@ final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaratio
 
     private int nbrInteratingBlocks;
 
-    LoopVisitor() {
+    /* default */ LoopVisitor() {
         super();
         nbrInteratingBlocks = 0;
     }
@@ -80,10 +79,11 @@ final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaratio
         nbrInteratingBlocks = 0;
     }
 
-    public Feedback hasIteratingBlock(MethodDeclaration parentMethod) {
+    @SuppressWarnings("PMD.LinguisticNaming")
+    public Feedback hasIteratingBlock(MethodDeclaration methodInContainer) {
         if (nbrInteratingBlocks == 0) {
             return Feedback.getNoChildFeedback("The method has no iterating block",
-                                               new FeedbackTrace(parentMethod));
+                                               new FeedbackTrace(methodInContainer));
         } else {
             return Feedback.getSuccessfulFeedback();
         }
