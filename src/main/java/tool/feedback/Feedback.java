@@ -129,19 +129,27 @@ public final class Feedback {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(linePrefix);
+        String childPrefix = linePrefix;
         if (this.stackTrace != null) {
+            message.append(linePrefix);
             message.append(this.stackTrace.toString());
             message.append(" : ");
+            childPrefix += LINE_PREFIX;
         }
 
         if (this.children.isEmpty()) {
             // We don't have any children, i.e. we're the 'leaf' node and therefore we print our
             // message.
+            if (this.stackTrace == null) {
+                message.append(linePrefix);
+            }
+
             message.append(getMessage()).append('\n');
-        } else {
+        } else if (this.stackTrace != null) {
             message.append('\n');
-            String childPrefix = linePrefix + LINE_PREFIX;
+        }
+
+        if (!this.children.isEmpty()) {
             // We want to print all of our children in a nice way.
             for (Feedback child : this.children) {
                 message.append(child.getFullMessage(childPrefix));
