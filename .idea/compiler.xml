@@ -3,8 +3,6 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
       <module name="staticanalyser.main" target="11" />
-      <module name="StaticAnalyser.staticanalyser.main" target="11" />
-      <module name="StaticAnalyser.staticanalyser.test" target="11" />
       <module name="staticanalyser.test" target="11" />
     </bytecodeTargetLevel>
   </component>
