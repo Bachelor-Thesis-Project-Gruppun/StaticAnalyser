@@ -1,12 +1,13 @@
 package tool.designpatterns;
 
 /**
- * An enum that contains all patterns we are able to identify and verify. If a new pattern has been
- * added, then the enum must be expanded manually.
+ * An enum that contains all patterns we are able to identify and verify. If a
+ * new pattern has been added, then the enum must be expanded manually.
  */
 public enum Pattern {
     // Single class patterns
     IMMUTABLE(PatternGroup.IMMUTABLE),
+
     SINGLETON(PatternGroup.SINGLETON),
 
     // Proxy

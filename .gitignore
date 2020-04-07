@@ -94,15 +94,15 @@ gradle-app.setting
 
 # auto-import.
 
-# .idea/modules.xml
+.idea/modules.xml
 
-# .idea/*.iml
+.idea/*.iml
 
-# .idea/modules
+.idea/modules
 
-# *.iml
+*.iml
 
-# *.ipr
+*.ipr
 
 
 
