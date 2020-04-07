@@ -129,12 +129,12 @@ public final class Feedback {
         }
 
         StringBuilder message = new StringBuilder();
-        String childPrefix = linePrefix;
+        StringBuilder childPrefix = new StringBuilder(linePrefix);
         if (this.stackTrace != null) {
             message.append(linePrefix);
             message.append(this.stackTrace.toString());
             message.append(" : ");
-            childPrefix += LINE_PREFIX;
+            childPrefix.append(LINE_PREFIX);
         }
 
         if (this.children.isEmpty()) {
@@ -152,7 +152,7 @@ public final class Feedback {
         if (!this.children.isEmpty()) {
             // We want to print all of our children in a nice way.
             for (Feedback child : this.children) {
-                message.append(child.getFullMessage(childPrefix));
+                message.append(child.getFullMessage(childPrefix.toString()));
             }
         }
 
