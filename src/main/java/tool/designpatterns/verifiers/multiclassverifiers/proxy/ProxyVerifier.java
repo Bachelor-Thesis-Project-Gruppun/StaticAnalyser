@@ -36,9 +36,6 @@ public class ProxyVerifier implements IPatternGrouper {
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
 
         List<Feedback> feedbacks = new ArrayList<>();
-        List<Feedback> interfaceFeedbacks = new ArrayList<>();
-        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
-            new ConcurrentHashMap<>();
 
         // Verify the interfaces.
         List<ClassOrInterfaceDeclaration> interfaces = map.get(Pattern.PROXY_INTERFACE);
@@ -48,6 +45,11 @@ public class ProxyVerifier implements IPatternGrouper {
                 Feedback.getNoChildFeedback(message, new FeedbackTrace(Pattern.PROXY_INTERFACE)));
             return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
         }
+
+        List<Feedback> interfaceFeedbacks = new ArrayList<>();
+        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
+            new ConcurrentHashMap<>();
+
         interfaces.forEach(interfaceOrAClass -> {
             Tuple2<Feedback, List<MethodDeclaration>> interfaceMethods = getValidMethods(
                 interfaceOrAClass);
@@ -100,7 +102,6 @@ public class ProxyVerifier implements IPatternGrouper {
                 methodDeclarations);
         } else if (classOrI.isInterface()) {
             validMethodDecs.addAll(methodDeclarations);
-            String message = "";
         } else {
             for (MethodDeclaration md : classOrI.accept(mdv, classOrI)) {
                 if (md.isAbstract()) {
