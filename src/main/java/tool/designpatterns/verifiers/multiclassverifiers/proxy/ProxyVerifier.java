@@ -137,7 +137,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
             ClassOrInterfaceDeclaration subject = group.getSubject();
             if (subjects.contains(subject)) {
-                subjects.remove(subject)
+                subjects.remove(subject);
             }
         });
 
