@@ -36,9 +36,6 @@ public class ProxyVerifier implements IPatternGrouper {
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map) {
 
         List<Feedback> feedbacks = new ArrayList<>();
-        List<Feedback> interfaceFeedbacks = new ArrayList<>();
-        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
-            new ConcurrentHashMap<>();
 
         // Verify the interfaces.
         List<ClassOrInterfaceDeclaration> interfaces = map.get(Pattern.PROXY_INTERFACE);
@@ -48,6 +45,11 @@ public class ProxyVerifier implements IPatternGrouper {
                                                       new FeedbackTrace(Pattern.PROXY_INTERFACE)));
             return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
         }
+
+        List<Feedback> interfaceFeedbacks = new ArrayList<>();
+        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
+            new ConcurrentHashMap<>();
+
         interfaces.forEach(interfaceOrAClass -> {
             Tuple2<Feedback, List<MethodDeclaration>> interfaceMethods = getValidMethods(
                 interfaceOrAClass);
@@ -58,7 +60,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        if (subjects == null){
+        if (subjects == null) {
             String message = "PROXY_SUBJECT class not annotated";
             feedbacks.add(Feedback.getNoChildFeedback(message,
                                                       new FeedbackTrace(Pattern.PROXY_SUBJECT)));
@@ -70,7 +72,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the Proxies.
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-        if (proxies == null){
+        if (proxies == null) {
             String message = "PROXY_PROXY class not annotated";
             feedbacks.add(Feedback.getNoChildFeedback(message,
                                                       new FeedbackTrace(Pattern.PROXY_PROXY)));
@@ -100,7 +102,6 @@ public class ProxyVerifier implements IPatternGrouper {
                 methodDeclarations);
         } else if (classOrI.isInterface()) {
             validMethodDecs.addAll(methodDeclarations);
-            String message = "";
         } else {
             for (MethodDeclaration md : classOrI.accept(mdv, classOrI)) {
                 if (md.isAbstract()) {

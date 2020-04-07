@@ -25,7 +25,7 @@ public final class FeedbackTrace {
      * Feedback implementations for statements.
      */
     public FeedbackTrace(Pattern pattern) {
-        StringBuilder msg = new StringBuilder(pattern.toString() + "not found");
+        StringBuilder msg = new StringBuilder(pattern.toString()).append(" not found");
         message = msg.toString();
     }
 
