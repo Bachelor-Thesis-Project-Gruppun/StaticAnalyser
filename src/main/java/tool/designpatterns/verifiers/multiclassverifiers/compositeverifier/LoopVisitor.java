@@ -126,7 +126,7 @@ final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaratio
                 JavaParserMethodDeclaration methodDeclaration =
                     (JavaParserMethodDeclaration) methodCall.resolve();
                 doesDelegate.add(
-                    VerifierUtils.isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
+                    VerifierUtils.hasSameMethodHeader(methodDeclaration.getWrappedNode(), parentMethod));
                 // Standard library methods like List.get(index) or System.out.println throws
                 // ClassCastException as their declaration is outside the scope of this project.
             } catch (ClassCastException exception) {
@@ -142,7 +142,7 @@ final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaratio
                 JavaParserMethodDeclaration methodDeclaration =
                     (JavaParserMethodDeclaration) methodReference.resolve();
                 doesDelegate.add(
-                    VerifierUtils.isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
+                    VerifierUtils.hasSameMethodHeader(methodDeclaration.getWrappedNode(), parentMethod));
                 // TypeSolver can't seem to handle MethodReferenceExpr:s when their declaration
                 // is outside of the project. This then throws UnsolvedSymbolException. The only
                 // mentioned solution we found was to use Spoon...

@@ -155,7 +155,7 @@ public final class VerifierUtils {
         MethodDeclaration method, ClassOrInterfaceDeclaration component) {
         for (MethodDeclaration methodInContainer : component.getMethods()) {
             Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
-            if (isSameMethod(methodInContainer, method) && overrideAnn.isPresent()) {
+            if (hasSameMethodHeader(methodInContainer, method) && overrideAnn.isPresent()) {
                 return true;
             }
         }
@@ -172,7 +172,7 @@ public final class VerifierUtils {
      *
      * @return a boolean
      */
-    public static boolean isSameMethod(MethodDeclaration method1, MethodDeclaration method2) {
+    public static boolean hasSameMethodHeader(MethodDeclaration method1, MethodDeclaration method2) {
         boolean hasSameName = method1.getName().equals(method2.getName());
         boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
         return hasSameName && hasSameParameters;

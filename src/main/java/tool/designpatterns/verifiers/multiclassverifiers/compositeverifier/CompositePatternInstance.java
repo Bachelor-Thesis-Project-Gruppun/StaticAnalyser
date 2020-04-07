@@ -73,13 +73,13 @@ public final class CompositePatternInstance extends APatternInstance {
         // Found no better way to populate PatternInstances than looping
         // through everything multiple times
         components.forEach((component) -> {
-            String componentName = component.getNameAsString();
+            String componentName = component.resolve().getQualifiedName();
             containers.forEach(container -> {
                 List<ClassOrInterfaceType> types = new ArrayList<>();
                 types.addAll(container.getExtendedTypes());
                 types.addAll(container.getImplementedTypes());
                 types.forEach(classOrInterface -> {
-                    if (classOrInterface.getNameAsString().equals(componentName)) {
+                    if (classOrInterface.resolve().getQualifiedName().equals(componentName)) {
                         CompositePatternInstance patternInstance = patternInstances.get(component);
                         patternInstance.containers.add(container);
                         identifiedElements.add(container);
@@ -91,7 +91,7 @@ public final class CompositePatternInstance extends APatternInstance {
                 types.addAll(leaf.getExtendedTypes());
                 types.addAll(leaf.getImplementedTypes());
                 types.forEach(classOrInterface -> {
-                    if (classOrInterface.getNameAsString().equals(componentName)) {
+                    if (classOrInterface.resolve().getQualifiedName().equals(componentName)) {
                         CompositePatternInstance patternInstance = patternInstances.get(component);
                         patternInstance.leaves.add(leaf);
                         identifiedElements.add(leaf);
