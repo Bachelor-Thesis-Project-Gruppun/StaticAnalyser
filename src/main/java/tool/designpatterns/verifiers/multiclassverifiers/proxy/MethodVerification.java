@@ -46,8 +46,8 @@ public final class MethodVerification {
         List<MethodDeclaration> implementedMethods = theClass.accept(mdv, theClass);
         List<MethodDeclaration> interfaceMethods = theInterface.accept(mdv, theInterface);
 
-        Feedback feedback = checkValidity(implementedMethods, interfaceMethods,
-                                          theInterface, method);
+        Feedback feedback = checkValidity(implementedMethods, interfaceMethods, theInterface,
+            method);
         if (feedback.getIsError()) {
             return new FeedbackWrapper<>(feedback, method);
         }
@@ -57,8 +57,8 @@ public final class MethodVerification {
         MethodDeclaration classDeclaration = new MethodDeclaration();
 
         for (MethodDeclaration md : implementedMethods) {
-            if (md.getDeclarationAsString(false, false, false)
-                  .equalsIgnoreCase(method.getDeclarationAsString(false, false, false))) {
+            if (md.getDeclarationAsString(false, false, false).equalsIgnoreCase(
+                method.getDeclarationAsString(false, false, false))) {
                 classDeclaration = md;
                 isInClass = true;
                 break;
@@ -66,8 +66,8 @@ public final class MethodVerification {
         }
 
         for (MethodDeclaration md : interfaceMethods) {
-            if (md.getDeclarationAsString(false, false, false)
-                  .equalsIgnoreCase(method.getDeclarationAsString(false, false, false))) {
+            if (md.getDeclarationAsString(false, false, false).equalsIgnoreCase(
+                method.getDeclarationAsString(false, false, false))) {
                 isInInterface = true;
                 break;
             }
@@ -83,10 +83,8 @@ public final class MethodVerification {
     }
 
     private static Feedback checkValidity(
-        List<MethodDeclaration> implementedMethods,
-        List<MethodDeclaration> interfaceMethods,
-        ClassOrInterfaceDeclaration theInterface,
-        MethodDeclaration method) {
+        List<MethodDeclaration> implementedMethods, List<MethodDeclaration> interfaceMethods,
+        ClassOrInterfaceDeclaration theInterface, MethodDeclaration method) {
         if (implementedMethods.isEmpty()) {
             String message = "There are no method declarations in the class";
             return Feedback.getNoChildFeedback(message, new FeedbackTrace(method));
@@ -110,10 +108,12 @@ public final class MethodVerification {
      */
     private static boolean classImplementsInterface(
         ClassOrInterfaceDeclaration theClass, ClassOrInterfaceDeclaration theInterface) {
+
         ResolvedReferenceTypeDeclaration resolvedInterfaceDec = theInterface.resolve();
         for (ClassOrInterfaceType interf : theClass.getImplementedTypes()) {
             ResolvedReferenceType resolvedInterface = interf.resolve();
-            if (resolvedInterface.getTypeDeclaration().equals(resolvedInterfaceDec)) {
+            if (resolvedInterface.getQualifiedName().equals(
+                resolvedInterfaceDec.getQualifiedName())) {
                 return true;
             }
         }
