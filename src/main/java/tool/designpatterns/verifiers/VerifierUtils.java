@@ -163,9 +163,7 @@ public final class VerifierUtils {
     }
 
     /**
-     * As getQualifiedName returns the package path to the method, it cant be used to determine if
-     * two merhods are the same. Instead, we check that they have the same name and idendentical
-     * argments.
+     * Checks if two methods has the same method header.
      *
      * @param method1 a method
      * @param method2 a method
@@ -174,6 +172,9 @@ public final class VerifierUtils {
      */
     public static boolean hasSameMethodHeader(
         MethodDeclaration method1, MethodDeclaration method2) {
+        // As getQualifiedName returns the package path to the method, it cant be used to
+        // determine if two merhods are the same. Instead, we check that they have the same name
+        // and idendentical argments.
         boolean hasSameName = method1.getName().equals(method2.getName());
         boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
         return hasSameName && hasSameParameters;
