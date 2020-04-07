@@ -33,9 +33,8 @@ public class CompositeVerifier implements IPatternGrouper {
         List<CompositePatternInstance> patternInstances =
             CompositePatternInstance.createInstancesFromMap(map);
         List<Feedback> results = new ArrayList<>();
-        patternInstances.forEach(patternInstance -> {
-            results.add(verifyPatternInstance(patternInstance));
-        });
+        patternInstances.forEach(
+            patternInstance -> results.add(verifyPatternInstance(patternInstance)));
 
         return new PatternGroupFeedback(PatternGroup.COMPOSITE, results);
     }

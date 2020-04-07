@@ -46,10 +46,10 @@ public final class CompositePatternInstance extends APatternInstance {
     }
 
     /**
-     * Method for identifying which classes are part of the same decorator pattern instance. THIS
+     * Method for identifying which classes are part of the same composite pattern instance. THIS
      * METHOD CLEARS ALL LISTS IN THE MAP.
      *
-     * @param map A map where every element of the decorator pattern (e.g. concrete decorator) is
+     * @param map A map where every element of the composite pattern (e.g. concrete composite) is
      *            mapped to all the classes of said element type
      *
      * @return A list of all identified instances of the pattern

@@ -136,14 +136,14 @@ final class LoopVisitor extends GenericVisitorAdapter<Feedback, MethodDeclaratio
 
         @Override
         public void visit(
-            MethodReferenceExpr methodRefernce, MethodDeclaration parentMethod) {
-            super.visit(methodRefernce, parentMethod);
+            MethodReferenceExpr methodReference, MethodDeclaration parentMethod) {
+            super.visit(methodReference, parentMethod);
             try {
                 JavaParserMethodDeclaration methodDeclaration =
-                    (JavaParserMethodDeclaration) methodRefernce.resolve();
+                    (JavaParserMethodDeclaration) methodReference.resolve();
                 doesDelegate.add(
                     VerifierUtils.isSameMethod(methodDeclaration.getWrappedNode(), parentMethod));
-                // TypeSolver can't seem to handle MethodRreferenceExpr:s when their declaration
+                // TypeSolver can't seem to handle MethodReferenceExpr:s when their declaration
                 // is outside of the project. This then throws UnsolvedSymbolException. The only
                 // mentioned solution we found was to use Spoon...
             } catch (UnsolvedSymbolException exception) {
