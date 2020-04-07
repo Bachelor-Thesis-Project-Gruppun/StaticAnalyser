@@ -3,7 +3,6 @@ package mocks.composite;
 import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 
-@DesignPattern(pattern = {Pattern.COMPOSITE_LEAF})
 public class Leaf implements Component {
 
     @Override

@@ -6,7 +6,6 @@ import java.util.List;
 import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 
-@DesignPattern(pattern = {Pattern.COMPOSITE_CONTAINER})
 public class FailingContainerNoImplementsComponent {
 
     List<Component> children = new ArrayList<>();
