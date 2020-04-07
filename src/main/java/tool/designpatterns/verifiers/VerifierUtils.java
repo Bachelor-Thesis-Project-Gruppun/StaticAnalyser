@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
@@ -95,8 +96,7 @@ public final class VerifierUtils {
         Feedback result;
 
         AtomicBoolean resultBool = new AtomicBoolean(false);
-        for (MethodDeclaration methodDeclaration : toTest.findAll(
-            MethodDeclaration.class)) {
+        for (MethodDeclaration methodDeclaration : toTest.findAll(MethodDeclaration.class)) {
             if (!methodDeclaration.isPrivate()) {
                 resultBool.set(true);
             }
@@ -105,7 +105,7 @@ public final class VerifierUtils {
         if (resultBool.get()) {
             result = Feedback.getSuccessfulFeedback();
         } else {
-            String msg = "Interface does not contain any methods!";
+            String msg = "Interface/Class does not contain any methods!";
             result = Feedback.getPatternInstanceNoChildFeedback(msg);
         }
 
@@ -139,6 +139,45 @@ public final class VerifierUtils {
                 new FeedbackTrace(toTest));
         }
         return result;
+    }
+
+    /**
+     * If a method has the {@link Override} Annotation we know that it is implemented. And if it
+     * then has the same name and argumnents, it has the same method head and is therefore the same
+     * method.
+     *
+     * @param method    methods to check if it can come from the component
+     * @param component the class or interface with implementable methods
+     *
+     * @return a boolean specifying if the method can come from the component
+     */
+    public static boolean methodBelongsToComponent(
+        MethodDeclaration method, ClassOrInterfaceDeclaration component) {
+        for (MethodDeclaration methodInContainer : component.getMethods()) {
+            Optional<AnnotationExpr> overrideAnn = method.getAnnotationByClass(Override.class);
+            if (hasSameMethodHeader(methodInContainer, method) && overrideAnn.isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if two methods has the same method header.
+     *
+     * @param method1 a method
+     * @param method2 a method
+     *
+     * @return a boolean
+     */
+    public static boolean hasSameMethodHeader(
+        MethodDeclaration method1, MethodDeclaration method2) {
+        // As getQualifiedName returns the package path to the method, it cant be used to
+        // determine if two merhods are the same. Instead, we check that they have the same name
+        // and idendentical argments.
+        boolean hasSameName = method1.getName().equals(method2.getName());
+        boolean hasSameParameters = method1.getParameters().equals(method2.getParameters());
+        return hasSameName && hasSameParameters;
     }
 
 }

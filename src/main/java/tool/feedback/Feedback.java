@@ -27,7 +27,7 @@ public final class Feedback {
 
         if (children != null) {
             for (Feedback child : children) {
-                if (child.getIsError()) {
+                if (child != null && child.getIsError()) {
                     this.isError = true;
                     this.children.add(child);
                 }
