@@ -12,7 +12,7 @@ public final class MethodGroup {
     private final MethodDeclaration subjectMethod;
     private final MethodDeclaration proxyMethod;
 
-    private MethodGroup(
+    public MethodGroup(
         MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod,
         MethodDeclaration proxyMethod) {
         this.interfaceMethod = interfaceMethod;
@@ -27,6 +27,7 @@ public final class MethodGroup {
      * @param interfaceMethod the interface method
      * @param subjectMethod   the subject method that implements it.
      */
+    @Deprecated
     public static MethodGroup getWithoutProxy(
         MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod) {
         return new MethodGroup(interfaceMethod, subjectMethod, null);
@@ -39,6 +40,7 @@ public final class MethodGroup {
      * @param other       the other MethodGroup to copy from.
      * @param proxyMethod the proxyMethod.
      */
+    @Deprecated
     public static MethodGroup getWithProxy(MethodGroup other, MethodDeclaration proxyMethod) {
         return new MethodGroup(other.interfaceMethod, other.subjectMethod, proxyMethod);
     }
