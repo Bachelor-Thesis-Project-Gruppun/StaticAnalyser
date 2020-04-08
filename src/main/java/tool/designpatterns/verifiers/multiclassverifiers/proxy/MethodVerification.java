@@ -7,7 +7,9 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
 
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodCallVisitor;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodDeclarationVisitor;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
@@ -128,5 +130,39 @@ public final class MethodVerification {
         }
 
         return false;
+    }
+
+    /**
+     * Verifies if the given methods calls the others method and that it is called on the
+     * otherType.
+     *
+     * @param method    the method to check in.
+     * @param other     the method to check for.
+     * @param otherType the type to check for.
+     *
+     * @return true if the methods calls the other method on the otherType.
+     */
+    public static boolean methodCallsOther(
+        MethodDeclaration method, MethodDeclaration other, ResolvedType otherType) {
+        Boolean isValid = method.accept(new MethodCallVisitor(otherType, other), null);
+        if (isValid == null || !isValid) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if the two given methods are the same.
+     *
+     * @param a the first method to check.
+     * @param b the second method to check.
+     *
+     * @return true if they are the same, false otherwise.
+     */
+    public static boolean methodsAreSame(MethodDeclaration a, MethodDeclaration b) {
+        String aName = a.resolve().getQualifiedName();
+        String bName = b.resolve().getQualifiedName();
+        return aName.equals(bName);
     }
 }
