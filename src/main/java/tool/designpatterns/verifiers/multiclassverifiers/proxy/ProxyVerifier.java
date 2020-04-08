@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyProxyVerifier.verifyProxies;
-import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxySubjectVerifier.verifySubjects;
-
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
@@ -15,6 +12,7 @@ import groovy.lang.Tuple2;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodDeclarationVisitor;
 import tool.feedback.Feedback;
@@ -56,27 +54,23 @@ public class ProxyVerifier implements IPatternGrouper {
             interfaceMethodMap.put(interfaceOrAClass, interfaceMethods.getSecond());
         });
         feedbacks.add(Feedback.getPatternInstanceFeedback(interfaceFeedbacks));
+        System.out.println("NUM INTERFACES WITH METHODS : " + interfaceMethodMap.size());
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        if (subjects == null || subjects.isEmpty()) {
-            feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
-                "Unable to find any " + Pattern.PROXY_SUBJECT.toString() + "annotations"));
-            return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
-        }
-        FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjects = verifySubjects(
-            interfaceMethodMap, subjects);
-        feedbacks.add(interfaceSubjects.getFeedback());
+        FeedbackWrapper<List<ProxyInterfaceImplementation>> subjectGroups =
+            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodMap, subjects);
+        feedbacks.add(subjectGroups.getFeedback());
 
-        // Verify the Proxies.
+        // Verify the proxies
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-        if (proxies == null || proxies.isEmpty()) {
-            feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
-                "Unable to find any " + Pattern.PROXY_PROXY.toString() + "annotations"));
-            return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
-        }
-        FeedbackWrapper<List<ProxyPatternGroup>> proxyPatterns = verifyProxies(
-            interfaceSubjects.getOther(), proxies);
+        FeedbackWrapper<List<ProxyInterfaceImplementation>> proxyGroups =
+            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodMap, proxies);
+        feedbacks.add(subjectGroups.getFeedback());
+
+        // Merge and verify the parts.
+        FeedbackWrapper<List<ProxyPatternGroup>> proxyPatterns = VerifyProxyParts.verifyParts(
+            subjectGroups.getOther(), proxyGroups.getOther());
         feedbacks.add(proxyPatterns.getFeedback());
 
         // Validate that all classes marked as parts of a Proxy pattern are used at least once.
@@ -117,11 +111,28 @@ public class ProxyVerifier implements IPatternGrouper {
         return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDecs);
     }
 
+    /**
+     * Verifies that all the proxies, interfaces and subjects are used and that if they are only a
+     * part of an 'invalid' proxy pattern, those errors are returned.
+     *
+     * @param proxyGroups the finished proxy groups to check in.
+     * @param proxies     the proxies to check for.
+     * @param interfaces  the interfaces to check for.
+     * @param subjects    the subjects to check for.
+     *
+     * @return a feedback on how they are used.
+     */
     private Feedback allClassesAreUsed(
         List<ProxyPatternGroup> proxyGroups, List<ClassOrInterfaceDeclaration> proxies,
         List<ClassOrInterfaceDeclaration> interfaces, List<ClassOrInterfaceDeclaration> subjects) {
 
-        proxyGroups.forEach(group -> {
+        Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> newLists =
+            splitIntoValidAndInvalid(proxyGroups);
+        List<ProxyPatternGroup> valid = newLists.getFirst();
+        List<ProxyPatternGroup> invalid = newLists.getSecond();
+
+        // Remove the classes used in valid instances from the maps.
+        valid.forEach(group -> {
             ClassOrInterfaceDeclaration proxy = group.getProxy();
             if (proxies.contains(proxy)) {
                 proxies.remove(proxy);
@@ -138,6 +149,41 @@ public class ProxyVerifier implements IPatternGrouper {
             }
         });
 
+        List<Feedback> feedbacks = new ArrayList<>();
+        // Remove the classes used in the invalid instance from the maps if they are left and if
+        // so also add their potentialErrors feedbacks to our feedbacks.
+        invalid.forEach(group -> {
+            // To make sure we don't add the same feedbacks more than once.
+            boolean addedFeedback = false;
+
+            ClassOrInterfaceDeclaration proxy = group.getProxy();
+            if (proxies.contains(proxy)) {
+                proxies.remove(proxy);
+                addedFeedback = true;
+                feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
+            }
+
+            ClassOrInterfaceDeclaration interfaceOrAClass = group.getInterfaceOrAClass();
+            if (interfaces.contains(interfaceOrAClass)) {
+                interfaces.remove(interfaceOrAClass);
+
+                if (!addedFeedback) {
+                    addedFeedback = true;
+                    feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
+                }
+            }
+
+            ClassOrInterfaceDeclaration subject = group.getSubject();
+            if (subjects.contains(subject)) {
+                subjects.remove(subject);
+
+                if (!addedFeedback) {
+                    feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
+                }
+            }
+        });
+
+        // Now add feedback for those classes that are still not used.
         List<Feedback> unusedProxies = new ArrayList<>();
         if (!proxies.isEmpty()) {
             proxies.forEach(proxy -> {
@@ -165,10 +211,32 @@ public class ProxyVerifier implements IPatternGrouper {
             });
         }
 
-        List<Feedback> feedbacks = new ArrayList<>();
         feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxies));
         feedbacks.add(Feedback.getPatternInstanceFeedback(unusedInterfaces));
         feedbacks.add(Feedback.getPatternInstanceFeedback(unusedSubjects));
         return Feedback.getPatternInstanceFeedback(feedbacks);
+    }
+
+    /**
+     * Splits the given patternGroups into those marked as valid and those marked as invalid.
+     *
+     * @param patternGroups the list of patternGroups to split.
+     *
+     * @return a tuple with first a list of valid ProxyPatternGroups and then a list of invalid
+     *     ProxyPatternGroups.
+     */
+    private Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> splitIntoValidAndInvalid(
+        List<ProxyPatternGroup> patternGroups) {
+        List<ProxyPatternGroup> valid = new ArrayList<>();
+        List<ProxyPatternGroup> invalid = new ArrayList<>();
+
+        for (ProxyPatternGroup group : patternGroups) {
+            if (group.isValid()) {
+                valid.add(group);
+            } else {
+                invalid.add(group);
+            }
+        }
+        return new Tuple2<>(valid, invalid);
     }
 }

@@ -7,7 +7,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
 
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodCallVisitor;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodDeclarationVisitor;
@@ -143,7 +142,9 @@ public final class MethodVerification {
      * @return true if the methods calls the other method on the otherType.
      */
     public static boolean methodCallsOther(
-        MethodDeclaration method, MethodDeclaration other, ResolvedType otherType) {
+        MethodDeclaration method, MethodDeclaration other,
+        ResolvedReferenceTypeDeclaration otherType) {
+
         Boolean isValid = method.accept(new MethodCallVisitor(otherType, other), null);
         if (isValid == null || !isValid) {
             return false;

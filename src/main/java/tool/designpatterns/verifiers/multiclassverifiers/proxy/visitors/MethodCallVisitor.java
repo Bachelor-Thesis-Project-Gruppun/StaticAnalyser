@@ -6,7 +6,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 
 /**
@@ -15,7 +15,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
  */
 public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
 
-    private final ResolvedType other;
+    private final ResolvedReferenceTypeDeclaration other;
     private final MethodDeclaration otherMethod;
 
     /**
@@ -24,7 +24,8 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
      * @param otherType   the type to look for.
      * @param otherMethod the other method that should be called.
      */
-    public MethodCallVisitor(ResolvedType otherType, MethodDeclaration otherMethod) {
+    public MethodCallVisitor(
+        ResolvedReferenceTypeDeclaration otherType, MethodDeclaration otherMethod) {
         super();
 
         this.other = otherType;
@@ -33,22 +34,27 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
 
     @Override
     public Boolean visit(MethodCallExpr methodCall, Void arg) {
-        // Compare if the method is called on the correct variable (type)
-        Optional<Expression> optExpr = methodCall.getScope();
-        if (optExpr.isPresent()) {
-            ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
-            ResolvedType otherType = other;
-            if (resolvedVarType.equals(otherType)) {
-                return true;
-            }
-        }
 
         // Check if the method called is the same as the one we're looking for.
-        ResolvedMethodDeclaration resolvedMethod = methodCall.resolve();
-        ResolvedMethodDeclaration resolvedOtherMethod = otherMethod.resolve();
+        String calledMethodQualName = methodCall.resolve().getQualifiedName();
+        String correctMethodQualName = otherMethod.resolve().getQualifiedName();
 
-        if (resolvedMethod.equals(resolvedOtherMethod)) {
-            return true;
+        if (calledMethodQualName.equals(correctMethodQualName)) {
+            // The method called is the one we're looking for, now make sure that it is called
+            // on the correct type.
+            Optional<Expression> optExpr = methodCall.getScope();
+            if (optExpr.isPresent()) {
+                ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
+                if (resolvedVarType.isReferenceType()) {
+                    ResolvedReferenceTypeDeclaration varTypeDec =
+                        resolvedVarType.asReferenceType().getTypeDeclaration();
+
+                    if (varTypeDec.equals(other)) {
+                        return true;
+                    }
+                }
+            }
+
         }
 
         // Check if any other method call is valid, if there are no more it will return null.

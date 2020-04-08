@@ -34,8 +34,13 @@ public class ProxyInterfaceImplementorVerifier {
         List<Feedback> feedbacks = new ArrayList<>();
         List<ProxyInterfaceImplementation> proxyPatternParts = new ArrayList<>();
 
+        // Go through each implementor and each interface and try to find matches.
         for (ClassOrInterfaceDeclaration implementor : implementors) {
+            System.out.println(
+                "CHECKING FOR IMPLEMENTOR " + implementor.resolve().getQualifiedName());
             for (ClassOrInterfaceDeclaration interfaceOrAClass : interfaces.keySet()) {
+                System.out.println(
+                    "CHECKING FOR INTERFACE " + interfaceOrAClass.resolve().getQualifiedName());
                 FeedbackWrapper<ProxyInterfaceImplementation> proxyPatternPart = getPatternPart(
                     implementor, interfaceOrAClass, interfaces.get(interfaceOrAClass));
 

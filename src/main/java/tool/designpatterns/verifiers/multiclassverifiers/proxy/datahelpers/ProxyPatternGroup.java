@@ -1,8 +1,11 @@
 package tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+
+import tool.feedback.Feedback;
 
 /**
  * Class that represents all the parts of a Proxy pattern.
@@ -15,14 +18,22 @@ public final class ProxyPatternGroup {
 
     private final List<MethodGroup> methods;
 
+    private final List<Feedback> potentialErrors;
+
     private ProxyPatternGroup(
         ClassOrInterfaceDeclaration interfaceOrAClass, ClassOrInterfaceDeclaration subject,
-        ClassOrInterfaceDeclaration proxy, List<MethodGroup> methods) {
+        ClassOrInterfaceDeclaration proxy, List<MethodGroup> methods,
+        List<Feedback> potentialErrors) {
 
         this.interfaceOrAClass = interfaceOrAClass;
         this.subject = subject;
         this.proxy = proxy;
         this.methods = methods;
+        if (potentialErrors == null) {
+            this.potentialErrors = new ArrayList<>();
+        } else {
+            this.potentialErrors = potentialErrors;
+        }
     }
 
     /**
@@ -34,10 +45,11 @@ public final class ProxyPatternGroup {
      *
      * @return a new ProxyPatternGroup
      */
+    @Deprecated
     public static ProxyPatternGroup getInterfaceSubjectGroup(
         ClassOrInterfaceDeclaration interfaceOrAClass, ClassOrInterfaceDeclaration subject,
         List<MethodGroup> methodGroups) {
-        return new ProxyPatternGroup(interfaceOrAClass, subject, null, methodGroups);
+        return new ProxyPatternGroup(interfaceOrAClass, subject, null, methodGroups, null);
     }
 
     /**
@@ -50,12 +62,50 @@ public final class ProxyPatternGroup {
      *
      * @return a new ProxyPatternGroup
      */
+    @Deprecated
     public static ProxyPatternGroup getWithProxy(
         ProxyPatternGroup oldGroup, List<MethodGroup> newMethodGroups,
         ClassOrInterfaceDeclaration proxy) {
 
         return new ProxyPatternGroup(oldGroup.getInterfaceOrAClass(), oldGroup.getSubject(), proxy,
-            newMethodGroups);
+            newMethodGroups, null);
+    }
+
+    /**
+     * Get a new valid ProxyPatternGroup from the given parts.
+     *
+     * @param interfaceOrAClass the interface or abstract class in the group.
+     * @param subject           the subject class.
+     * @param proxy             the proxy class.
+     * @param methodGroups      the proxy methods.
+     *
+     * @return a new valid ProxyPatternGroup.
+     */
+    public static ProxyPatternGroup getValidProxyGroup(
+        ClassOrInterfaceDeclaration interfaceOrAClass, ClassOrInterfaceDeclaration subject,
+        ClassOrInterfaceDeclaration proxy, List<MethodGroup> methodGroups) {
+        return new ProxyPatternGroup(interfaceOrAClass, subject, proxy, methodGroups, null);
+    }
+
+    /**
+     * Get a new invalid ProxyPatternGroup from the given parts, i.e. a ProxyPatternGroup that is
+     * identified as a ProxyPatternGroup but that has some potential errors.
+     *
+     * @param interfaceOrAClass the interface or abstract class in the group.
+     * @param subject           the subject class.
+     * @param proxy             the proxy class.
+     * @param methodGroups      the proxy methods.
+     * @param potentialErrors   the potential errors that makes this not a completely valid
+     *                          ProxyPatternGroup.
+     *
+     * @return a new invalid ProxyPatternGroup.
+     */
+    public static ProxyPatternGroup getInvalidProxyGroup(
+        ClassOrInterfaceDeclaration interfaceOrAClass, ClassOrInterfaceDeclaration subject,
+        ClassOrInterfaceDeclaration proxy, List<MethodGroup> methodGroups,
+        List<Feedback> potentialErrors) {
+        return new ProxyPatternGroup(
+            interfaceOrAClass, subject, proxy, methodGroups, potentialErrors);
     }
 
     public ClassOrInterfaceDeclaration getInterfaceOrAClass() {
@@ -83,5 +133,18 @@ public final class ProxyPatternGroup {
             ", subject: ").append(subject.getNameAsString());
 
         return stringBuilder.toString();
+    }
+
+    /**
+     * Returns if this a valid ProxyPatternGroup or not.
+     *
+     * @return true if this is a valid ProxyPatternGroup and false otherwise.
+     */
+    public boolean isValid() {
+        return potentialErrors.isEmpty();
+    }
+
+    public List<Feedback> getPotentialErrors() {
+        return potentialErrors;
     }
 }
