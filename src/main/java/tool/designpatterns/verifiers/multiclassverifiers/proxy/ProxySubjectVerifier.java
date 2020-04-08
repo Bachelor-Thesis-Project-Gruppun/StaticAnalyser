@@ -55,19 +55,19 @@ public final class ProxySubjectVerifier {
     }
 
     private static FeedbackWrapper<ProxyPatternGroup> getProxyPattern(
-        List<MethodDeclaration> methods, ClassOrInterfaceDeclaration interfaceOrAClass,
+        List<MethodDeclaration> interfaceMethods, ClassOrInterfaceDeclaration interfaceOrAClass,
         ClassOrInterfaceDeclaration subject) {
         List<Feedback> feedbacks = new ArrayList<>();
 
         List<MethodGroup> methodGroups = new ArrayList<>();
-        for (MethodDeclaration method : methods) {
-            FeedbackWrapper<MethodDeclaration> result = classImplementsMethod(subject,
+        for (MethodDeclaration method : interfaceMethods) {
+            FeedbackWrapper<MethodDeclaration> subjectMethod = classImplementsMethod(subject,
                 interfaceOrAClass, method);
 
-            feedbacks.add(result.getFeedback());
+            feedbacks.add(subjectMethod.getFeedback());
 
-            if (result.getOther() != null) {
-                methodGroups.add(MethodGroup.getWithoutProxy(method, result.getOther()));
+            if (subjectMethod.getOther() != null) {
+                methodGroups.add(MethodGroup.getWithoutProxy(method, subjectMethod.getOther()));
             }
         }
 
@@ -79,8 +79,10 @@ public final class ProxySubjectVerifier {
                     .getInterfaceSubjectGroup(interfaceOrAClass, subject, methodGroups));
         }
 
-        return new FeedbackWrapper<>(Feedback.getNoChildFeedback(
-            "subject does not group with interface '" + interfaceOrAClass.getNameAsString() + "'",
-            new FeedbackTrace(subject)), null);
+        return new FeedbackWrapper<>(
+            Feedback.getNoChildFeedback(
+                "Unable to find a subject method that implements any of the interface methods for" +
+                " interface '" + interfaceOrAClass.getNameAsString() + "'",
+                new FeedbackTrace(subject)), null);
     }
 }
