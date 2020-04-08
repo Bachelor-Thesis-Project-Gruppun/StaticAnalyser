@@ -2,11 +2,11 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.InterfaceMethods;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroupPart;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
 import tool.feedback.Feedback;
@@ -28,8 +28,7 @@ public class ProxyInterfaceImplementorVerifier {
      *     empty.
      */
     public static FeedbackWrapper<List<ProxyInterfaceImplementation>> verifyImplementors(
-        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaces,
-        List<ClassOrInterfaceDeclaration> implementors) {
+        List<InterfaceMethods> interfaces, List<ClassOrInterfaceDeclaration> implementors) {
 
         List<Feedback> feedbacks = new ArrayList<>();
         List<ProxyInterfaceImplementation> proxyPatternParts = new ArrayList<>();
@@ -38,11 +37,13 @@ public class ProxyInterfaceImplementorVerifier {
         for (ClassOrInterfaceDeclaration implementor : implementors) {
             System.out.println(
                 "CHECKING FOR IMPLEMENTOR " + implementor.resolve().getQualifiedName());
-            for (ClassOrInterfaceDeclaration interfaceOrAClass : interfaces.keySet()) {
+            for (InterfaceMethods interfaceMethods : interfaces) {
+                ClassOrInterfaceDeclaration interfaceOrAClass =
+                    interfaceMethods.getInterfaceOrAClass();
                 System.out.println(
                     "CHECKING FOR INTERFACE " + interfaceOrAClass.resolve().getQualifiedName());
                 FeedbackWrapper<ProxyInterfaceImplementation> proxyPatternPart = getPatternPart(
-                    implementor, interfaceOrAClass, interfaces.get(interfaceOrAClass));
+                    implementor, interfaceOrAClass, interfaceMethods.getMethods());
 
                 feedbacks.add(proxyPatternPart.getFeedback());
                 ProxyInterfaceImplementation implementation = proxyPatternPart.getOther();

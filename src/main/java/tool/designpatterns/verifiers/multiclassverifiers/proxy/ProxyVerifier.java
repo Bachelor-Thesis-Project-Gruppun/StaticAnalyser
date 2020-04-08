@@ -3,7 +3,6 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -12,6 +11,7 @@ import groovy.lang.Tuple2;
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
 import tool.designpatterns.verifiers.IPatternGrouper;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.InterfaceMethods;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors.MethodDeclarationVisitor;
@@ -44,28 +44,27 @@ public class ProxyVerifier implements IPatternGrouper {
         }
 
         List<Feedback> interfaceFeedbacks = new ArrayList<>();
-        Map<ClassOrInterfaceDeclaration, List<MethodDeclaration>> interfaceMethodMap =
-            new ConcurrentHashMap<>();
 
+        List<InterfaceMethods> interfaceMethodGroups = new ArrayList<>();
         interfaces.forEach(interfaceOrAClass -> {
             Tuple2<Feedback, List<MethodDeclaration>> interfaceMethods = getValidMethods(
                 interfaceOrAClass);
             interfaceFeedbacks.add(interfaceMethods.getFirst());
-            interfaceMethodMap.put(interfaceOrAClass, interfaceMethods.getSecond());
+            interfaceMethodGroups.add(
+                new InterfaceMethods(interfaceOrAClass, interfaceMethods.getSecond()));
         });
         feedbacks.add(Feedback.getPatternInstanceFeedback(interfaceFeedbacks));
-        System.out.println("NUM INTERFACES WITH METHODS : " + interfaceMethodMap.size());
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
         FeedbackWrapper<List<ProxyInterfaceImplementation>> subjectGroups =
-            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodMap, subjects);
+            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodGroups, subjects);
         feedbacks.add(subjectGroups.getFeedback());
 
         // Verify the proxies
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
         FeedbackWrapper<List<ProxyInterfaceImplementation>> proxyGroups =
-            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodMap, proxies);
+            ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodGroups, proxies);
         feedbacks.add(subjectGroups.getFeedback());
 
         // Merge and verify the parts.
