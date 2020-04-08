@@ -9,7 +9,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.InterfaceMethods;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroupPart;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
-import tool.feedback.Feedback;
 import tool.feedback.FeedbackWrapper;
 
 /**
@@ -27,26 +26,19 @@ public class ProxyInterfaceImplementorVerifier {
      * @return the result of the verification and list of ProxyInterfaceImplementations that can be
      *     empty.
      */
-    public static FeedbackWrapper<List<ProxyInterfaceImplementation>> verifyImplementors(
+    public static List<ProxyInterfaceImplementation> verifyImplementors(
         List<InterfaceMethods> interfaces, List<ClassOrInterfaceDeclaration> implementors) {
 
-        List<Feedback> feedbacks = new ArrayList<>();
         List<ProxyInterfaceImplementation> proxyPatternParts = new ArrayList<>();
 
         // Go through each implementor and each interface and try to find matches.
         for (ClassOrInterfaceDeclaration implementor : implementors) {
-            System.out.println(
-                "CHECKING FOR IMPLEMENTOR " + implementor.resolve().getQualifiedName());
             for (InterfaceMethods interfaceMethods : interfaces) {
                 ClassOrInterfaceDeclaration interfaceOrAClass =
                     interfaceMethods.getInterfaceOrAClass();
-                System.out.println(
-                    "CHECKING FOR INTERFACE " + interfaceOrAClass.resolve().getQualifiedName());
-                FeedbackWrapper<ProxyInterfaceImplementation> proxyPatternPart = getPatternPart(
+                ProxyInterfaceImplementation implementation = getPatternPart(
                     implementor, interfaceOrAClass, interfaceMethods.getMethods());
 
-                feedbacks.add(proxyPatternPart.getFeedback());
-                ProxyInterfaceImplementation implementation = proxyPatternPart.getOther();
                 if (implementation != null) {
                     // We found a part of a proxy pattern!
                     proxyPatternParts.add(implementation);
@@ -54,8 +46,7 @@ public class ProxyInterfaceImplementorVerifier {
             }
         }
 
-        Feedback fullFeedback = Feedback.getPatternInstanceFeedback(feedbacks);
-        return new FeedbackWrapper<>(fullFeedback, proxyPatternParts);
+        return proxyPatternParts;
     }
 
     /**
@@ -69,11 +60,10 @@ public class ProxyInterfaceImplementorVerifier {
      * @return the result of the verification and a ProxyInterfaceImplementation or null if the
      *     verification failed.
      */
-    private static FeedbackWrapper<ProxyInterfaceImplementation> getPatternPart(
+    private static ProxyInterfaceImplementation getPatternPart(
         ClassOrInterfaceDeclaration implementor, ClassOrInterfaceDeclaration interfaceOrAClass,
         List<MethodDeclaration> interfaceMethods) {
 
-        List<Feedback> feedbacks = new ArrayList<>();
         List<MethodGroupPart> implementedMethods = new ArrayList<>();
 
         for (MethodDeclaration interfaceMethod : interfaceMethods) {
@@ -81,7 +71,6 @@ public class ProxyInterfaceImplementorVerifier {
                 MethodVerification.classImplementsMethod(
                     implementor, interfaceOrAClass, interfaceMethod);
 
-            feedbacks.add(implementedMethodRes.getFeedback());
             MethodDeclaration implementedMethod = implementedMethodRes.getOther();
             if (implementedMethod != null) {
                 // The implementor implemented this interface with the given method, add them to
@@ -90,16 +79,15 @@ public class ProxyInterfaceImplementorVerifier {
             }
         }
 
-        Feedback feedback = Feedback.getPatternInstanceFeedback(feedbacks);
         if (!implementedMethods.isEmpty()) {
             // This implementor implements the interface with at least one method, return a
             // ProxyInterfaceImplementation with them all.
             ProxyInterfaceImplementation proxyPatternPart = new ProxyInterfaceImplementation(
                 interfaceOrAClass, implementor, implementedMethods);
-            return new FeedbackWrapper<>(feedback, proxyPatternPart);
+            return proxyPatternPart;
         }
 
         // This implementor appears not to implement the interface / any of it's methods.
-        return new FeedbackWrapper<>(feedback, null);
+        return null;
     }
 }

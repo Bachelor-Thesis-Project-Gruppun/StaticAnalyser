@@ -57,19 +57,17 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        FeedbackWrapper<List<ProxyInterfaceImplementation>> subjectGroups =
+        List<ProxyInterfaceImplementation> subjectGroups =
             ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodGroups, subjects);
-        feedbacks.add(subjectGroups.getFeedback());
 
         // Verify the proxies
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-        FeedbackWrapper<List<ProxyInterfaceImplementation>> proxyGroups =
+        List<ProxyInterfaceImplementation> proxyGroups =
             ProxyInterfaceImplementorVerifier.verifyImplementors(interfaceMethodGroups, proxies);
-        feedbacks.add(subjectGroups.getFeedback());
 
         // Merge and verify the parts.
         FeedbackWrapper<List<ProxyPatternGroup>> proxyPatterns = VerifyProxyParts.verifyParts(
-            subjectGroups.getOther(), proxyGroups.getOther());
+            subjectGroups, proxyGroups);
         feedbacks.add(proxyPatterns.getFeedback());
 
         // Validate that all classes marked as parts of a Proxy pattern are used at least once.
