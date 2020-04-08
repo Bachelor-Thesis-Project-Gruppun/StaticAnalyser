@@ -4,6 +4,7 @@ import tool.designpatterns.verifiers.IPatternGrouper;
 import tool.designpatterns.verifiers.multiclassverifiers.adapterverifier.AdapterVerifier;
 import tool.designpatterns.verifiers.multiclassverifiers.compositeverifier.CompositeVerifier;
 import tool.designpatterns.verifiers.multiclassverifiers.decorator.DecoratorVerifier;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.ProxyVerifier;
 import tool.designpatterns.verifiers.singleclassverifiers.SingleClassGrouper;
 import tool.designpatterns.verifiers.singleclassverifiers.immutable.ImmutableVerifier;
 import tool.designpatterns.verifiers.singleclassverifiers.singleton.SingletonVerifier;
