@@ -15,7 +15,11 @@ public enum Pattern {
     DECORATOR_CONCRETE_DECORATOR(PatternGroup.DECORATOR),
 
     ADAPTER_ADAPTER(PatternGroup.ADAPTER),
-    ADAPTER_ADAPTEE(PatternGroup.ADAPTER);
+    ADAPTER_ADAPTEE(PatternGroup.ADAPTER),
+
+    COMPOSITE_COMPONENT(PatternGroup.COMPOSITE),
+    COMPOSITE_CONTAINER(PatternGroup.COMPOSITE),
+    COMPOSITE_LEAF(PatternGroup.COMPOSITE);
 
     private PatternGroup group;
 
