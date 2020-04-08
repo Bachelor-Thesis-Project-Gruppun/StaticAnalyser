@@ -2,12 +2,16 @@ package tool.feedback;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.CallableDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 
 import org.apache.commons.lang.NotImplementedException;
 import tool.designpatterns.DesignPattern;
@@ -20,14 +24,6 @@ import tool.designpatterns.Pattern;
 public final class FeedbackTrace {
 
     private String message;
-
-    /**
-     * Feedback implementations for statements.
-     */
-    public FeedbackTrace(Pattern pattern) {
-        StringBuilder msg = new StringBuilder(pattern.toString()).append(" not found");
-        message = msg.toString();
-    }
 
     /**
      * Feedback implementations for statements.
@@ -59,24 +55,38 @@ public final class FeedbackTrace {
     }
 
     /**
-     * Feedback implementations for callables (methods & constructors).
+     * Feedback implementations for constructors.
      *
-     * @param callable the callable.
+     * @param constructor the constructor.
      */
-    public FeedbackTrace(CallableDeclaration callable) {
-        StringBuilder msg = new StringBuilder(getStringStart(callable));
-        msg.append(" in method ").append(callable.getNameAsString());
+    public FeedbackTrace(ConstructorDeclaration constructor) {
+        StringBuilder msg = new StringBuilder(getStringStart(constructor));
+        ResolvedConstructorDeclaration resolvedConstructor = constructor.resolve();
+        msg.append(" in constructor ").append(resolvedConstructor.getQualifiedName());
         message = msg.toString();
     }
 
     /**
-     * Feedback implementations for types (classes).
+     * Feedback implementations for methods.
+     *
+     * @param method the method.
+     */
+    public FeedbackTrace(MethodDeclaration method) {
+        StringBuilder msg = new StringBuilder(getStringStart(method));
+        ResolvedMethodDeclaration resolvedMethod = method.resolve();
+        msg.append(" in method ").append(resolvedMethod.getQualifiedName());
+        message = msg.toString();
+    }
+
+    /**
+     * Feedback implementations for types (classes etc).
      *
      * @param type the type.
      */
     public FeedbackTrace(TypeDeclaration type) {
         StringBuilder msg = new StringBuilder(getStringStart(type));
-        msg.append(" in class ").append(type.getNameAsString());
+        ResolvedTypeDeclaration resolvedType = type.resolve();
+        msg.append(" in class ").append(resolvedType.getQualifiedName());
         message = msg.toString();
     }
 
@@ -122,7 +132,7 @@ public final class FeedbackTrace {
         // a constructor for it / one of its super classes.
         throw new NotImplementedException(
             "The given type is not yet supported, here follows the entire node: \n\n" +
-                node.toString());
+            node.toString());
     }
 
     @Override
