@@ -3,7 +3,6 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy.visitors;
 import java.util.Optional;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
@@ -16,19 +15,19 @@ import com.github.javaparser.resolution.types.ResolvedType;
  */
 public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
 
-    private final VariableDeclarator other;
+    private final ResolvedType other;
     private final MethodDeclaration otherMethod;
 
     /**
      * Creates a new MethodCallVisitor.
      *
-     * @param other       the type to look for.
+     * @param otherType   the type to look for.
      * @param otherMethod the other method that should be called.
      */
-    public MethodCallVisitor(VariableDeclarator other, MethodDeclaration otherMethod) {
+    public MethodCallVisitor(ResolvedType otherType, MethodDeclaration otherMethod) {
         super();
 
-        this.other = other;
+        this.other = otherType;
         this.otherMethod = otherMethod;
     }
 
@@ -38,7 +37,7 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
         Optional<Expression> optExpr = methodCall.getScope();
         if (optExpr.isPresent()) {
             ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
-            ResolvedType otherType = other.resolve().getType();
+            ResolvedType otherType = other;
             if (resolvedVarType.equals(otherType)) {
                 return true;
             }
