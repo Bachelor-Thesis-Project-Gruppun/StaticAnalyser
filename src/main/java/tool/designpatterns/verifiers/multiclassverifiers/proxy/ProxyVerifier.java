@@ -39,10 +39,9 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the interfaces.
         List<ClassOrInterfaceDeclaration> interfaces = map.get(Pattern.PROXY_INTERFACE);
-        if (interfaces == null) {
-            String message = "PROXY_INTERFACE class not annotated";
-            feedbacks.add(
-                Feedback.getNoChildFeedback(message, new FeedbackTrace(Pattern.PROXY_INTERFACE)));
+        if (interfaces == null || interfaces.isEmpty()) {
+            feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
+                "Unable to find any " + Pattern.PROXY_INTERFACE.toString() + "annotations"));
             return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
         }
 
@@ -60,10 +59,9 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
-        if (subjects == null) {
-            String message = "PROXY_SUBJECT class not annotated";
-            feedbacks.add(
-                Feedback.getNoChildFeedback(message, new FeedbackTrace(Pattern.PROXY_SUBJECT)));
+        if (subjects == null || subjects.isEmpty()) {
+            feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
+                "Unable to find any " + Pattern.PROXY_SUBJECT.toString() + "annotations"));
             return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
         }
         FeedbackWrapper<List<ProxyPatternGroup>> interfaceSubjects = verifySubjects(
@@ -72,10 +70,9 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the Proxies.
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
-        if (proxies == null) {
-            String message = "PROXY_PROXY class not annotated";
-            feedbacks.add(
-                Feedback.getNoChildFeedback(message, new FeedbackTrace(Pattern.PROXY_PROXY)));
+        if (proxies == null || proxies.isEmpty()) {
+            feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
+                "Unable to find any " + Pattern.PROXY_PROXY.toString() + "annotations"));
             return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
         }
         FeedbackWrapper<List<ProxyPatternGroup>> proxyPatterns = verifyProxies(
