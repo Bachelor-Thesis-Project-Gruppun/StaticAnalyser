@@ -97,6 +97,32 @@ public class DecoratorVerifierTest {
 
     @Test
     public void testPatternInstanceGrouping() {
+        HashMap<Pattern, List<ClassOrInterfaceDeclaration>> testMap = new HashMap();
+        ArrayList<ClassOrInterfaceDeclaration> interfaceComponent = new ArrayList<>();
+        ArrayList<ClassOrInterfaceDeclaration> concreteComponents =
+            new ArrayList<ClassOrInterfaceDeclaration>();
+        ArrayList<ClassOrInterfaceDeclaration> abstractDecorators =
+            new ArrayList<ClassOrInterfaceDeclaration>();
+        ArrayList<ClassOrInterfaceDeclaration> concreteDecorators =
+            new ArrayList<ClassOrInterfaceDeclaration>();
 
+        try {
+            concreteComponents.add(
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffee"));
+            abstractDecorators.add(
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCoffeeDecorator"));
+            concreteDecorators.add(
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingMilk"));
+            concreteDecorators.add(
+                TestHelper.getMockClassOrI("decorator/failingpattern", "FailingCream"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        testMap.put(Pattern.DECORATOR_INTERFACE_COMPONENT, interfaceComponent);
+        testMap.put(Pattern.DECORATOR_CONCRETE_COMPONENT, concreteComponents);
+        testMap.put(Pattern.DECORATOR_ABSTRACT_DECORATOR, abstractDecorators);
+        testMap.put(Pattern.DECORATOR_CONCRETE_DECORATOR, concreteDecorators);
+        var decoratorVerifier = new DecoratorVerifier();
+        assertTrue(decoratorVerifier.verifyGroup(testMap).hasError());
     }
 }
