@@ -1,14 +1,14 @@
 package tool.designpatterns.verifiers.multiclassverifiers.decorator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-
-import tool.designpatterns.Pattern;
-import tool.feedback.Feedback;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+
+import tool.designpatterns.Pattern;
+import tool.feedback.Feedback;
 
 /**
  * Used to group parts of the same instance of the decorator pattern (an implementation of the
@@ -137,37 +137,69 @@ final class DecoratorPatternInstance {
     @SuppressWarnings("PMD.LinguisticNaming")
     public Feedback hasAllElements() {
         StringBuilder feedbackMessage = new StringBuilder(127);
-        feedbackMessage.append("The following elements are missing: ");
         boolean errorOccurred = false;
+
         if (this.interfaceComponent == null) {
-            feedbackMessage.append("Interface component, ");
+            feedbackMessage.append(getInvalidInstanceMessage());
             errorOccurred = true;
         } else if (!this.interfaceComponent.isInterface()) {
-            String msg = "Interface component (The annotated class is not an interface), ";
+            String intCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
+            String msg = "The interface component " + intCompName + " is not an interface.";
             feedbackMessage.append(msg);
             errorOccurred = true;
+        } else {
+            String interfaceCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
+            String initMsg = "The following elements are missing in the interface component " +
+                             interfaceCompName + ": ";
+            if (this.concreteComponents.isEmpty()) {
+                feedbackMessage.append("Concrete component(s): ");
+                this.getConcreteComponents().forEach(cc -> {
+                    feedbackMessage.append(cc.getFullyQualifiedName().get() + ", ");
+                });
+                errorOccurred = true;
+            }
+            if (this.abstractDecorators.isEmpty()) {
+                feedbackMessage.append("Abstract component(s): ");
+                this.getAbstractDecorators().forEach(ad -> {
+                    feedbackMessage.append(ad.getFullyQualifiedName().get() + ", ");
+                });
+                errorOccurred = true;
+            }
+            if (this.concreteDecorators.isEmpty()) {
+                feedbackMessage.append("Concrete decorator(s): ");
+                this.getConcreteDecorators().forEach(cd -> {
+                    feedbackMessage.append(cd.getFullyQualifiedName().get() + ", ");
+                });
+                errorOccurred = true;
+            }
         }
-        if (this.concreteComponents.isEmpty()) {
-            feedbackMessage.append("Concrete component(s), ");
-            errorOccurred = true;
-        }
-        if (this.abstractDecorators.isEmpty()) {
-            feedbackMessage.append("Abstract component(s), ");
-            errorOccurred = true;
-        }
-        if (this.concreteDecorators.isEmpty()) {
-            feedbackMessage.append("Concrete decorator(s), ");
-            errorOccurred = true;
-        }
-
         if (errorOccurred) {
-            // We know that the last two characters are ", " and we want to remove those.
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.append('.');
             return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
         }
-
         return Feedback.getSuccessfulFeedback();
+    }
+
+    private String getInvalidInstanceMessage() {
+        StringBuilder feedbackMessage = new StringBuilder(127);
+        String msg =
+            "The following elements were not identified to be part of any instance of the " +
+            "decorator pattern. Please verify that all decorators and concrete components " +
+            "implement an interface marked with the interface component annotation and that " +
+            "all concrete decorators inherit from an abstract decorator: ";
+        feedbackMessage.append(msg);
+        this.getConcreteComponents().forEach(cc -> {
+            feedbackMessage.append(cc.getFullyQualifiedName().get() + ", ");
+        });
+        this.getAbstractDecorators().forEach(ad -> {
+            feedbackMessage.append(ad.getFullyQualifiedName().get() + ", ");
+        });
+        this.getConcreteDecorators().forEach(cd -> {
+            feedbackMessage.append(cd.getFullyQualifiedName().get() + ", ");
+        });
+        feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
+        feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
+        feedbackMessage.append('.');
+
+        return feedbackMessage.toString();
     }
 }
