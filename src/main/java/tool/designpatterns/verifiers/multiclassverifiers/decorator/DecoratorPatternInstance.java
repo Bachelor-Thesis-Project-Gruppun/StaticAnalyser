@@ -9,6 +9,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.Pattern;
 import tool.feedback.Feedback;
+import tool.feedback.FeedbackTrace;
 
 /**
  * Used to group parts of the same instance of the decorator pattern (an implementation of the
@@ -140,8 +141,7 @@ final class DecoratorPatternInstance {
         boolean errorOccurred = false;
 
         if (this.interfaceComponent == null) {
-            feedbackMessage.append(getInvalidInstanceMessage());
-            errorOccurred = true;
+            return getInvalidInstanceFeedback();
         } else if (!this.interfaceComponent.isInterface()) {
             String intCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
             String msg = "The interface component " + intCompName + " is not an interface.";
@@ -151,35 +151,29 @@ final class DecoratorPatternInstance {
             String interfaceCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
             String initMsg = "The following elements are missing in the interface component " +
                              interfaceCompName + ": ";
+            feedbackMessage.append(initMsg);
             if (this.concreteComponents.isEmpty()) {
                 feedbackMessage.append("Concrete component(s): ");
-                this.getConcreteComponents().forEach(cc -> {
-                    feedbackMessage.append(cc.getFullyQualifiedName().get() + ", ");
-                });
                 errorOccurred = true;
             }
             if (this.abstractDecorators.isEmpty()) {
                 feedbackMessage.append("Abstract component(s): ");
-                this.getAbstractDecorators().forEach(ad -> {
-                    feedbackMessage.append(ad.getFullyQualifiedName().get() + ", ");
-                });
                 errorOccurred = true;
             }
             if (this.concreteDecorators.isEmpty()) {
                 feedbackMessage.append("Concrete decorator(s): ");
-                this.getConcreteDecorators().forEach(cd -> {
-                    feedbackMessage.append(cd.getFullyQualifiedName().get() + ", ");
-                });
                 errorOccurred = true;
             }
         }
         if (errorOccurred) {
-            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
+            return Feedback.getNoChildFeedback(feedbackMessage.toString(),
+                                               new FeedbackTrace(interfaceComponent));
         }
         return Feedback.getSuccessfulFeedback();
     }
 
-    private String getInvalidInstanceMessage() {
+    private Feedback getInvalidInstanceFeedback() {
+        List<Feedback> childFeedbacks = new ArrayList<>();
         StringBuilder feedbackMessage = new StringBuilder(127);
         String msg =
             "The following elements were not identified to be part of any instance of the " +
@@ -188,18 +182,24 @@ final class DecoratorPatternInstance {
             "all concrete decorators inherit from an abstract decorator: ";
         feedbackMessage.append(msg);
         this.getConcreteComponents().forEach(cc -> {
-            feedbackMessage.append(cc.getFullyQualifiedName().get() + ", ");
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify pattern instance for class " + cc.getFullyQualifiedName().get(),
+                new FeedbackTrace(cc)));
         });
         this.getAbstractDecorators().forEach(ad -> {
-            feedbackMessage.append(ad.getFullyQualifiedName().get() + ", ");
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify pattern instance for class " + ad.getFullyQualifiedName().get(),
+                new FeedbackTrace(ad)));
         });
         this.getConcreteDecorators().forEach(cd -> {
-            feedbackMessage.append(cd.getFullyQualifiedName().get() + ", ");
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify pattern instance for class " + cd.getFullyQualifiedName().get(),
+                new FeedbackTrace(cd)));
         });
         feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
         feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
         feedbackMessage.append('.');
 
-        return feedbackMessage.toString();
+        return Feedback.getPatternInstanceFeedback(childFeedbacks);
     }
 }

@@ -94,4 +94,9 @@ public class DecoratorVerifierTest {
         assertTrue(decoratorVerifier.verifyGroup(testMap).hasError());
 
     }
+
+    @Test
+    public void testPatternInstanceGrouping() {
+
+    }
 }
