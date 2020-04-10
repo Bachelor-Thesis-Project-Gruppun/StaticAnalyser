@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
+import tool.designpatterns.Pattern;
 import tool.feedback.Feedback;
 
 /**
@@ -122,6 +123,26 @@ public final class ProxyPatternGroup {
 
     public List<MethodGroup> getMethods() {
         return methods;
+    }
+
+    /**
+     * Returns a ClassOrInterfaceDeclaration depending on the pattern given.
+     *
+     * @param pattern the pattern to return the class for.
+     *
+     * @return the ClassOrInterfaceDeclaration for the pattern or null otherwise.
+     */
+    public ClassOrInterfaceDeclaration getFromPattern(Pattern pattern) {
+        switch (pattern) {
+            case PROXY_INTERFACE:
+                return getInterfaceOrAClass();
+            case PROXY_PROXY:
+                return getProxy();
+            case PROXY_SUBJECT:
+                return getSubject();
+            default:
+                return null;
+        }
     }
 
     @Override

@@ -123,109 +123,101 @@ public class ProxyVerifier implements IPatternGrouper {
         List<ProxyPatternGroup> proxyGroups, List<ClassOrInterfaceDeclaration> proxies,
         List<ClassOrInterfaceDeclaration> interfaces, List<ClassOrInterfaceDeclaration> subjects) {
 
-        Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> newLists =
-            splitIntoValidAndInvalid(proxyGroups);
-        List<ProxyPatternGroup> valid = newLists.getFirst();
-        List<ProxyPatternGroup> invalid = newLists.getSecond();
-
         // Remove the classes used in valid instances from the maps.
-        valid.forEach(group -> {
-            ClassOrInterfaceDeclaration proxy = group.getProxy();
-            if (proxies.contains(proxy)) {
-                proxies.remove(proxy);
-            }
+        List<ClassOrInterfaceDeclaration> unusedProxies = getUnused(proxies, proxyGroups,
+            Pattern.PROXY_PROXY);
+        List<ClassOrInterfaceDeclaration> unusedInterfaces = getUnused(interfaces, proxyGroups,
+            Pattern.PROXY_INTERFACE);
+        List<ClassOrInterfaceDeclaration> unusedSubjects = getUnused(subjects, proxyGroups,
+            Pattern.PROXY_SUBJECT);
 
-            ClassOrInterfaceDeclaration interfaceOrAClass = group.getInterfaceOrAClass();
-            if (interfaces.contains(interfaceOrAClass)) {
-                interfaces.remove(interfaceOrAClass);
-            }
+        Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> validInvalidTuple =
+            splitToValidInvalid(proxyGroups);
+        List<ProxyPatternGroup> valid = validInvalidTuple.getFirst();
+        List<ProxyPatternGroup> invalid = validInvalidTuple.getSecond();
 
-            ClassOrInterfaceDeclaration subject = group.getSubject();
-            if (subjects.contains(subject)) {
-                subjects.remove(subject);
-            }
-        });
-
-        List<Feedback> feedbacks = new ArrayList<>();
-        // Remove the classes used in the invalid instance from the maps if they are left and if
-        // so also add their potentialErrors feedbacks to our feedbacks.
-        invalid.forEach(group -> {
-            // To make sure we don't add the same feedbacks more than once.
-            boolean addedFeedback = false;
-
-            ClassOrInterfaceDeclaration proxy = group.getProxy();
-            if (proxies.contains(proxy)) {
-                proxies.remove(proxy);
-                addedFeedback = true;
-                feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
-            }
-
-            ClassOrInterfaceDeclaration interfaceOrAClass = group.getInterfaceOrAClass();
-            if (interfaces.contains(interfaceOrAClass)) {
-                interfaces.remove(interfaceOrAClass);
-
-                if (!addedFeedback) {
-                    addedFeedback = true;
-                    feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
-                }
-            }
-
-            ClassOrInterfaceDeclaration subject = group.getSubject();
-            if (subjects.contains(subject)) {
-                subjects.remove(subject);
-
-                if (!addedFeedback) {
-                    feedbacks.add(Feedback.getPatternInstanceFeedback(group.getPotentialErrors()));
-                }
-            }
-        });
+        List<Feedback> feedbacks = getInvalidFeedback(invalid, valid);
 
         // Now add feedback for those classes that are still not used.
-        List<Feedback> unusedProxies = new ArrayList<>();
-        if (!proxies.isEmpty()) {
-            proxies.forEach(proxy -> {
-                unusedProxies.add(Feedback.getNoChildFeedback(
+        List<Feedback> unusedProxyFeedbacks = new ArrayList<>();
+        if (!unusedProxies.isEmpty()) {
+            unusedProxies.forEach(proxy -> {
+                unusedProxyFeedbacks.add(Feedback.getNoChildFeedback(
                     proxy.getNameAsString() + " is marked as proxy class but no accompanying " +
                     "interface or subject could be found", new FeedbackTrace(proxy)));
             });
         }
 
-        List<Feedback> unusedInterfaces = new ArrayList<>();
-        if (!interfaces.isEmpty()) {
-            interfaces.forEach(interf -> {
-                unusedInterfaces.add(Feedback.getNoChildFeedback(
+        List<Feedback> unnusedInterfaceFeedbacks = new ArrayList<>();
+        if (!unusedInterfaces.isEmpty()) {
+            unusedInterfaces.forEach(interf -> {
+                unnusedInterfaceFeedbacks.add(Feedback.getNoChildFeedback(
                     interf.getNameAsString() + " is marked as proxy interface but no accompanying" +
                     " proxy class or subject could be found", new FeedbackTrace(interf)));
             });
         }
 
-        List<Feedback> unusedSubjects = new ArrayList<>();
-        if (!subjects.isEmpty()) {
-            proxies.forEach(subject -> {
-                unusedSubjects.add(Feedback.getNoChildFeedback(
+        List<Feedback> unnusedSubjectFeedbacks = new ArrayList<>();
+        if (!unusedSubjects.isEmpty()) {
+            unusedSubjects.forEach(subject -> {
+                unnusedSubjectFeedbacks.add(Feedback.getNoChildFeedback(
                     subject.getNameAsString() + " is marked as proxy subject but no accompanying " +
                     "interface or proxy class could be found", new FeedbackTrace(subject)));
             });
         }
 
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxies));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedInterfaces));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedSubjects));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxyFeedbacks));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unnusedInterfaceFeedbacks));
+        feedbacks.add(Feedback.getPatternInstanceFeedback(unnusedSubjectFeedbacks));
         return Feedback.getPatternInstanceFeedback(feedbacks);
     }
 
     /**
-     * Splits the given patternGroups into those marked as valid and those marked as invalid.
+     * Finds the unused classes for a specific pattern.
      *
-     * @param patternGroups the list of patternGroups to split.
+     * @param all     all classes marked with the pattern.
+     * @param valid   all the valid ProxyPatternGroups found.
+     * @param pattern the pattern.
      *
-     * @return a tuple with first a list of valid ProxyPatternGroups and then a list of invalid
-     *     ProxyPatternGroups.
+     * @return a new list of unused classes of the given pattern.
      */
-    private Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> splitIntoValidAndInvalid(
+    private List<ClassOrInterfaceDeclaration> getUnused(
+        List<ClassOrInterfaceDeclaration> all, List<ProxyPatternGroup> valid, Pattern pattern) {
+
+        List<ClassOrInterfaceDeclaration> unused = new ArrayList<>();
+        for (ClassOrInterfaceDeclaration classOrI : all) {
+            boolean used = false;
+            String classQualName = classOrI.resolve().getQualifiedName();
+            // We cannot use .contains due to the fact that it can add the wrong class if
+            // identical classes are in different packages for example.
+            for (ProxyPatternGroup group : valid) {
+                String currQualName = group.getFromPattern(pattern).resolve().getQualifiedName();
+                if (classQualName.equals(currQualName)) {
+                    used = true;
+                    break;
+                }
+            }
+
+            if (!used) {
+                unused.add(classOrI);
+            }
+        }
+
+        return unused;
+    }
+
+    /**
+     * Splits the given list in valid and invalid pattern groups.
+     *
+     * @param patternGroups the pattern groups to split.
+     *
+     * @return a tuple containing two new lists, the first containing only the valid
+     *     ProxyPatternGroups in the original list and the second containing only the invalid ones.
+     */
+    private Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> splitToValidInvalid(
         List<ProxyPatternGroup> patternGroups) {
-        List<ProxyPatternGroup> valid = new ArrayList<>();
         List<ProxyPatternGroup> invalid = new ArrayList<>();
+        List<ProxyPatternGroup> valid = new ArrayList<>();
 
         for (ProxyPatternGroup group : patternGroups) {
             if (group.isValid()) {
@@ -235,5 +227,59 @@ public class ProxyVerifier implements IPatternGrouper {
             }
         }
         return new Tuple2<>(valid, invalid);
+    }
+
+    /**
+     * Returns the feedbacks from the invalid ProxyPatternGroups.
+     *
+     * @param invalid the invalid ProxyPatternGroups.
+     * @param valid   the valid ProxyPatternGroupos.
+     *
+     * @return the feedbacks from the given ProxyPatternGroups.
+     */
+    private List<Feedback> getInvalidFeedback(
+        List<ProxyPatternGroup> invalid, List<ProxyPatternGroup> valid) {
+        List<Feedback> feedbacks = new ArrayList<>();
+
+        for (ProxyPatternGroup invalidGroup : invalid) {
+            // Must compare the qualified names, otherwise there can be issues with identical
+            // classes in different packages.
+            String invalidProxyQualName = invalidGroup.getProxy().resolve().getQualifiedName();
+            String invalidInterfQualName =
+                invalidGroup.getInterfaceOrAClass().resolve().getQualifiedName();
+            String invalidSubjectQualName = invalidGroup.getSubject().resolve().getQualifiedName();
+
+            // Add the feedback if one or more of the classes aren't used in a valid PatternGroup.
+            boolean proxyUsed = false;
+            boolean interfaceUsed = false;
+            boolean subjectUsed = false;
+
+            for (ProxyPatternGroup validGroup : valid) {
+                String validProxyQualName = validGroup.getProxy().resolve().getQualifiedName();
+                String validInterfQualName =
+                    validGroup.getInterfaceOrAClass().resolve().getQualifiedName();
+                String validSubjectQualName = validGroup.getSubject().resolve().getQualifiedName();
+
+                if (validProxyQualName.equals(invalidProxyQualName)) {
+                    proxyUsed = true;
+                }
+
+                if (validInterfQualName.equals(invalidInterfQualName)) {
+                    interfaceUsed = true;
+                }
+
+                if (validSubjectQualName.equals(invalidSubjectQualName)) {
+                    subjectUsed = true;
+                }
+            }
+
+            // If any of them is false we want to add the error.
+            if (!(proxyUsed && interfaceUsed && subjectUsed)) {
+                feedbacks.add(
+                    Feedback.getPatternInstanceFeedback(invalidGroup.getPotentialErrors()));
+            }
+        }
+
+        return feedbacks;
     }
 }

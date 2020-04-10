@@ -7,7 +7,7 @@ import tool.designpatterns.DesignPattern;
 import tool.designpatterns.Pattern;
 
 @DesignPattern(pattern = {Pattern.PROXY_SUBJECT})
-public class Subject implements ProxyInterface {
+public class Subject {
 
     Map<Integer, String> texts;
 
