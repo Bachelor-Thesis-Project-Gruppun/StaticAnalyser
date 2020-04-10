@@ -321,7 +321,7 @@ public class ProxyVerifier implements IPatternGrouper {
             String interfaceName = interf.resolve().getQualifiedName();
             unusedFeedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
                 "No subject found for Proxy class / Proxy interface pair '" + proxyName + "' and " +
-                "'" + interfaceName + "'"));
+                "'" + interfaceName + "'."));
         });
 
         subjectGroups.forEach(subjectGroup -> {
@@ -344,7 +344,7 @@ public class ProxyVerifier implements IPatternGrouper {
             String interfaceName = interf.resolve().getQualifiedName();
             unusedFeedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
                 "No subject found for Proxy subject / Proxy interface pair '" + subjectName + "' " +
-                "and " + "'" + interfaceName + "'"));
+                "and " + "'" + interfaceName + "'."));
         });
 
         // Now add the feedback for the unused classes that are NOT in the usedUnusedList.
@@ -352,21 +352,21 @@ public class ProxyVerifier implements IPatternGrouper {
             if (!ClassOrInterfaceListContains(usedUnusedProxies, proxy)) {
                 unusedFeedbacks.add(Feedback.getNoChildFeedback(
                     proxy.getNameAsString() + " is marked as proxy class but no accompanying " +
-                    "interface or subject could be found", new FeedbackTrace(proxy)));
+                    "interface or subject could be found.", new FeedbackTrace(proxy)));
             }
         });
         unusedInterfaces.forEach(interf -> {
             if (!ClassOrInterfaceListContains(usedUnusedInterfaces, interf)) {
                 unusedFeedbacks.add(Feedback.getNoChildFeedback(
                     interf.getNameAsString() + " is marked as proxy interface but no accompanying" +
-                    " interface or subject could be found", new FeedbackTrace(interf)));
+                    " interface or subject could be found.", new FeedbackTrace(interf)));
             }
         });
         unusedProxies.forEach(subject -> {
             if (!ClassOrInterfaceListContains(usedUnusedSubjects, subject)) {
                 unusedFeedbacks.add(Feedback.getNoChildFeedback(
                     subject.getNameAsString() + " is marked as proxy subject but no accompanying " +
-                    "interface or subject could be found", new FeedbackTrace(subject)));
+                    "interface or subject could be found.", new FeedbackTrace(subject)));
             }
         });
 
