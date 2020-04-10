@@ -8,13 +8,17 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.InterfaceMethods;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroupPart;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.PartialProxyImplementation;
 import tool.feedback.FeedbackWrapper;
 
 /**
- * Verifies if a a certain list of implementation classes of a list of Proxy Interface is valid.
+ * Verifies if a certain list of partial proxy implementations are valid.
  */
-public class ProxyInterfaceImplementorVerifier {
+public final class PartialProxyVerifier {
+
+    private PartialProxyVerifier() {
+
+    }
 
     /**
      * Verifies the given list of supposed implementors (proxies or subjects) for the list of the
@@ -26,17 +30,17 @@ public class ProxyInterfaceImplementorVerifier {
      * @return the result of the verification and list of ProxyInterfaceImplementations that can be
      *     empty.
      */
-    public static List<ProxyInterfaceImplementation> verifyImplementors(
+    public static List<PartialProxyImplementation> verifyImplementors(
         List<InterfaceMethods> interfaces, List<ClassOrInterfaceDeclaration> implementors) {
 
-        List<ProxyInterfaceImplementation> proxyPatternParts = new ArrayList<>();
+        List<PartialProxyImplementation> proxyPatternParts = new ArrayList<>();
 
         // Go through each implementor and each interface and try to find matches.
         for (ClassOrInterfaceDeclaration implementor : implementors) {
             for (InterfaceMethods interfaceMethods : interfaces) {
-                ClassOrInterfaceDeclaration interfaceOrAClass =
-                    interfaceMethods.getInterfaceOrAClass();
-                ProxyInterfaceImplementation implementation = getPatternPart(
+                ClassOrInterfaceDeclaration interfaceOrAClass = interfaceMethods
+                    .getInterfaceOrAClass();
+                PartialProxyImplementation implementation = getPatternPart(
                     implementor, interfaceOrAClass, interfaceMethods.getMethods());
 
                 if (implementation != null) {
@@ -57,19 +61,18 @@ public class ProxyInterfaceImplementorVerifier {
      * @param interfaceOrAClass the interface to verify for.
      * @param interfaceMethods  the methods to verify for.
      *
-     * @return the result of the verification and a ProxyInterfaceImplementation or null if the
-     *     verification failed.
+     * @return a Partial Proxy representing the pattern part or null if the verification failed.
      */
-    private static ProxyInterfaceImplementation getPatternPart(
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    private static PartialProxyImplementation getPatternPart(
         ClassOrInterfaceDeclaration implementor, ClassOrInterfaceDeclaration interfaceOrAClass,
         List<MethodDeclaration> interfaceMethods) {
 
         List<MethodGroupPart> implementedMethods = new ArrayList<>();
 
         for (MethodDeclaration interfaceMethod : interfaceMethods) {
-            FeedbackWrapper<MethodDeclaration> implementedMethodRes =
-                MethodVerification.classImplementsMethod(
-                    implementor, interfaceOrAClass, interfaceMethod);
+            FeedbackWrapper<MethodDeclaration> implementedMethodRes = MethodVerification
+                .classImplementsMethod(implementor, interfaceOrAClass, interfaceMethod);
 
             MethodDeclaration implementedMethod = implementedMethodRes.getOther();
             if (implementedMethod != null) {
@@ -82,9 +85,8 @@ public class ProxyInterfaceImplementorVerifier {
         if (!implementedMethods.isEmpty()) {
             // This implementor implements the interface with at least one method, return a
             // ProxyInterfaceImplementation with them all.
-            ProxyInterfaceImplementation proxyPatternPart = new ProxyInterfaceImplementation(
+            return new PartialProxyImplementation(
                 interfaceOrAClass, implementor, implementedMethods);
-            return proxyPatternPart;
         }
 
         // This implementor appears not to implement the interface / any of it's methods.

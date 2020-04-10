@@ -3,6 +3,8 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 import java.util.ArrayList;
 import java.util.List;
 
+import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ClassVerification.isSameClassOrInterfaceDeclaration;
+
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
@@ -10,16 +12,20 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroup;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.MethodGroupPart;
-import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyInterfaceImplementation;
+import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.PartialProxyImplementation;
 import tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers.ProxyPatternGroup;
 import tool.feedback.Feedback;
 import tool.feedback.FeedbackTrace;
 import tool.feedback.FeedbackWrapper;
 
 /**
- * A class to verify and group parts or proxy patterns (ProxyInterfaceImplmenetations)
+ * A class to verify and group parts of proxy patterns.
  */
-public class VerifyProxyParts {
+public final class ProxyGroupVerifier {
+
+    private ProxyGroupVerifier() {
+
+    }
 
     /**
      * Verifies and groups together the given subjects with the given proxies.
@@ -30,13 +36,13 @@ public class VerifyProxyParts {
      * @return A list of complete ProxyPatternGroups
      */
     public static FeedbackWrapper<List<ProxyPatternGroup>> verifyParts(
-        List<ProxyInterfaceImplementation> subjects, List<ProxyInterfaceImplementation> proxies) {
+        List<PartialProxyImplementation> subjects, List<PartialProxyImplementation> proxies) {
 
         List<Feedback> feedbacks = new ArrayList<>();
         List<ProxyPatternGroup> patternGroups = new ArrayList<>();
 
-        for (ProxyInterfaceImplementation subject : subjects) {
-            for (ProxyInterfaceImplementation proxy : proxies) {
+        for (PartialProxyImplementation subject : subjects) {
+            for (PartialProxyImplementation proxy : proxies) {
                 FeedbackWrapper<ProxyPatternGroup> group = tryGroup(subject, proxy);
                 feedbacks.add(group.getFeedback());
                 if (group.getOther() != null) {
@@ -59,10 +65,10 @@ public class VerifyProxyParts {
      *     compatible or null otherwise.
      */
     private static FeedbackWrapper<ProxyPatternGroup> tryGroup(
-        ProxyInterfaceImplementation subject, ProxyInterfaceImplementation proxy) {
+        PartialProxyImplementation subject, PartialProxyImplementation proxy) {
 
         // Compare if they have the same interfaces.
-        boolean sameInterface = isSameClassOrInterface(subject.getInterfaceOrAClass(),
+        boolean sameInterface = isSameClassOrInterfaceDeclaration(subject.getInterfaceOrAClass(),
             proxy.getInterfaceOrAClass());
         if (!sameInterface) {
             // Not the same interface, definitely not the same proxy pattern.
@@ -80,18 +86,10 @@ public class VerifyProxyParts {
         // Try to group the methods together.
         List<MethodGroup> methodGroups = groupMethods(subject.getMethods(), proxy.getMethods());
 
-        // Find the proxies methods that calls the subjects methods.
-        boolean callsMethods = proxyCallsSubject(methodGroups, subject.getInterfaceImplementor());
-
         // Decide if this is the same Proxy pattern and either return them as a group or give an
         // error (or both).
 
-        if (!hasVariable) {
-            // Does not have variable, could still be the same proxy pattern.
-            potentialErrors.add(Feedback.getNoChildFeedback(
-                "Proxy has no (private) variable of subject type '" + subjectQualName + "'",
-                new FeedbackTrace(proxy.getInterfaceImplementor())));
-        } else {
+        if (hasVariable) {
             if (methodGroups.isEmpty()) {
                 // ASSUMPTION:: The proxy has a variable of the subjects type and they implement
                 // the same interface / abstract class, this means they are a part of the same
@@ -103,7 +101,15 @@ public class VerifyProxyParts {
                 return new FeedbackWrapper<>(Feedback.getPatternInstanceFeedback(potentialErrors),
                     null);
             }
+        } else {
+            // Does not have variable, could still be the same proxy pattern.
+            potentialErrors.add(Feedback.getNoChildFeedback(
+                "Proxy has no (private) variable of subject type '" + subjectQualName + "'",
+                new FeedbackTrace(proxy.getInterfaceImplementor())));
         }
+
+        // Verify if the proxies methods that calls the subjects methods.
+        boolean callsMethods = proxyCallsSubject(methodGroups, subject.getInterfaceImplementor());
 
         if (callsMethods) {
             // Everything appears to be in order, return a valid ProxyPatternGroup.
@@ -127,22 +133,6 @@ public class VerifyProxyParts {
 
         // Not identified as a ProxyPatternGroup.
         return new FeedbackWrapper<>(Feedback.getSuccessfulFeedback(), null);
-    }
-
-    /**
-     * Compares if two ClassOrInterfaceImplementations are the same.
-     *
-     * @param a the first to check.
-     * @param b the second to check.
-     *
-     * @return if a is the same as b.
-     */
-    private static boolean isSameClassOrInterface(
-        ClassOrInterfaceDeclaration a, ClassOrInterfaceDeclaration b) {
-
-        ResolvedReferenceTypeDeclaration subjectInterface = a.resolve();
-        ResolvedReferenceTypeDeclaration proxyInterface = b.resolve();
-        return subjectInterface.getQualifiedName().equals(proxyInterface.getQualifiedName());
     }
 
     /**
@@ -180,6 +170,7 @@ public class VerifyProxyParts {
      *
      * @return a new list with the grouped MethodGroups.
      */
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     private static List<MethodGroup> groupMethods(
         List<MethodGroupPart> subjectGroups, List<MethodGroupPart> proxyGroups) {
         List<MethodGroup> methodGroups = new ArrayList<>();
@@ -209,8 +200,6 @@ public class VerifyProxyParts {
         List<MethodGroup> methodGroups, ClassOrInterfaceDeclaration subject) {
 
         for (MethodGroup methodGroup : methodGroups) {
-            ResolvedReferenceTypeDeclaration subjectType = subject.resolve();
-
             if (MethodVerification.methodCallsOther(methodGroup.getProxyMethod(),
                 methodGroup.getSubjectMethod(), subject.resolve())) {
                 return true;

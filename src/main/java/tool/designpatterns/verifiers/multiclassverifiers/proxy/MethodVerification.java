@@ -145,25 +145,20 @@ public final class MethodVerification {
         MethodDeclaration method, MethodDeclaration other,
         ResolvedReferenceTypeDeclaration otherType) {
 
-        Boolean isValid = method.accept(new MethodCallVisitor(otherType, other), null);
-        if (isValid == null || !isValid) {
-            return false;
-        }
-
-        return true;
+        return method.accept(new MethodCallVisitor(otherType, other), null);
     }
 
     /**
      * Checks if the two given methods are the same.
      *
-     * @param a the first method to check.
-     * @param b the second method to check.
+     * @param methodA the first method to check.
+     * @param methodB the second method to check.
      *
      * @return true if they are the same, false otherwise.
      */
-    public static boolean methodsAreSame(MethodDeclaration a, MethodDeclaration b) {
-        String aName = a.resolve().getQualifiedName();
-        String bName = b.resolve().getQualifiedName();
-        return aName.equals(bName);
+    public static boolean methodsAreSame(MethodDeclaration methodA, MethodDeclaration methodB) {
+        String qualNameA = methodA.resolve().getQualifiedName();
+        String qualNameB = methodB.resolve().getQualifiedName();
+        return qualNameA.equals(qualNameB);
     }
 }

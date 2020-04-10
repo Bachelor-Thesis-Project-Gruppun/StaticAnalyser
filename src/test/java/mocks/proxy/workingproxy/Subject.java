@@ -3,10 +3,6 @@ package mocks.proxy.workingproxy;
 import java.util.HashMap;
 import java.util.Map;
 
-import tool.designpatterns.DesignPattern;
-import tool.designpatterns.Pattern;
-
-@DesignPattern(pattern = {Pattern.PROXY_SUBJECT})
 public class Subject implements ProxyInterface {
 
     Map<Integer, String> texts;

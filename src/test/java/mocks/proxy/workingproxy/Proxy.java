@@ -1,9 +1,5 @@
 package mocks.proxy.workingproxy;
 
-import tool.designpatterns.DesignPattern;
-import tool.designpatterns.Pattern;
-
-@DesignPattern(pattern = {Pattern.PROXY_PROXY})
 public class Proxy implements ProxyInterface {
 
     private Subject theSubject;

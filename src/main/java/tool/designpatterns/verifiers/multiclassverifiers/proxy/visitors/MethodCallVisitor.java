@@ -36,28 +36,37 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
     public Boolean visit(MethodCallExpr methodCall, Void arg) {
 
         // Check if the method called is the same as the one we're looking for.
-        String calledMethodQualName = methodCall.resolve().getQualifiedName();
-        String correctMethodQualName = otherMethod.resolve().getQualifiedName();
+        String calledMethod = methodCall.resolve().getQualifiedName();
+        String correctMethod = otherMethod.resolve().getQualifiedName();
 
-        if (calledMethodQualName.equals(correctMethodQualName)) {
-            // The method called is the one we're looking for, now make sure that it is called
-            // on the correct type.
-            Optional<Expression> optExpr = methodCall.getScope();
-            if (optExpr.isPresent()) {
-                ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
-                if (resolvedVarType.isReferenceType()) {
-                    ResolvedReferenceTypeDeclaration varTypeDec =
-                        resolvedVarType.asReferenceType().getTypeDeclaration();
-
-                    if (varTypeDec.equals(other)) {
-                        return true;
-                    }
-                }
-            }
-
+        if (calledMethod.equals(correctMethod) && calledOnCorrectType(methodCall)) {
+            return true;
         }
 
         // Check if any other method call is valid, if there are no more it will return null.
         return super.visit(methodCall, arg);
     }
+
+    /**
+     * Method that checks if the given methodCall occurs on the type stored in the variable other.
+     *
+     * @param methodCall the method call expression to verify.
+     *
+     * @return if the method call occurs on the specified type.
+     */
+    private boolean calledOnCorrectType(MethodCallExpr methodCall) {
+        Optional<Expression> optExpr = methodCall.getScope();
+        if (optExpr.isPresent()) {
+            ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
+            if (resolvedVarType.isReferenceType()) {
+                ResolvedReferenceTypeDeclaration varTypeDec = resolvedVarType.asReferenceType()
+                    .getTypeDeclaration();
+
+                return varTypeDec.equals(other);
+            }
+        }
+        return false;
+    }
 }
+
+

@@ -11,6 +11,7 @@ import tool.feedback.Feedback;
 /**
  * Class that represents all the parts of a Proxy pattern.
  */
+@SuppressWarnings("PMD.CommentSize")
 public final class ProxyPatternGroup {
 
     private final ClassOrInterfaceDeclaration interfaceOrAClass;

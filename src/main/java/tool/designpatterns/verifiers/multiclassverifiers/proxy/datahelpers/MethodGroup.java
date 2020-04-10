@@ -12,6 +12,13 @@ public final class MethodGroup {
     private final MethodDeclaration subjectMethod;
     private final MethodDeclaration proxyMethod;
 
+    /**
+     * Constructs a MethodGroup.
+     *
+     * @param interfaceMethod the method in the interface.
+     * @param subjectMethod   the method in the subject that implements the interfaceMethod.
+     * @param proxyMethod     the method in the proxy that implements the interfaceMethod.
+     */
     public MethodGroup(
         MethodDeclaration interfaceMethod, MethodDeclaration subjectMethod,
         MethodDeclaration proxyMethod) {
