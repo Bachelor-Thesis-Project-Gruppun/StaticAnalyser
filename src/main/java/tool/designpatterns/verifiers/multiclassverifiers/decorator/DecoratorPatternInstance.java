@@ -1,19 +1,21 @@
 package tool.designpatterns.verifiers.multiclassverifiers.decorator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-
-import tool.designpatterns.Pattern;
-import tool.feedback.Feedback;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+
+import tool.designpatterns.Pattern;
+import tool.feedback.Feedback;
+import tool.feedback.FeedbackTrace;
+
 /**
  * Used to group parts of the same instance of the decorator pattern (an implementation of the
  * pattern) in one place.
  */
+@SuppressWarnings({"PMD.LinguisticNaming", "PMD.CommentSize"})
 final class DecoratorPatternInstance {
 
     private ClassOrInterfaceDeclaration interfaceComponent;
@@ -128,46 +130,84 @@ final class DecoratorPatternInstance {
 
     /**
      * <p>Verifies whether or not an instance of the pattern has all required elements.</p>
-     * <p>For a pattern instance to be valid it has to contain the following: <ul><li>Exactly
-     * one interface component</li><li>At least one of each of following: concrete component,
-     * abstract decorator and concrete decorator</li></ul></p>
+     * <p>For a pattern instance to be valid it has to contain the following:
+     *      <ul>
+     *          <li>Exactly one interface component</li>
+     *          <li>At least one of each of following: concrete component, abstract decorator and
+     *          concrete decorator</li>
+     *      </ul>
+     * </p>
      *
-     * @return A feedback object containing the boolean result
+     * @return A feedback object
      */
-    @SuppressWarnings("PMD.LinguisticNaming")
     public Feedback hasAllElements() {
-        StringBuilder feedbackMessage = new StringBuilder(127);
-        feedbackMessage.append("The following elements are missing: ");
-        boolean errorOccurred = false;
         if (this.interfaceComponent == null) {
-            feedbackMessage.append("Interface component, ");
-            errorOccurred = true;
-        } else if (!this.interfaceComponent.isInterface()) {
-            String msg = "Interface component (The annotated class is not an interface), ";
+            return getInvalidInstanceFeedback();
+        }
+
+        StringBuilder feedbackMessage = new StringBuilder(127);
+        boolean errorOccurred = false;
+        if (this.interfaceComponent.isInterface()) {
+            String interfaceCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
+            String initMsg = "The following elements are missing in the interface " + "component " +
+                             interfaceCompName + ": ";
+            feedbackMessage.append(initMsg);
+            if (this.concreteComponents.isEmpty()) {
+                feedbackMessage.append("Concrete component(s): ");
+                errorOccurred = true;
+            }
+            if (this.abstractDecorators.isEmpty()) {
+                feedbackMessage.append("Abstract component(s): ");
+                errorOccurred = true;
+            }
+            if (this.concreteDecorators.isEmpty()) {
+                feedbackMessage.append("Concrete decorator(s): ");
+                errorOccurred = true;
+            }
+        } else {
+            String intCompName = this.getInterfaceComponent().getFullyQualifiedName().get();
+            String msg = "The interface component " + intCompName + " is not an interface.";
             feedbackMessage.append(msg);
             errorOccurred = true;
         }
-        if (this.concreteComponents.isEmpty()) {
-            feedbackMessage.append("Concrete component(s), ");
-            errorOccurred = true;
-        }
-        if (this.abstractDecorators.isEmpty()) {
-            feedbackMessage.append("Abstract component(s), ");
-            errorOccurred = true;
-        }
-        if (this.concreteDecorators.isEmpty()) {
-            feedbackMessage.append("Concrete decorator(s), ");
-            errorOccurred = true;
-        }
-
         if (errorOccurred) {
-            // We know that the last two characters are ", " and we want to remove those.
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.deleteCharAt(feedbackMessage.length() - 1);
-            feedbackMessage.append('.');
-            return Feedback.getPatternInstanceNoChildFeedback(feedbackMessage.toString());
+            return Feedback.getNoChildFeedback(feedbackMessage.toString(),
+                                               new FeedbackTrace(interfaceComponent));
         }
-
         return Feedback.getSuccessfulFeedback();
+    }
+
+    /**
+     * Constructs a feedback message for "the" invalid pattern instance. "The" invalid pattern
+     * instance contains all annotated elements that are invalid, in other words not part of any
+     * structurally valid instance.
+     *
+     * @return a feedback object containing information about each class annotated, but not found to
+     *         be part of a pattern instance
+     */
+    private Feedback getInvalidInstanceFeedback() {
+        List<Feedback> childFeedbacks = new ArrayList<>();
+        String msg = "Several elements were not identified to be part of any instance of the " +
+                     "decorator pattern. Please verify that all decorators and concrete " +
+                     "components implement an interface marked with the interface component " +
+                     "annotation and that all concrete decorators inherit from an abstract " +
+                     "decorator: ";
+        childFeedbacks.add(Feedback.getPatternInstanceNoChildFeedback(msg));
+        this.getConcreteComponents().forEach(cc -> {
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify the class to be part of any instance of the " +
+                "decorator pattern where it is a concrete component.", new FeedbackTrace(cc)));
+        });
+        this.getAbstractDecorators().forEach(ad -> {
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify the class to be part of any instance of the " +
+                "decorator pattern where it is an abstract decorator.", new FeedbackTrace(ad)));
+        });
+        this.getConcreteDecorators().forEach(cd -> {
+            childFeedbacks.add(Feedback.getNoChildFeedback(
+                "Could not identify the class to be part of any instance of the " +
+                "decorator pattern where it is a concrete decorator.", new FeedbackTrace(cd)));
+        });
+        return Feedback.getPatternInstanceFeedback(childFeedbacks);
     }
 }
