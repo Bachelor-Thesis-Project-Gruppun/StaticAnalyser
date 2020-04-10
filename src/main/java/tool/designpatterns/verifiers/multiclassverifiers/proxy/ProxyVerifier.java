@@ -47,11 +47,11 @@ public class ProxyVerifier implements IPatternGrouper {
 
         List<InterfaceMethods> interfaceMethodGroups = new ArrayList<>();
         interfaces.forEach(interfaceOrAClass -> {
-            Tuple2<Feedback, List<MethodDeclaration>> interfaceMethods = getValidMethods(
+            FeedbackWrapper<List<MethodDeclaration>> interfaceMethods = getValidMethods(
                 interfaceOrAClass);
-            interfaceFeedbacks.add(interfaceMethods.getFirst());
+            interfaceFeedbacks.add(interfaceMethods.getFeedback());
             interfaceMethodGroups.add(
-                new InterfaceMethods(interfaceOrAClass, interfaceMethods.getSecond()));
+                new InterfaceMethods(interfaceOrAClass, interfaceMethods.getOther()));
         });
         feedbacks.add(Feedback.getPatternInstanceFeedback(interfaceFeedbacks));
 
@@ -76,7 +76,14 @@ public class ProxyVerifier implements IPatternGrouper {
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
 
-    private Tuple2<Feedback, List<MethodDeclaration>> getValidMethods(
+    /**
+     * Returns the valid methods found in the interface or abstract class provided.
+     *
+     * @param classOrI the interface or abstract class to look in.
+     *
+     * @return the feedback result as well as a list of the valid MethodDeclarations found.
+     */
+    private FeedbackWrapper<List<MethodDeclaration>> getValidMethods(
         ClassOrInterfaceDeclaration classOrI) {
 
         MethodDeclarationVisitor mdv = new MethodDeclarationVisitor();
@@ -85,7 +92,7 @@ public class ProxyVerifier implements IPatternGrouper {
 
         if (methodDeclarations.isEmpty()) {
             String message = "There are no methods to implement.";
-            return new Tuple2<>(
+            return new FeedbackWrapper<>(
                 Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
                 methodDeclarations);
         } else if (classOrI.isInterface()) {
@@ -98,14 +105,14 @@ public class ProxyVerifier implements IPatternGrouper {
             }
             if (validMethodDecs.isEmpty()) {
                 String message = "There are no abstract methods to implement.";
-                return new Tuple2<>(
+                return new FeedbackWrapper<>(
                     Feedback.getNoChildFeedback(message, new FeedbackTrace(classOrI)),
                     methodDeclarations);
             }
 
         }
 
-        return new Tuple2<>(Feedback.getSuccessfulFeedback(), validMethodDecs);
+        return new FeedbackWrapper<>(Feedback.getSuccessfulFeedback(), validMethodDecs);
     }
 
     /**
