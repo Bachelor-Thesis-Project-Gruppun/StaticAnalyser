@@ -71,7 +71,9 @@ public class ProxyVerifier implements IPatternGrouper {
         feedbacks.add(proxyPatterns.getFeedback());
 
         // Validate that all classes marked as parts of a Proxy pattern are used at least once.
-        feedbacks.add(allClassesAreUsed(proxyPatterns.getOther(), proxies, interfaces, subjects));
+        feedbacks.add(
+            allClassesAreUsed(proxyPatterns.getOther(), proxies, interfaces, subjects, proxyGroups,
+                subjectGroups));
 
         return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
     }
@@ -119,63 +121,46 @@ public class ProxyVerifier implements IPatternGrouper {
      * Verifies that all the proxies, interfaces and subjects are used and that if they are only a
      * part of an 'invalid' proxy pattern, those errors are returned.
      *
-     * @param proxyGroups the finished proxy groups to check in.
-     * @param proxies     the proxies to check for.
-     * @param interfaces  the interfaces to check for.
-     * @param subjects    the subjects to check for.
+     * @param proxyPatternGroups the finished proxy groups to check in.
+     * @param proxies            the proxies to check for.
+     * @param interfaces         the interfaces to check for.
+     * @param subjects           the subjects to check for.
+     * @param proxyGroups        the ungrouped proxy/interface groups.
+     * @param subjectGroups      the ungrouped subject/interface groups.
      *
      * @return a feedback on how they are used.
      */
     private Feedback allClassesAreUsed(
-        List<ProxyPatternGroup> proxyGroups, List<ClassOrInterfaceDeclaration> proxies,
-        List<ClassOrInterfaceDeclaration> interfaces, List<ClassOrInterfaceDeclaration> subjects) {
+        List<ProxyPatternGroup> proxyPatternGroups, List<ClassOrInterfaceDeclaration> proxies,
+        List<ClassOrInterfaceDeclaration> interfaces, List<ClassOrInterfaceDeclaration> subjects,
+        List<ProxyInterfaceImplementation> proxyGroups,
+        List<ProxyInterfaceImplementation> subjectGroups) {
 
         // Remove the classes used in valid instances from the maps.
-        List<ClassOrInterfaceDeclaration> unusedProxies = getUnused(proxies, proxyGroups,
+        List<ClassOrInterfaceDeclaration> unusedProxies = getUnused(proxies, proxyPatternGroups,
             Pattern.PROXY_PROXY);
-        List<ClassOrInterfaceDeclaration> unusedInterfaces = getUnused(interfaces, proxyGroups,
-            Pattern.PROXY_INTERFACE);
-        List<ClassOrInterfaceDeclaration> unusedSubjects = getUnused(subjects, proxyGroups,
+        List<ClassOrInterfaceDeclaration> unusedInterfaces = getUnused(interfaces,
+            proxyPatternGroups, Pattern.PROXY_INTERFACE);
+        List<ClassOrInterfaceDeclaration> unusedSubjects = getUnused(subjects, proxyPatternGroups,
             Pattern.PROXY_SUBJECT);
 
+        List<ProxyInterfaceImplementation> partialProxyGroups = getCorrectPartial(proxyGroups,
+            proxyPatternGroups, Pattern.PROXY_PROXY);
+        List<ProxyInterfaceImplementation> partialSubjectGroups = getCorrectPartial(subjectGroups,
+            proxyPatternGroups, Pattern.PROXY_SUBJECT);
+
         Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> validInvalidTuple =
-            splitToValidInvalid(proxyGroups);
+            splitToValidInvalid(proxyPatternGroups);
         List<ProxyPatternGroup> valid = validInvalidTuple.getFirst();
         List<ProxyPatternGroup> invalid = validInvalidTuple.getSecond();
 
         List<Feedback> feedbacks = getInvalidFeedback(invalid, valid);
 
         // Now add feedback for those classes that are still not used.
-        List<Feedback> unusedProxyFeedbacks = new ArrayList<>();
-        if (!unusedProxies.isEmpty()) {
-            unusedProxies.forEach(proxy -> {
-                unusedProxyFeedbacks.add(Feedback.getNoChildFeedback(
-                    proxy.getNameAsString() + " is marked as proxy class but no accompanying " +
-                    "interface or subject could be found", new FeedbackTrace(proxy)));
-            });
-        }
+        feedbacks.add(
+            getUnusedFeedbacks(unusedProxies, unusedInterfaces, unusedSubjects, partialProxyGroups,
+                partialSubjectGroups));
 
-        List<Feedback> unnusedInterfaceFeedbacks = new ArrayList<>();
-        if (!unusedInterfaces.isEmpty()) {
-            unusedInterfaces.forEach(interf -> {
-                unnusedInterfaceFeedbacks.add(Feedback.getNoChildFeedback(
-                    interf.getNameAsString() + " is marked as proxy interface but no accompanying" +
-                    " proxy class or subject could be found", new FeedbackTrace(interf)));
-            });
-        }
-
-        List<Feedback> unnusedSubjectFeedbacks = new ArrayList<>();
-        if (!unusedSubjects.isEmpty()) {
-            unusedSubjects.forEach(subject -> {
-                unnusedSubjectFeedbacks.add(Feedback.getNoChildFeedback(
-                    subject.getNameAsString() + " is marked as proxy subject but no accompanying " +
-                    "interface or proxy class could be found", new FeedbackTrace(subject)));
-            });
-        }
-
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unusedProxyFeedbacks));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unnusedInterfaceFeedbacks));
-        feedbacks.add(Feedback.getPatternInstanceFeedback(unnusedSubjectFeedbacks));
         return Feedback.getPatternInstanceFeedback(feedbacks);
     }
 
@@ -288,5 +273,178 @@ public class ProxyVerifier implements IPatternGrouper {
         }
 
         return feedbacks;
+    }
+
+    /**
+     * Returns a list of feedbacks for the unused classes and the partially implemented groups.
+     *
+     * @param unusedProxies    a list of proxies not used in complete patternGroups.
+     * @param unusedInterfaces a list of interfaces not used in complete patternGroups.
+     * @param unusedSubjects   a list of subjects not used in complete patternGroups.
+     * @param proxyGroups      list of partially implemented groups with proxies / interfaces.
+     * @param subjectGroups    list of partially implemented groups with subjects / interfaces.
+     *
+     * @return A feedback on all of the above combined.
+     */
+    private Feedback getUnusedFeedbacks(
+        List<ClassOrInterfaceDeclaration> unusedProxies,
+        List<ClassOrInterfaceDeclaration> unusedInterfaces,
+        List<ClassOrInterfaceDeclaration> unusedSubjects,
+        List<ProxyInterfaceImplementation> proxyGroups,
+        List<ProxyInterfaceImplementation> subjectGroups) {
+
+        List<Feedback> unusedFeedbacks = new ArrayList<>();
+
+        // The lists of the previously 'unused' classes that were actually used in partial patterns.
+        List<ClassOrInterfaceDeclaration> usedUnusedProxies = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> usedUnusedInterfaces = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> usedUnusedSubjects = new ArrayList<>();
+
+        // Remove all the 'unused' classes used in partial groups (proxyGroups/subjectGroups).
+        proxyGroups.forEach(proxyGroup -> {
+            ClassOrInterfaceDeclaration proxy = proxyGroup.getInterfaceImplementor();
+            if (ClassOrInterfaceListContains(unusedProxies, proxy)) {
+                if (!ClassOrInterfaceListContains(usedUnusedProxies, proxy)) {
+                    usedUnusedProxies.add(proxy);
+                }
+            }
+
+            ClassOrInterfaceDeclaration interf = proxyGroup.getInterfaceOrAClass();
+            if (ClassOrInterfaceListContains(unusedInterfaces, interf)) {
+                if (!ClassOrInterfaceListContains(usedUnusedInterfaces, interf)) {
+                    usedUnusedInterfaces.add(interf);
+                }
+            }
+
+            // Add feedback about this proxyGroup.
+            String proxyName = proxy.resolve().getQualifiedName();
+            String interfaceName = interf.resolve().getQualifiedName();
+            unusedFeedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
+                "No subject found for Proxy class / Proxy interface pair '" + proxyName + "' and " +
+                "'" + interfaceName + "'"));
+        });
+
+        subjectGroups.forEach(subjectGroup -> {
+            ClassOrInterfaceDeclaration subject = subjectGroup.getInterfaceImplementor();
+            if (ClassOrInterfaceListContains(unusedSubjects, subject)) {
+                if (!ClassOrInterfaceListContains(usedUnusedSubjects, subject)) {
+                    usedUnusedSubjects.add(subject);
+                }
+            }
+
+            ClassOrInterfaceDeclaration interf = subjectGroup.getInterfaceOrAClass();
+            if (ClassOrInterfaceListContains(unusedInterfaces, interf)) {
+                if (!ClassOrInterfaceListContains(usedUnusedInterfaces, interf)) {
+                    usedUnusedInterfaces.add(interf);
+                }
+            }
+
+            // Add feedback about this subjectGroup.
+            String subjectName = subject.resolve().getQualifiedName();
+            String interfaceName = interf.resolve().getQualifiedName();
+            unusedFeedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
+                "No subject found for Proxy subject / Proxy interface pair '" + subjectName + "' " +
+                "and " + "'" + interfaceName + "'"));
+        });
+
+        // Now add the feedback for the unused classes that are NOT in the usedUnusedList.
+        unusedProxies.forEach(proxy -> {
+            if (!ClassOrInterfaceListContains(usedUnusedProxies, proxy)) {
+                unusedFeedbacks.add(Feedback.getNoChildFeedback(
+                    proxy.getNameAsString() + " is marked as proxy class but no accompanying " +
+                    "interface or subject could be found", new FeedbackTrace(proxy)));
+            }
+        });
+        unusedInterfaces.forEach(interf -> {
+            if (!ClassOrInterfaceListContains(usedUnusedInterfaces, interf)) {
+                unusedFeedbacks.add(Feedback.getNoChildFeedback(
+                    interf.getNameAsString() + " is marked as proxy interface but no accompanying" +
+                    " interface or subject could be found", new FeedbackTrace(interf)));
+            }
+        });
+        unusedProxies.forEach(subject -> {
+            if (!ClassOrInterfaceListContains(usedUnusedSubjects, subject)) {
+                unusedFeedbacks.add(Feedback.getNoChildFeedback(
+                    subject.getNameAsString() + " is marked as proxy subject but no accompanying " +
+                    "interface or subject could be found", new FeedbackTrace(subject)));
+            }
+        });
+
+        return Feedback.getPatternInstanceFeedback(unusedFeedbacks);
+    }
+
+    /**
+     * Returns the partial patterns that are not in any complete ProxyPatternGroup.
+     *
+     * @param partial  all the partial groups for either proxy or subject.
+     * @param complete the complete groups.
+     * @param pattern  the pattern (either subject or proxy) that are in the partial list.
+     *
+     * @return a new list containing the partial patterns that were not in any of the complete
+     *     groups.
+     */
+    private List<ProxyInterfaceImplementation> getCorrectPartial(
+        List<ProxyInterfaceImplementation> partial, List<ProxyPatternGroup> complete,
+        Pattern pattern) {
+        List<ProxyInterfaceImplementation> newPartial = new ArrayList<>();
+
+        for (ProxyInterfaceImplementation partialGroup : partial) {
+            boolean isUsed = false;
+            for (ProxyPatternGroup completeGroup : complete) {
+                if (!ClassOrInterfaceAreSame(partialGroup.getInterfaceOrAClass(),
+                    completeGroup.getInterfaceOrAClass())) {
+                    // The interface is not used.
+                    continue;
+                }
+
+                if (ClassOrInterfaceAreSame(partialGroup.getInterfaceImplementor(),
+                    completeGroup.getFromPattern(pattern))) {
+                    // the pattern is also used.
+                    isUsed = true;
+                }
+            }
+
+            if (!isUsed) {
+                newPartial.add(partialGroup);
+            }
+        }
+
+        return newPartial;
+    }
+
+    /**
+     * Returns true if class a equals class b
+     *
+     * @param a the first class to check.
+     * @param b the second class to check.
+     *
+     * @return if a equals b.
+     */
+    private boolean ClassOrInterfaceAreSame(
+        ClassOrInterfaceDeclaration a, ClassOrInterfaceDeclaration b) {
+        return a.resolve().getQualifiedName().equals(b.resolve().getQualifiedName());
+    }
+
+    /**
+     * Returns wether or not the given list of ClassOrInterfaceDeclarations contains the given class
+     * or not.
+     *
+     * @param classOrInterfaceList the list to look in.
+     * @param lookFor              the class to look for.
+     *
+     * @return true if the list contains the class, false otherwise.
+     */
+    private boolean ClassOrInterfaceListContains(
+        List<ClassOrInterfaceDeclaration> classOrInterfaceList,
+        ClassOrInterfaceDeclaration lookFor) {
+
+        String qualLookFor = lookFor.resolve().getQualifiedName();
+        for (ClassOrInterfaceDeclaration classOrI : classOrInterfaceList) {
+            if (classOrI.resolve().getQualifiedName().equals(qualLookFor)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
