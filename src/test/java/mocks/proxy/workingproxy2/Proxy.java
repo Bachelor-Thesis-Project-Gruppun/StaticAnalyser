@@ -1,5 +1,8 @@
 package mocks.proxy.workingproxy2;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings(justification = "Mock")
 public class Proxy implements ProxyInterface {
 
     private Subject theSubject;

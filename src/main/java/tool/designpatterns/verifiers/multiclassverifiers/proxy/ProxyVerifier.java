@@ -58,11 +58,18 @@ public class ProxyVerifier implements IPatternGrouper {
 
         // Verify the subjects
         List<ClassOrInterfaceDeclaration> subjects = map.get(Pattern.PROXY_SUBJECT);
+        if (subjects == null) {
+            subjects = new ArrayList<>();
+        }
+
         List<PartialProxyImplementation> subjectGroups = PartialProxyVerifier.verifyImplementors(
             interfaceMethodList, subjects);
 
         // Verify the proxies
         List<ClassOrInterfaceDeclaration> proxies = map.get(Pattern.PROXY_PROXY);
+        if (proxies == null) {
+            proxies = new ArrayList<>();
+        }
         List<PartialProxyImplementation> proxyGroups = PartialProxyVerifier.verifyImplementors(
             interfaceMethodList, proxies);
 
