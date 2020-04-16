@@ -7,7 +7,7 @@
 .gradle
 /build/
 
-
+/keys/
 
 # Ignore Gradle GUI config
 
