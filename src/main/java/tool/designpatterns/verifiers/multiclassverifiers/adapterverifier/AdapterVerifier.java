@@ -253,7 +253,10 @@ public class AdapterVerifier implements IPatternGrouper {
 
             if (adaptee.isInterface()) {
                 for (FieldDeclaration field : currentClass.getFields()) {
-                    if (field.getCommonType().toString().equals(adaptee.getNameAsString())) {
+                    ResolvedReferenceTypeDeclaration fieldType =
+                        field.resolve().declaringType().asReferenceType();
+                    ResolvedReferenceTypeDeclaration adapteeType = adaptee.resolve();
+                    if (fieldType.getQualifiedName().equals(adapteeType.getQualifiedName())) {
                         boolList.add(Boolean.TRUE);
                         return boolList;
                     }
