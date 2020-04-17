@@ -15,6 +15,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
@@ -253,14 +254,17 @@ public class AdapterVerifier implements IPatternGrouper {
 
             if (adaptee.isInterface()) {
                 for (FieldDeclaration field : currentClass.getFields()) {
-                    ResolvedReferenceTypeDeclaration fieldType =
-                        field.resolve().declaringType().asReferenceType();
-                    ResolvedReferenceTypeDeclaration adapteeType = adaptee.resolve();
-                    if (fieldType.getQualifiedName().equals(adapteeType.getQualifiedName())) {
-                        boolList.add(Boolean.TRUE);
-                        return boolList;
+                    if (field.resolve().getType().isReferenceType()) {
+                        ResolvedReferenceType fieldType =
+                            field.resolve().getType().asReferenceType();
+                        ResolvedReferenceTypeDeclaration adapteeType = adaptee.resolve();
+                        if (fieldType.getQualifiedName().equals(adapteeType.getQualifiedName())) {
+                            boolList.add(Boolean.TRUE);
+                            return boolList;
+                        }
                     }
                 }
+
             } else if (methodCallExpr.getScope().get().toString().equalsIgnoreCase("super")) {
                 boolList.add(Boolean.TRUE);
                 return boolList;
