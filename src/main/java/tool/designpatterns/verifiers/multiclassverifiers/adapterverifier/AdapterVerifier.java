@@ -14,6 +14,7 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.GenericListVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 
 import tool.designpatterns.Pattern;
 import tool.designpatterns.PatternGroup;
@@ -142,15 +143,18 @@ public class AdapterVerifier implements IPatternGrouper {
     // loops are in return statements
     private Feedback verifyInterfaces(
         ClassOrInterfaceDeclaration adapter, ClassOrInterfaceDeclaration adaptee) {
+        ResolvedReferenceTypeDeclaration adapteeType = adaptee.resolve();
         for (ClassOrInterfaceType coit : adapter.getImplementedTypes()) {
+            ResolvedReferenceTypeDeclaration coitType = coit.resolve().getTypeDeclaration();
             if (adaptee.isInterface()) {
-                if (coit.getNameAsString().equalsIgnoreCase(adaptee.getNameAsString())) {
+                if (coitType.getQualifiedName().equals(adapteeType.getQualifiedName())) {
                     return Feedback.getNoChildFeedback("The adapter implements the adaptee",
                                                        new FeedbackTrace(adapter));
                 }
             } else {
                 for (ClassOrInterfaceType coi : adaptee.getImplementedTypes()) {
-                    if (coit.getNameAsString().equalsIgnoreCase(coi.getNameAsString())) {
+                    ResolvedReferenceTypeDeclaration coiType = coi.resolve().getTypeDeclaration();
+                    if (coitType.getQualifiedName().equals(coiType.getQualifiedName())) {
                         return Feedback.getNoChildFeedback(
                             "The adapter implements the same interface as the adaptee",
                             new FeedbackTrace(adapter));
