@@ -1,4 +1,4 @@
-package patternverifiers;
+package tool.designpatterns.verifiers.multiclassverifiers;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
