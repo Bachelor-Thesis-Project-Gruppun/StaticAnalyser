@@ -47,7 +47,7 @@ public class SingletonVerifier implements IPatternVerifier {
         childFeedbacks.add(onlyInstantiatedIfNull(classToVerify));
         if (!isInstantiated) {
             childFeedbacks.add(Feedback
-                .getNoChildFeedback("There is no way to instantiate the " + "class",
+                .getNoChildFeedback("There is no way to instantiate the class",
                     new FeedbackTrace(classToVerify)));
         }
         return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToVerify), childFeedbacks);
