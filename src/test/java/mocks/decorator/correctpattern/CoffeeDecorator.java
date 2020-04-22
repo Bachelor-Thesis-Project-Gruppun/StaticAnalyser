@@ -1,5 +1,9 @@
 package mocks.decorator.correctpattern;
 
+import tool.designpatterns.DesignPattern;
+import tool.designpatterns.Pattern;
+
+@DesignPattern(pattern = {Pattern.DECORATOR_ABSTRACT_DECORATOR})
 public abstract class CoffeeDecorator implements IBeverageComponent {
 
     private IBeverageComponent component;
