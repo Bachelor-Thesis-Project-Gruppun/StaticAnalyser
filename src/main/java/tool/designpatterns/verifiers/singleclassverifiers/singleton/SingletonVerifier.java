@@ -46,8 +46,9 @@ public class SingletonVerifier implements IPatternVerifier {
         }
         childFeedbacks.add(onlyInstantiatedIfNull(classToVerify));
         if (!isInstantiated) {
-            childFeedbacks.add(Feedback.getNoChildFeedback(
-                "There is no way to instantiate the " + "class", new FeedbackTrace(classToVerify)));
+            childFeedbacks.add(Feedback
+                .getNoChildFeedback("There is no way to instantiate the " + "class",
+                    new FeedbackTrace(classToVerify)));
         }
         return Feedback.getFeedbackWithChildren(new FeedbackTrace(classToVerify), childFeedbacks);
 
@@ -140,8 +141,7 @@ public class SingletonVerifier implements IPatternVerifier {
         classToTest.findAll(FieldDeclaration.class).forEach(fieldDeclaration -> {
             if (firstInstanceFound.get()) {
                 childFeedbacks.add(Feedback.getNoChildFeedback("Found multiple instance fields",
-                                                               new FeedbackTrace(
-                                                                   fieldDeclaration)));
+                    new FeedbackTrace(fieldDeclaration)));
             }
             firstInstanceFound.set(true);
         });
@@ -159,7 +159,7 @@ public class SingletonVerifier implements IPatternVerifier {
      *
      * @param classToVerify The ClassOrInterfaceDeclaration representing the java class to look at
      *
-     * @return
+     * @return something true or false. PLZ Fix.
      */
     public boolean callsConstructor(ClassOrInterfaceDeclaration classToVerify) {
         boolean instanceMethod = true;
@@ -254,7 +254,7 @@ public class SingletonVerifier implements IPatternVerifier {
             return Feedback.getSuccessfulFeedback();
         } else {
             return Feedback.getFeedbackWithChildren(new FeedbackTrace(methodToLookFor),
-                                                    childFeedbacks);
+                childFeedbacks);
         }
     }
 
@@ -271,8 +271,8 @@ public class SingletonVerifier implements IPatternVerifier {
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public Feedback onlyInstantiatedIfNull(ClassOrInterfaceDeclaration classToVerify) {
         List<Feedback> childFeedbacks = new ArrayList<>();
-        String feedbackString =
-            "Object can be instatiated even if there is another instace created";
+        String feedbackString
+            = "Object can be instatiated even if there is another instace created";
         AtomicBoolean onlyIfNull = new AtomicBoolean(true);
         classToVerify.findAll(ObjectCreationExpr.class).forEach(objInstExpr -> {
             if (objInstExpr.getTypeAsString().equals(classToVerify.getNameAsString())) {
@@ -284,17 +284,14 @@ public class SingletonVerifier implements IPatternVerifier {
                             if (checkForNull(ifStmtNode) && checkForType(ifStmtNode, instanceVar)) {
                                 if (ifStmtNode.hasElseBlock()) {
                                     ifStmtNode.getElseStmt().get().findAll(ObjectCreationExpr.class)
-                                              .forEach(objCreateExpr -> {
-                                                  if (objCreateExpr.getTypeAsString().equals(
-                                                      instanceVar.getVariable(0)
-                                                                 .getTypeAsString())) {
-                                                      childFeedbacks.add(Feedback
-                                                                             .getNoChildFeedback(
-                                                                                 feedbackString,
-                                                                                 new FeedbackTrace(
-                                                                                     objInstExpr)));
-                                                  }
-                                              });
+                                        .forEach(objCreateExpr -> {
+                                            if (objCreateExpr.getTypeAsString().equals(
+                                                instanceVar.getVariable(0).getTypeAsString())) {
+                                                childFeedbacks.add(Feedback
+                                                    .getNoChildFeedback(feedbackString,
+                                                        new FeedbackTrace(objInstExpr)));
+                                            }
+                                        });
                                 }
                                 onlyIfNull.compareAndSet(true, true);
                             } else {
