@@ -61,8 +61,9 @@ public final class ProxyFeedbackUtils {
         List<PartialProxyImplementation> partialSubjectGroups = getCorrectPartial(subjectGroups,
             proxyPatternGroups, Pattern.PROXY_SUBJECT);
 
-        Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> validInvalidTuple
-            = splitToValidInvalid(proxyPatternGroups);
+        // Split the valid groups and the invalid groups.
+        Tuple2<List<ProxyPatternGroup>, List<ProxyPatternGroup>> validInvalidTuple =
+            splitToValidInvalid(proxyPatternGroups);
         List<ProxyPatternGroup> valid = validInvalidTuple.getFirst();
         List<ProxyPatternGroup> invalid = validInvalidTuple.getSecond();
 
@@ -188,8 +189,8 @@ public final class ProxyFeedbackUtils {
             // Must compare the qualified names, otherwise there can be issues with identical
             // classes in different packages.
             String invalidProxyName = invalidGroup.getProxy().resolve().getQualifiedName();
-            String invalidInterfName = invalidGroup.getInterfaceOrAClass().resolve()
-                                                   .getQualifiedName();
+            String invalidInterfName =
+                invalidGroup.getInterfaceOrAClass().resolve().getQualifiedName();
             String invalidSubjectName = invalidGroup.getSubject().resolve().getQualifiedName();
 
             // Add the feedback if one or more of the classes aren't used in a valid PatternGroup.
@@ -199,8 +200,8 @@ public final class ProxyFeedbackUtils {
 
             for (ProxyPatternGroup validGroup : valid) {
                 String validProxyQualName = validGroup.getProxy().resolve().getQualifiedName();
-                String validInterfQualName = validGroup.getInterfaceOrAClass().resolve()
-                                                       .getQualifiedName();
+                String validInterfQualName =
+                    validGroup.getInterfaceOrAClass().resolve().getQualifiedName();
                 String validSubjectQualName = validGroup.getSubject().resolve().getQualifiedName();
 
                 if (validProxyQualName.equals(invalidProxyName)) {
@@ -359,8 +360,8 @@ public final class ProxyFeedbackUtils {
 
         subjectGroups.forEach(subjectGroup -> {
             // Add feedback about this subjectGroup.
-            String subjectName = subjectGroup.getInterfaceImplementor().resolve()
-                                             .getQualifiedName();
+            String subjectName =
+                subjectGroup.getInterfaceImplementor().resolve().getQualifiedName();
             String interfaceName = subjectGroup.getInterfaceOrAClass().resolve().getQualifiedName();
             feedbacks.add(Feedback.getPatternInstanceNoChildFeedback(
                 "No subject found for Proxy subject / Proxy interface pair '" + subjectName + "' " +
