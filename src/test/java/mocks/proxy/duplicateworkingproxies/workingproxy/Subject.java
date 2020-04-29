@@ -1,4 +1,4 @@
-package mocks.proxy.workingproxy2;
+package mocks.proxy.duplicateworkingproxies.workingproxy;
 
 import java.util.HashMap;
 import java.util.Map;
