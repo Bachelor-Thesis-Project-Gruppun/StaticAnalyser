@@ -15,7 +15,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
  */
 public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
 
-    private final ResolvedReferenceTypeDeclaration other;
+    private final ResolvedReferenceTypeDeclaration otherType;
     private final MethodDeclaration otherMethod;
 
     /**
@@ -28,7 +28,7 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
         ResolvedReferenceTypeDeclaration otherType, MethodDeclaration otherMethod) {
         super();
 
-        this.other = otherType;
+        this.otherType = otherType;
         this.otherMethod = otherMethod;
     }
 
@@ -59,10 +59,10 @@ public class MethodCallVisitor extends GenericVisitorAdapter<Boolean, Void> {
         if (optExpr.isPresent()) {
             ResolvedType resolvedVarType = optExpr.get().calculateResolvedType();
             if (resolvedVarType.isReferenceType()) {
-                ResolvedReferenceTypeDeclaration varTypeDec = resolvedVarType.asReferenceType()
-                    .getTypeDeclaration();
+                ResolvedReferenceTypeDeclaration varTypeDec =
+                    resolvedVarType.asReferenceType().getTypeDeclaration();
 
-                return varTypeDec.equals(other);
+                return varTypeDec.equals(otherType);
             }
         }
         return false;
