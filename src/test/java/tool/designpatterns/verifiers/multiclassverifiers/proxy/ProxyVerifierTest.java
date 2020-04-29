@@ -78,6 +78,13 @@ public class ProxyVerifierTest {
         assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
     }
 
+    @Test
+    void testDuplicateWorkingAndBroken(){
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = getMultiInstancePatternMap(
+            "proxy/workingandbrokenproxy");
+        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
+    }
+
     /**
      * Creates a patternGroupMap with the parts at the given path.
      *
