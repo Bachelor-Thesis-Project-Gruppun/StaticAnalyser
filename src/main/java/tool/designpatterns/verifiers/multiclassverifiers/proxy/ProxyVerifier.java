@@ -36,6 +36,12 @@ public class ProxyVerifier implements IPatternGrouper {
 
         List<Feedback> feedbacks = new ArrayList<>();
 
+        if (map == null) {
+            feedbacks.add(
+                Feedback.getPatternInstanceNoChildFeedback("No Proxy pattern annotations found"));
+            return new PatternGroupFeedback(PatternGroup.PROXY, feedbacks);
+        }
+
         // Verify the interfaces.
         List<ClassOrInterfaceDeclaration> interfaces = map.get(Pattern.PROXY_INTERFACE);
         if (interfaces == null || interfaces.isEmpty()) {

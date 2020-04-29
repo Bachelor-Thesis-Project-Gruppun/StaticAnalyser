@@ -1,4 +1,4 @@
-package mocks.proxy.workingproxy2;
+package mocks.proxy.duplicateworkingproxies.workingproxy2;
 
 public interface ProxyInterface {
 

@@ -1,14 +1,19 @@
 package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
 import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
-import static tool.designpatterns.Pattern.*;
+import static tool.designpatterns.Pattern.PROXY_INTERFACE;
+import static tool.designpatterns.Pattern.PROXY_PROXY;
+import static tool.designpatterns.Pattern.PROXY_SUBJECT;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
@@ -19,95 +24,125 @@ import utilities.TestHelper;
 public class ProxyVerifierTest {
 
     @Test
-    void testVerifyGroup() throws FileNotFoundException {
-        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = new HashMap<>();
-
-        ClassOrInterfaceDeclaration proxy = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Proxy");
-        ClassOrInterfaceDeclaration subject = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Subject");
-        ClassOrInterfaceDeclaration proxyI = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "ProxyInterface");
-
-        List<ClassOrInterfaceDeclaration> proxyList = new ArrayList<ClassOrInterfaceDeclaration>();
-        proxyList.add(proxy);
-
-        List<ClassOrInterfaceDeclaration> subjectList = new ArrayList<ClassOrInterfaceDeclaration>();
-        subjectList.add(subject);
-
-        List<ClassOrInterfaceDeclaration> proxyIList = new ArrayList<ClassOrInterfaceDeclaration>();
-        proxyIList.add(proxyI);
-
-        patternGroup.put(PROXY_PROXY, proxyList);
-        patternGroup.put(PROXY_SUBJECT, subjectList);
-        patternGroup.put(PROXY_INTERFACE, proxyIList);
-
+    void testWorkingProxy() throws FileNotFoundException {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = getPatternGroup(
+            "proxy/workingproxy");
         assertFalse(new ProxyVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
-    void testGetValidMethods() throws FileNotFoundException {
-        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = new HashMap<>();
-
-        ClassOrInterfaceDeclaration proxy = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Proxy");
-        ClassOrInterfaceDeclaration subject = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Subject");
-        ClassOrInterfaceDeclaration proxyI = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "ProxyInterface");
-
-
-        // Missing an entry of proxy interface in map
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        List<ClassOrInterfaceDeclaration> proxyIList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_INTERFACE, proxyIList);
-        proxyIList.add(proxyI);
-
-        // Missing an entry of proxy subject in map
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        List<ClassOrInterfaceDeclaration> subjectList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_SUBJECT, subjectList);
-        subjectList.add(subject);
-
-        // Missing an entry of proxy proxy in map
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        List<ClassOrInterfaceDeclaration> proxyList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_PROXY, proxyList);
-        proxyList.add(proxy);
-
+    void testDuplicateWorkingProxies() throws FileNotFoundException {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = getMultiInstancePatternMap(
+            "proxy/duplicateworkingproxies");
         assertFalse(new ProxyVerifier().verifyGroup(patternGroup).hasError());
     }
 
     @Test
-    void testMissingPatterParts() throws FileNotFoundException {
-        Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = new HashMap<>();
-
-        ClassOrInterfaceDeclaration proxy = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Proxy");
-        ClassOrInterfaceDeclaration subject = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "Subject");
-        ClassOrInterfaceDeclaration proxyI = TestHelper.getMockClassOrI(
-            "proxy/workingproxy", "ProxyInterface");
-
-        // List of proxy proxies is empty
-        List<ClassOrInterfaceDeclaration> proxyList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_PROXY, proxyList);
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        proxyList.add(proxy);
-
-        // List of proxy interfaces is empty
-        List<ClassOrInterfaceDeclaration> proxyIList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_INTERFACE, proxyIList);
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        proxyIList.add(proxyI);
-
-        // List of proxy subjects is empty
-        List<ClassOrInterfaceDeclaration> subjectList = new ArrayList<ClassOrInterfaceDeclaration>();
-        patternGroup.put(PROXY_SUBJECT, subjectList);
-        assertTrue(new ProxyVerifier().verifyGroup(patternGroup).hasError());
-        subjectList.add(subject);
-
-        assertFalse(new ProxyVerifier().verifyGroup(patternGroup).hasError());
+    void testEmptyProxies() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = new HashMap<>();
+        proxyGroup.put(PROXY_PROXY, new ArrayList<>());
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
     }
 
+    @Test
+    void testEmptySubjects() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = new HashMap<>();
+        proxyGroup.put(PROXY_SUBJECT, new ArrayList<>());
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
+    }
+
+    @Test
+    void testEmptyInterfaces() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = new HashMap<>();
+        proxyGroup.put(PROXY_INTERFACE, new ArrayList<>());
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
+    }
+
+    /**
+     * Creates a patternGroupMap with the parts at the given path.
+     *
+     * @param path the path.
+     *
+     * @return the map.
+     */
+    private Map<Pattern, List<ClassOrInterfaceDeclaration>> getPatternGroup(String path) {
+
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> map = new HashMap<>();
+
+        List<ClassOrInterfaceDeclaration> proxies = new ArrayList<>();
+        try {
+            ClassOrInterfaceDeclaration proxy = TestHelper.getMockClassOrI(path, "Proxy");
+            proxies.add(proxy);
+        } catch (FileNotFoundException error) {
+            // Ignore
+        }
+        map.put(PROXY_PROXY, proxies);
+
+        List<ClassOrInterfaceDeclaration> subjects = new ArrayList<>();
+        try {
+            ClassOrInterfaceDeclaration subject = TestHelper.getMockClassOrI(path, "Subject");
+            subjects.add(subject);
+        } catch (FileNotFoundException error) {
+            // Ignore
+        }
+        map.put(PROXY_SUBJECT, subjects);
+
+        List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
+        try {
+            ClassOrInterfaceDeclaration proxyInterface = TestHelper.getMockClassOrI(path,
+                "ProxyInterface");
+            interfaces.add(proxyInterface);
+        } catch (FileNotFoundException error) {
+            // Ignore
+        }
+        map.put(PROXY_INTERFACE, interfaces);
+
+        return map;
+    }
+
+    /**
+     * Get a map for multiple instances in subfolders in the given path.
+     *
+     * @param path the root path.
+     *
+     * @return the map
+     */
+    private Map<Pattern, List<ClassOrInterfaceDeclaration>> getMultiInstancePatternMap(
+        String path) {
+
+        File file = Paths.get(path).toFile();
+        System.out.println("FILES ::: " + file.listFiles().toString());
+        if (!file.isDirectory()) {
+            return null;
+        }
+
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> map = new HashMap<>();
+        map.put(PROXY_PROXY, new ArrayList<>());
+        map.put(PROXY_INTERFACE, new ArrayList<>());
+        map.put(PROXY_SUBJECT, new ArrayList<>());
+
+        for (File childFile : Objects.requireNonNull(file.listFiles())) {
+            if (childFile.isDirectory()) {
+                Map<Pattern, List<ClassOrInterfaceDeclaration>> subMap = getPatternGroup(
+                    childFile.getPath());
+
+                Pattern curr = PROXY_PROXY;
+                if (subMap.containsKey(curr)) {
+                    map.get(curr).addAll(subMap.get(curr));
+                }
+
+                curr = PROXY_SUBJECT;
+                if (subMap.containsKey(curr)) {
+                    map.get(curr).addAll(subMap.get(curr));
+                }
+
+                curr = PROXY_INTERFACE;
+                if (subMap.containsKey(curr)) {
+                    map.get(curr).addAll(subMap.get(curr));
+                }
+            }
+        }
+
+        return map;
+    }
 }
