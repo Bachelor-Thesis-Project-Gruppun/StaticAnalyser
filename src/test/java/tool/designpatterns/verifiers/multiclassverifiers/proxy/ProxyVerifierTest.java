@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.gradle.internal.impldep.org.junit.Assert.assertFalse;
 import static org.gradle.internal.impldep.org.junit.Assert.assertTrue;
@@ -158,7 +157,12 @@ public class ProxyVerifierTest {
         map.put(PROXY_INTERFACE, new ArrayList<>());
         map.put(PROXY_SUBJECT, new ArrayList<>());
 
-        for (File childFile : Objects.requireNonNull(file.listFiles())) {
+        File[] childFiles = file.listFiles();
+        if (childFiles == null) {
+            return map;
+        }
+
+        for (File childFile : childFiles) {
             if (childFile.isDirectory()) {
                 Map<Pattern, List<ClassOrInterfaceDeclaration>> subMap = getPatternGroup(
                     childFile.getPath(), true);

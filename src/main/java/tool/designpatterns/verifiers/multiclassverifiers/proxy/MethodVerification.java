@@ -146,7 +146,11 @@ public final class MethodVerification {
         ResolvedReferenceTypeDeclaration otherType) {
 
         Boolean result = method.accept(new MethodCallVisitor(otherType, other), null);
-        return result == null ? false : result;
+        boolean value = false;
+        if (result != null) {
+            value = result;
+        }
+        return value;
     }
 
     /**
