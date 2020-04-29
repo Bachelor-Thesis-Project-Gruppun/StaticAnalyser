@@ -145,7 +145,8 @@ public final class MethodVerification {
         MethodDeclaration method, MethodDeclaration other,
         ResolvedReferenceTypeDeclaration otherType) {
 
-        return method.accept(new MethodCallVisitor(otherType, other), null);
+        Boolean result = method.accept(new MethodCallVisitor(otherType, other), null);
+        return result == null ? false : result;
     }
 
     /**
