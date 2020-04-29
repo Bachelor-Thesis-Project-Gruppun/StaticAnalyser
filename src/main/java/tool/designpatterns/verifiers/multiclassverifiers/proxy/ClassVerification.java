@@ -39,9 +39,8 @@ public final class ClassVerification {
         List<ClassOrInterfaceDeclaration> classOrInterfaceList,
         ClassOrInterfaceDeclaration lookFor) {
 
-        String qualLookFor = lookFor.resolve().getQualifiedName();
         for (ClassOrInterfaceDeclaration classOrI : classOrInterfaceList) {
-            if (classOrI.resolve().getQualifiedName().equals(qualLookFor)) {
+            if (isSameClassOrInterfaceDeclaration(classOrI, lookFor)) {
                 return true;
             }
         }
