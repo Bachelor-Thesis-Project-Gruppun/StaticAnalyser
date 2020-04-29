@@ -67,7 +67,7 @@ public final class ProxyFeedbackUtils {
         List<ProxyPatternGroup> valid = validInvalidTuple.getFirst();
         List<ProxyPatternGroup> invalid = validInvalidTuple.getSecond();
 
-        List<Feedback> feedbacks = getInvalidFeedback(invalid, valid);
+        List<Feedback> feedbacks = getInvalidGroupsFeedbacks(invalid, valid);
 
         // Now add feedback for those classes that are still not used.
         feedbacks.add(
@@ -179,7 +179,7 @@ public final class ProxyFeedbackUtils {
      *
      * @return the feedbacks from the given ProxyPatternGroups.
      */
-    private static List<Feedback> getInvalidFeedback(
+    private static List<Feedback> getInvalidGroupsFeedbacks(
         List<ProxyPatternGroup> invalid, List<ProxyPatternGroup> valid) {
         List<Feedback> feedbacks = new ArrayList<>();
 
