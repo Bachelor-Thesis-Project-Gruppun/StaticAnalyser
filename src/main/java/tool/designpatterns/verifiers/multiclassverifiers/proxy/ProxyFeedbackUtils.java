@@ -92,12 +92,10 @@ public final class ProxyFeedbackUtils {
         List<ClassOrInterfaceDeclaration> unused = new ArrayList<>();
         for (ClassOrInterfaceDeclaration classOrI : all) {
             boolean used = false;
-            String classQualName = classOrI.resolve().getQualifiedName();
             // We cannot use .contains due to the fact that it can add the wrong class if
             // identical classes are in different packages for example.
             for (ProxyPatternGroup group : valid) {
-                String currQualName = group.getFromPattern(pattern).resolve().getQualifiedName();
-                if (classQualName.equals(currQualName)) {
+                if (isSameClassOrInterfaceDeclaration(group.getFromPattern(pattern), classOrI)) {
                     used = true;
                     break;
                 }
