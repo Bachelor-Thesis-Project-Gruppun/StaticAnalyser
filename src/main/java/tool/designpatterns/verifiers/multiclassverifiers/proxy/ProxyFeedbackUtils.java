@@ -186,10 +186,9 @@ public final class ProxyFeedbackUtils {
         for (ProxyPatternGroup invalidGroup : invalid) {
             // Must compare the qualified names, otherwise there can be issues with identical
             // classes in different packages.
-            String invalidProxyName = invalidGroup.getProxy().resolve().getQualifiedName();
-            String invalidInterfName =
-                invalidGroup.getInterfaceOrAClass().resolve().getQualifiedName();
-            String invalidSubjectName = invalidGroup.getSubject().resolve().getQualifiedName();
+            ClassOrInterfaceDeclaration proxy = invalidGroup.getProxy();
+            ClassOrInterfaceDeclaration interfaceOrAClass = invalidGroup.getInterfaceOrAClass();
+            ClassOrInterfaceDeclaration subject = invalidGroup.getSubject();
 
             // Add the feedback if one or more of the classes aren't used in a valid PatternGroup.
             boolean proxyUsed = false;
@@ -197,20 +196,13 @@ public final class ProxyFeedbackUtils {
             boolean subjectUsed = false;
 
             for (ProxyPatternGroup validGroup : valid) {
-                String validProxyQualName = validGroup.getProxy().resolve().getQualifiedName();
-                String validInterfQualName =
-                    validGroup.getInterfaceOrAClass().resolve().getQualifiedName();
-                String validSubjectQualName = validGroup.getSubject().resolve().getQualifiedName();
-
-                if (validProxyQualName.equals(invalidProxyName)) {
+                if (validGroup.usesClass(proxy)) {
                     proxyUsed = true;
                 }
-
-                if (validInterfQualName.equals(invalidInterfName)) {
+                if (validGroup.usesClass(interfaceOrAClass)) {
                     interfaceUsed = true;
                 }
-
-                if (validSubjectQualName.equals(invalidSubjectName)) {
+                if (validGroup.usesClass(subject)) {
                     subjectUsed = true;
                 }
             }

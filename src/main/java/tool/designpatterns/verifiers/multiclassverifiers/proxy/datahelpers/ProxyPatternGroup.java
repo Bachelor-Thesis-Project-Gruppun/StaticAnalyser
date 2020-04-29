@@ -3,6 +3,8 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy.datahelpers;
 import java.util.ArrayList;
 import java.util.List;
 
+import static tool.designpatterns.verifiers.multiclassverifiers.proxy.ClassVerification.isSameClassOrInterfaceDeclaration;
+
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import tool.designpatterns.Pattern;
@@ -168,5 +170,18 @@ public final class ProxyPatternGroup {
 
     public List<Feedback> getPotentialErrors() {
         return potentialErrors;
+    }
+
+    /**
+     * Checks if the given class is a part of this pattern group.
+     *
+     * @param classOrI the class or interface to check for.
+     *
+     * @return true if the class is used and false otherwise.
+     */
+    public boolean usesClass(ClassOrInterfaceDeclaration classOrI) {
+        return isSameClassOrInterfaceDeclaration(proxy, classOrI) ||
+               isSameClassOrInterfaceDeclaration(interfaceOrAClass, classOrI) ||
+               isSameClassOrInterfaceDeclaration(subject, classOrI);
     }
 }
