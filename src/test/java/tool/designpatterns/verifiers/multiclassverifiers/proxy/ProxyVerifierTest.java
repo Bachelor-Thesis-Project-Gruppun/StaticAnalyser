@@ -57,6 +57,13 @@ public class ProxyVerifierTest {
         assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
     }
 
+    @Test
+    void testNoSubjectVariableInProxy() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = getPatternGroup(
+            "proxy/proxynosubjectvariableinproxy", false);
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
+    }
+
     /**
      * Creates a patternGroupMap with the parts at the given path.
      *
