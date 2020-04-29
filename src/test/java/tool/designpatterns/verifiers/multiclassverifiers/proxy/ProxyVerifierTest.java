@@ -2,7 +2,6 @@ package tool.designpatterns.verifiers.multiclassverifiers.proxy;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +25,7 @@ public class ProxyVerifierTest {
     @Test
     void testWorkingProxy() throws FileNotFoundException {
         Map<Pattern, List<ClassOrInterfaceDeclaration>> patternGroup = getPatternGroup(
-            "proxy/workingproxy");
+            "proxy/workingproxy", false);
         assertFalse(new ProxyVerifier().verifyGroup(patternGroup).hasError());
     }
 
@@ -61,17 +60,24 @@ public class ProxyVerifierTest {
     /**
      * Creates a patternGroupMap with the parts at the given path.
      *
-     * @param path the path.
+     * @param path           the path.
+     * @param pathIsAbsolute whether the given path is an absolute path or not.
      *
      * @return the map.
      */
-    private Map<Pattern, List<ClassOrInterfaceDeclaration>> getPatternGroup(String path) {
+    private Map<Pattern, List<ClassOrInterfaceDeclaration>> getPatternGroup(
+        String path, boolean pathIsAbsolute) {
 
         Map<Pattern, List<ClassOrInterfaceDeclaration>> map = new HashMap<>();
 
         List<ClassOrInterfaceDeclaration> proxies = new ArrayList<>();
         try {
-            ClassOrInterfaceDeclaration proxy = TestHelper.getMockClassOrI(path, "Proxy");
+            ClassOrInterfaceDeclaration proxy;
+            if (pathIsAbsolute) {
+                proxy = TestHelper.getMockClassOrIAbsPath(path, "Proxy");
+            } else {
+                proxy = TestHelper.getMockClassOrI(path, "Proxy");
+            }
             proxies.add(proxy);
         } catch (FileNotFoundException error) {
             // Ignore
@@ -80,7 +86,12 @@ public class ProxyVerifierTest {
 
         List<ClassOrInterfaceDeclaration> subjects = new ArrayList<>();
         try {
-            ClassOrInterfaceDeclaration subject = TestHelper.getMockClassOrI(path, "Subject");
+            ClassOrInterfaceDeclaration subject;
+            if (pathIsAbsolute) {
+                subject = TestHelper.getMockClassOrIAbsPath(path, "Subject");
+            } else {
+                subject = TestHelper.getMockClassOrI(path, "Subject");
+            }
             subjects.add(subject);
         } catch (FileNotFoundException error) {
             // Ignore
@@ -89,12 +100,17 @@ public class ProxyVerifierTest {
 
         List<ClassOrInterfaceDeclaration> interfaces = new ArrayList<>();
         try {
-            ClassOrInterfaceDeclaration proxyInterface = TestHelper.getMockClassOrI(path,
-                "ProxyInterface");
+            ClassOrInterfaceDeclaration proxyInterface;
+            if (pathIsAbsolute) {
+                proxyInterface = TestHelper.getMockClassOrIAbsPath(path, "ProxyInterface");
+            } else {
+                proxyInterface = TestHelper.getMockClassOrI(path, "ProxyInterface");
+            }
             interfaces.add(proxyInterface);
         } catch (FileNotFoundException error) {
             // Ignore
         }
+
         map.put(PROXY_INTERFACE, interfaces);
 
         return map;
@@ -110,8 +126,8 @@ public class ProxyVerifierTest {
     private Map<Pattern, List<ClassOrInterfaceDeclaration>> getMultiInstancePatternMap(
         String path) {
 
-        File file = Paths.get(path).toFile();
-        System.out.println("FILES ::: " + file.listFiles().toString());
+        String fullPath = "src/test/java/mocks/" + path;
+        File file = new File(fullPath).getAbsoluteFile();
         if (!file.isDirectory()) {
             return null;
         }
@@ -124,7 +140,7 @@ public class ProxyVerifierTest {
         for (File childFile : Objects.requireNonNull(file.listFiles())) {
             if (childFile.isDirectory()) {
                 Map<Pattern, List<ClassOrInterfaceDeclaration>> subMap = getPatternGroup(
-                    childFile.getPath());
+                    childFile.getPath(), true);
 
                 Pattern curr = PROXY_PROXY;
                 if (subMap.containsKey(curr)) {
