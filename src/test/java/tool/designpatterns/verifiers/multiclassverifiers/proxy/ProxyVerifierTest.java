@@ -64,6 +64,20 @@ public class ProxyVerifierTest {
         assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
     }
 
+    @Test
+    void testProxyNoImplementInterface() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = getPatternGroup(
+            "proxy/proxynoimplementinterface", false);
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
+    }
+
+    @Test
+    void testSubjectNoImplementProxyInterface() {
+        Map<Pattern, List<ClassOrInterfaceDeclaration>> proxyGroup = getPatternGroup(
+            "proxy/subjectnoimplementproxyinterface", false);
+        assertTrue(new ProxyVerifier().verifyGroup(proxyGroup).hasError());
+    }
+
     /**
      * Creates a patternGroupMap with the parts at the given path.
      *
