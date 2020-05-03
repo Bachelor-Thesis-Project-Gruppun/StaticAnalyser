@@ -6,15 +6,15 @@ plugins {
     id "de.marcphilipp.nexus-publish" version '0.2.0'
 }
 
-group 'com.github.bachelor-thesis-project-gruppun'
-version '1.1'
+// group 'com.github.bachelor-thesis-project-gruppun'
+// version '1.1'
 
 sourceCompatibility = 11
 targetCompatibility = 11
 
-project.version = "1.2.0.1"
-project.group = "com.github.bachelor-thesis-project-gruppun"
-project.description = "A static design pattern analyser tool."
+//project.version = "1.2.0.1"
+//project.group = "com.github.bachelor-thesis-project-gruppun"
+//project.description = "A static design pattern analyser tool."
 
 repositories {
     mavenCentral()
@@ -138,15 +138,14 @@ signing {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-//            customizePom(pom)
             groupId = 'com.github.bachelor-thesis-project-gruppun'
             artifactId = 'staticanalyser'
-            version = '1.0.1'
-            from components.java
+            version = '1.3.0.0'
+            from gradlePlugin
 
             pom {
-
                 name = "Staticanalyser"
+                description = "A static design pattern verification plugin."
                 url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/"
                 organization {
                     name = 'com.github.bachelor-thesis-project-gruppun'
@@ -202,56 +201,10 @@ publishing {
                 }
             }
 
-            // create the sign pom artifact
-            /*
-            pom.withXml {
-                def pomFile = file("${project.buildDir}/generated-pom.xml")
-                writeTo(pomFile)
-                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                artifact(pomAscFile) {
-                    classifier = null
-                    extension = 'pom.asc'
-                }
-            }
-
-            artifact(sourceJar) {
-                classifier = 'sources'
-            }
-            artifact(javadocJar) {
-                classifier = 'javadoc'
-            }
-             */
-
             artifact sourceJar
             artifact javadocJar
-
-            /*
-
-            // create the signed artifacts
-            project.tasks.signArchives.signatureFiles.each {
-                artifact(it) {
-                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                    if (matcher.find()) {
-                        classifier = matcher.group(1)
-                    } else {
-                        classifier = null
-                    }
-                    extension = 'jar.asc'
-                }
-            }*/
         }
     }
-/*
-    repositories {
-        maven {
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username sonatypeUsername
-                password sonatypePassword
-            }
-        }
-    }
-    */
 }
 
 nexusPublishing {
@@ -259,89 +212,3 @@ nexusPublishing {
     username = sonatypeUsername
     password = sonatypePassword
 }
-
-def customizePom(pom) {
-    pom.withXml {
-        def root = asNode()
-
-        // eliminate test -scoped dependencies(no need in maven central POMs)
-        root.dependencies.removeAll { dep ->
-            dep.scope == "test"
-        }
-
-// add all items necessary for maven central publication
-        root.children().last() + {
-            resolveStrategy = Closure.DELEGATE_FIRST
-
-            description "A design pattern verification tool"
-            name "Staticanalyser"
-            url "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/"
-            organization {
-                name 'com.github.bachelor-thesis-project-gruppun'
-                url 'https://github.com/Bachelor-Thesis-Project-Gruppun'
-            }
-            issueManagement {
-                system 'GitHub'
-                url 'https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/issues'
-            }
-            licenses {
-                license {
-                    name = "MIT License"
-                    url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/blob/develop/LICENSE"
-                    distribution = "repo"
-                }
-            }
-            scm {
-                connection = "scm:git:git@github.com:Bachelor-Thesis-Project-Gruppun/StaticAnalyser.git"
-                developerConnection = "scm:git:ssh@github.com:Bachelor-Thesis-Project-Gruppun/StaticAnalyser.git"
-                url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser"
-            }
-            developers {
-                developer {
-                    id = "ViddeM"
-                    name = "Vidar Magnusson"
-                    email = "maven-central@vidarmagnusson.com"
-                }
-                developer {
-                    id = "Jhogne"
-                    name = "Jonas Högne"
-                    email = "jonas.hogne@gmail.com"
-                }
-                developer {
-                    id = "erclp"
-                    name = "Eric Carlsson"
-                    email = "cirecirecire3@gmail.com"
-                }
-                developer {
-                    id = "lir108"
-                    name = "Li Rönning"
-                    email = ""
-                }
-                developer {
-                    id = "darkarca"
-                    name = "Erik Gunnarsson"
-                    email = ""
-                }
-                developer {
-                    id = "mvacante"
-                    name = "Marcel Vacante"
-                    email = "vacante@student.chalmers.se"
-                }
-            }
-        }
-    }
-}
-
-/*
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenJavaPublicationToMavenRepository {
-        dependsOn project.tasks.signArchives
-    }
-}
- */
