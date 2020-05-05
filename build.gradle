@@ -136,7 +136,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId = 'com.github.bachelor-thesis-project-gruppun'
             artifactId = 'staticanalyser'
-            version = '1.3.0.3'
+            version = '1.3.0.5'
             from components.java
 
             pom {
@@ -208,3 +208,4 @@ nexusPublishing {
     username = sonatypeUsername
     password = sonatypePassword
 }
+
