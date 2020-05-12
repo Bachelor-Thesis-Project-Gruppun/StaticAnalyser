@@ -115,8 +115,7 @@ public class SingletonVerifier implements IPatternVerifier {
             }
             if (!isStatic) {
                 childFeedbacks.add(Feedback.getNoChildFeedback(
-                    "Non-static field found in " + "class, this field should " +
-                    "never be initializeable so " + "it may never be used",
+                    "Field should be static",
                     new FeedbackTrace(field)));
             }
             instanceVar = field;
