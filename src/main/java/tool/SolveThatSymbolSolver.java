@@ -34,10 +34,8 @@ public final class SolveThatSymbolSolver {
     // Catch errors that I don't quite know what to do with. Used for debugging purposes mostly.
     public static ParserConfiguration getConfig(String rootDir) {
 
-        File lookForTypes = new File("src");
         CombinedTypeSolver typeSolver = new CombinedTypeSolver(
-            new JavaParserTypeSolver(lookForTypes), new ReflectionTypeSolver(),
-            new JavaParserTypeSolver(new File("src/test/java")));
+            new JavaParserTypeSolver(rootDir), new ReflectionTypeSolver());
 
         List<File> packageRoots = null;
         try {
@@ -106,7 +104,7 @@ public final class SolveThatSymbolSolver {
     }
 
     private static File getPackageRootNode(String pkg, File base) {
-        int numFolders = pkg.isEmpty() ? 0 : getCharOccurances(pkg, '.') + 2;
+        int numFolders = pkg.isEmpty() ? 1 : getCharOccurances(pkg, '.') + 2;
 
         File node = base;
         while (numFolders > 0) {
