@@ -56,9 +56,51 @@ public class TestHelper {
      *
      * @exception FileNotFoundException in case the file could not be found.
      */
-    public static ClassOrInterfaceDeclaration getMockClassOrI(String pattern, String className)
-        throws FileNotFoundException {
+    public static ClassOrInterfaceDeclaration getMockClassOrI(
+        String pattern, String className) throws FileNotFoundException {
         CompilationUnit compUnit = getMockCompUnit(pattern, className);
+
+        ClassOrInterfaceDeclaration classOrIToReturn = null;
+        for (ClassOrInterfaceDeclaration classOrI : compUnit.findAll(
+            ClassOrInterfaceDeclaration.class)) {
+            if (classOrI.getNameAsString().equals(className)) {
+                classOrIToReturn = classOrI;
+            }
+        }
+        return classOrIToReturn;
+    }
+
+    /**
+     * returns the 'File' for the mock file given a path.
+     *
+     * @param path      the absolute path to the parent folder.
+     * @param className the name of the mock class to load.
+     *
+     * @return the ClassOrInterfaceDeclaration of the class.
+     *
+     * @exception FileNotFoundException in case the file could not be found.
+     */
+    public static CompilationUnit getMockCompUnitAbsPath(String path, String className)
+        throws FileNotFoundException {
+        String fullPath = path + "/" + className + ".java";
+        File file = new File(fullPath);
+        SolveThatSymbolSolver.getConfig("src");
+        return StaticJavaParser.parse(file);
+    }
+
+    /**
+     * returns the Class given a path to a file with the same name.
+     *
+     * @param path      the absolute path to the parent folder of the class.
+     * @param className the name of the mock class to load.
+     *
+     * @return the ClassOrInterfaceDeclaration of the class.
+     *
+     * @exception FileNotFoundException in case the file could not be found.
+     */
+    public static ClassOrInterfaceDeclaration getMockClassOrIAbsPath(
+        String path, String className) throws FileNotFoundException {
+        CompilationUnit compUnit = getMockCompUnitAbsPath(path, className);
 
         ClassOrInterfaceDeclaration classOrIToReturn = null;
         for (ClassOrInterfaceDeclaration classOrI : compUnit.findAll(

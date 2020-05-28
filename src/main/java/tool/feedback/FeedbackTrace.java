@@ -97,7 +97,7 @@ public final class FeedbackTrace {
      */
     public FeedbackTrace(FieldDeclaration field) {
         StringBuilder msg = new StringBuilder(getStringStart(field));
-        msg.append(" in the field declerations for variables: ");
+        msg.append(" in the field declarations for variables: ");
         boolean comma = false;
         for (VariableDeclarator variable : field.getVariables()) {
             if (comma) {
