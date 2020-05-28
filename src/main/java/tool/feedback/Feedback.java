@@ -85,6 +85,8 @@ public final class Feedback {
      * @param children the feedbacks of each of the verification classes. For single-class patterns
      *                 this list will only contain 1 element. For multi-class patterns this will
      *                 contain multiple.
+     *
+     * @return a feedback that just has children, is an error if any of the children is an error.
      */
     public static Feedback getPatternInstanceFeedback(List<Feedback> children) {
         return new Feedback(false, "", null, children);

@@ -3,17 +3,13 @@ plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
     id "com.github.spotbugs" version "3.0.0"
+    id "de.marcphilipp.nexus-publish" version '0.2.0'
 }
-
-group 'com.github.gruppun'
-version '1.1'
 
 sourceCompatibility = 11
 targetCompatibility = 11
 
-project.version = "1.1"
-project.group = "com.github.gruppun"
-project.description = "A static design pattern analyser tool."
+project.group = "com.github.bachelor-thesis-project-gruppun"
 
 repositories {
     mavenCentral()
@@ -24,6 +20,8 @@ apply plugin: "pmd"
 apply plugin: 'checkstyle'
 apply plugin: "application"
 apply plugin: "jacoco"
+apply plugin: "maven-publish"
+apply plugin: 'signing'
 
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
@@ -52,7 +50,6 @@ tasks.withType(Pmd) {
         html.enabled = true
     }
 }
-
 pmd {
     toolVersion '6.21.0'
     ignoreFailures = false
@@ -82,9 +79,11 @@ checkstyle {
 //    configFile file("config/checkstyle/checkstyle.xml")
     maxWarnings 0
 }
+
 checkstyleMain {
     source = 'src/main'
 }
+
 tasks.withType(Checkstyle) {
     reports {
         xml.enabled = false
@@ -102,12 +101,31 @@ test {
     }
 }
 
-// Custom gradle plugin START
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier "javadoc"
+//    from javadoc.destinationDir
+    from javadoc
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+signing {
+    sign(publishing.publications)
+}
 
 gradlePlugin {
     plugins {
         staticAnalyser {
-            id = "StaticAnalyser"
+            id = "JADE-PVT"
             implementationClass = "plugin.AnalyserPlugin"
         }
     }
@@ -115,13 +133,80 @@ gradlePlugin {
 
 publishing {
     publications {
-        pluginPublication(MavenPublication) {
+        mavenJava(MavenPublication) {
+            groupId = 'com.github.bachelor-thesis-project-gruppun'
+            artifactId = 'jade-pvt'
+//            version = '1.3.0.0' from gradlePlugin
+            version = '1.3.0.5'
             from components.java
-            groupId project.group
-            artifactId "staticanalyser"
-            version project.version
+
+            pom {
+                name = "JADE-PVT"
+                description = "A static design pattern verification plugin."
+                url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/"
+                organization {
+                    name = 'com.github.bachelor-thesis-project-gruppun'
+                    url = 'https://github.com/Bachelor-Thesis-Project-Gruppun'
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = 'https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/issues'
+                }
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser/blob/develop/LICENSE"
+                        distribution = "repo"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git@github.com:Bachelor-Thesis-Project-Gruppun/StaticAnalyser.git"
+                    developerConnection = "scm:git:ssh@github.com:Bachelor-Thesis-Project-Gruppun/StaticAnalyser.git"
+                    url = "https://github.com/Bachelor-Thesis-Project-Gruppun/StaticAnalyser"
+                }
+                developers {
+                    developer {
+                        id = "ViddeM"
+                        name = "Vidar Magnusson"
+                        email = "maven-central@vidarmagnusson.com"
+                    }
+                    developer {
+                        id = "Jhogne"
+                        name = "Jonas Högne"
+                        email = "jonas.hogne@gmail.com"
+                    }
+                    developer {
+                        id = "erclp"
+                        name = "Eric Carlsson"
+                        email = "cirecirecire3@gmail.com"
+                    }
+                    developer {
+                        id = "lir108"
+                        name = "Li Rönning"
+                        email = ""
+                    }
+                    developer {
+                        id = "darkarca"
+                        name = "Erik Gunnarsson"
+                        email = ""
+                    }
+                    developer {
+                        id = "mvacante"
+                        name = "Marcel Vacante"
+                        email = "vacante@student.chalmers.se"
+                    }
+                }
+            }
+
+            artifact sourceJar
+            artifact javadocJar
         }
     }
 }
 
-// Custom gradle plugin END
+nexusPublishing {
+    packageGroup = 'com.github.bachelor-thesis-project-gruppun'
+    username = sonatypeUsername
+    password = sonatypePassword
+}
+
